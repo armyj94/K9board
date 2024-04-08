@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">K9board</string>
+
+
+    <!-- Main Activity strings -->
+    <string name="title_activity_main_compose">MainActivityCompose</string>
+    <string name="main_activity_languages">Languages</string>
+    <string name="main_activity_enable_keyboard">Enable Keyboard</string>
+    <string name="main_activity_change_keyboard">Change Keyboard</string>
+    <string name="main_activity_privacy_policy">Privacy policy</string>
+    <string name="main_activity_tutorial">Tutorial</string>
+    <string name="main_activity_settings">Settings</string>
+
+</resources>
