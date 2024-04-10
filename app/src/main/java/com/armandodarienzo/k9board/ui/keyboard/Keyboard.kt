@@ -140,119 +140,6 @@ fun CustomKeyboard(
                 }
             }
 
-            /*First special column*/
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    KeyboardKey(
-                        id = 102,
-                        text = "123",
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        modifier = Modifier
-                            .weight(1f)
-                    )
-                }
-                Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    KeyboardKey(
-                        id = 104,
-                        text = "emojis",
-                        iconID = R.drawable.ic_insert_emoticon_white_18dp,
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable {
-                                if (keyboardView == KeyboardCurrentView.EMOJI_VIEW)
-                                    keyboardView = KeyboardCurrentView.TEXT_VIEW
-                                else
-                                    keyboardView = KeyboardCurrentView.EMOJI_VIEW
-                            }
-//                                    .aspectRatio(1f, false)
-
-                    )
-                }
-                Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    KeyboardKey(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable {
-                                Log.d(
-                                    object {}::class.java.enclosingMethod?.name,
-                                    "shiftKeyTimer(START) = $shiftKeyTimer"
-                                )
-                                Log.d(
-                                    object {}::class.java.enclosingMethod?.name,
-                                    "caps(START) = $caps"
-                                )
-
-                                if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
-                                    shiftKeyTimer = System.currentTimeMillis()
-                                }
-
-                                val nowInMillis = System.currentTimeMillis()
-
-                                caps?.value =
-                                    if (nowInMillis - shiftKeyTimer < 500L && caps?.value == KeyboardCapsStatus.UPPER_CASE) {
-                                        KeyboardCapsStatus.CAPS_LOCK
-                                    } else if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
-                                        KeyboardCapsStatus.UPPER_CASE
-                                    } else {
-                                        KeyboardCapsStatus.LOWER_CASE
-                                    }
-
-                                Log.d(
-                                    object {}::class.java.enclosingMethod?.name,
-                                    "shiftKeyTimer(END) = $shiftKeyTimer"
-                                )
-                                Log.d(
-                                    object {}::class.java.enclosingMethod?.name,
-                                    "caps(END) = $caps"
-                                )
-                            },
-                        id = 106,
-                        text = "shift",
-                        iconID =
-                        when (caps?.value) {
-                            KeyboardCapsStatus.UPPER_CASE -> R.drawable.ic_system_filled_shift_24px
-                            KeyboardCapsStatus.CAPS_LOCK -> R.drawable.ic_system_filled_permanent_shift_24px
-                            else -> R.drawable.ic_keyboard_capslock_white_18dp
-                        },
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                    )
-                }
-                Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    KeyboardKey(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable {
-                                collapsed = !collapsed
-                            },
-                        id = 108,
-                        text = "Change size",
-                        iconID =
-                        if (collapsed) R.drawable.unfold_less_fill0_wght400_grad0_opsz48
-                        else R.drawable.expand_content_fill0_wght400_grad0_opsz48,
-                        iconAngle =
-                        if (collapsed) 45f
-                        else 0f,
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                    )
-                }
-            }
-
             Column(
                 modifier = Modifier.weight(3f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -369,7 +256,22 @@ fun CustomKeyboard(
                     ) {
                         KeyboardKey(
                             modifier = Modifier
-                                .weight(3f)
+                                .weight(1f)
+                                .clickable {
+                                    service?.swapClick()
+                                    Log.d(
+                                        object {}::class.java.enclosingMethod?.name,
+                                        "isManual = $isManual"
+                                    )
+                                },
+                            id = 107,
+                            text = "sync",
+                            iconID = if (isManual?.value == true) R.drawable.ic_baseline_edit_note_24 else R.drawable.ic_sync_white_12dp,
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                        )
+                        KeyboardKey(
+                            modifier = Modifier
+                                .weight(1f)
                                 .combinedClickable(
                                     onClick = {
                                         service?.spaceClick()
@@ -378,6 +280,53 @@ fun CustomKeyboard(
                             id = 3000,
                             text = "",
                             ratio = 3.3f
+                        )
+                        KeyboardKey(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable {
+                                    Log.d(
+                                        object {}::class.java.enclosingMethod?.name,
+                                        "shiftKeyTimer(START) = $shiftKeyTimer"
+                                    )
+                                    Log.d(
+                                        object {}::class.java.enclosingMethod?.name,
+                                        "caps(START) = $caps"
+                                    )
+
+                                    if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
+                                        shiftKeyTimer = System.currentTimeMillis()
+                                    }
+
+                                    val nowInMillis = System.currentTimeMillis()
+
+                                    caps?.value =
+                                        if (nowInMillis - shiftKeyTimer < 500L && caps?.value == KeyboardCapsStatus.UPPER_CASE) {
+                                            KeyboardCapsStatus.CAPS_LOCK
+                                        } else if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
+                                            KeyboardCapsStatus.UPPER_CASE
+                                        } else {
+                                            KeyboardCapsStatus.LOWER_CASE
+                                        }
+
+                                    Log.d(
+                                        object {}::class.java.enclosingMethod?.name,
+                                        "shiftKeyTimer(END) = $shiftKeyTimer"
+                                    )
+                                    Log.d(
+                                        object {}::class.java.enclosingMethod?.name,
+                                        "caps(END) = $caps"
+                                    )
+                                },
+                            id = 106,
+                            text = "shift",
+                            iconID =
+                            when (caps?.value) {
+                                KeyboardCapsStatus.UPPER_CASE -> R.drawable.ic_system_filled_shift_24px
+                                KeyboardCapsStatus.CAPS_LOCK -> R.drawable.ic_system_filled_permanent_shift_24px
+                                else -> R.drawable.ic_keyboard_capslock_white_18dp
+                            },
+                            color = MaterialTheme.colorScheme.secondaryContainer,
                         )
 
                     }
@@ -438,6 +387,7 @@ fun CustomKeyboard(
                             MaterialTheme.colorScheme.inverseOnSurface,
 
                         )
+
                 }
                 Row(
                     modifier = Modifier.padding(start = 2.dp, end = 2.dp),
@@ -467,19 +417,11 @@ fun CustomKeyboard(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
+                        id = 102,
+                        text = "123",
+                        color = MaterialTheme.colorScheme.secondaryContainer,
                         modifier = Modifier
                             .weight(1f)
-                            .clickable {
-                                service?.swapClick()
-                                Log.d(
-                                    object {}::class.java.enclosingMethod?.name,
-                                    "isManual = $isManual"
-                                )
-                            },
-                        id = 107,
-                        text = "sync",
-                        iconID = if (isManual?.value == true) R.drawable.ic_baseline_edit_note_24 else R.drawable.ic_sync_white_12dp,
-                        color = MaterialTheme.colorScheme.secondaryContainer,
                     )
                 }
                 Row(
@@ -487,12 +429,20 @@ fun CustomKeyboard(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
-                        modifier = Modifier
-                            .weight(1f),
-                        id = 109,
-                        text = "canc",
-                        iconID = R.drawable.ic_baseline_select_all_24,
+                        id = 104,
+                        text = "emojis",
+                        iconID = R.drawable.ic_insert_emoticon_white_18dp,
                         color = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable {
+                                if (keyboardView == KeyboardCurrentView.EMOJI_VIEW)
+                                    keyboardView = KeyboardCurrentView.TEXT_VIEW
+                                else
+                                    keyboardView = KeyboardCurrentView.EMOJI_VIEW
+                            }
+//                                    .aspectRatio(1f, false)
+
                     )
                 }
             }
