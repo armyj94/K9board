@@ -1,5 +1,6 @@
 package com.armandodarienzo.k9board.ui.keyboard
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.AbstractComposeView
@@ -9,26 +10,56 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.armandodarienzo.k9board.shared.Key9Service
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_HAPTIC_FEEDBACK
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
-import com.armandodarienzo.k9board.dataStore
+
+import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_THEME
+import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepositoryLocal
+import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.armandodarienzo.k9board.ui.theme.T9KeyboardTheme
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 
-class ComposeKeyboardView(var service: Key9Service, private var backgroundColorId: Int) : AbstractComposeView(service) {
+class ComposeKeyboardView(
+    var service: Key9Service,
+    private var backgroundColorId: Int,
+) : AbstractComposeView(service) {
 
     @Composable
     override fun Content() {
+
+        //val preferencesViewModel = hiltViewModel<PreferencesViewModel>()
+        val userPreferencesRepository = UserPreferencesRepositoryLocal(context.dataStore)
+
         var context = LocalContext.current
-        val languageSetKey = stringPreferencesKey(SHARED_PREFS_SET_LANGUAGE)
-        var languageSetState = flow{
-            context.dataStore.data.map {
-                it[languageSetKey]
-            }.collect(collector = {
-                if (it!=null){
-                    this.emit(it)
-                }
-            })
-        }.collectAsState(initial = "us-US")
+
+        val languageSet = runBlocking{
+            var value = ""
+            userPreferencesRepository.getLanguage().map {
+                value = it
+            }
+            value
+        }
+
+
+        val themeSet = runBlocking{
+            var value = ""
+            userPreferencesRepository.getTheme().map {
+                value = it
+            }
+            value
+        }
+
+
+//        val theme = remember {
+//            when (themeSetState.value) {
+//                "A" -> { AComposable }
+//                "B" -> { BComposable }
+//                else -> { DefaultComposable }
+//            }
+//        }
+//        composable()
+
+
 
         val hapticFeedbackKey = booleanPreferencesKey(SHARED_PREFS_HAPTIC_FEEDBACK)
         var hapticFeedback = flow {
@@ -41,9 +72,10 @@ class ComposeKeyboardView(var service: Key9Service, private var backgroundColorI
             })
         }.collectAsState(initial = false)
 
-        T9KeyboardTheme() {
-            CustomKeyboard(backGroundColorId = backgroundColorId, service = service, languageSetState = languageSetState, hapticFeedback = hapticFeedback)
+        T9KeyboardTheme(themePreference = themeSet) {
+            CustomKeyboard(backGroundColorId = backgroundColorId, service = service, languageSet = languageSet, hapticFeedback = hapticFeedback)
         }
 
     }
+
 }

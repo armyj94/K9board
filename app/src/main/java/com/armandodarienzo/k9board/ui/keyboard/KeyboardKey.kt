@@ -3,6 +3,7 @@ package com.armandodarienzo.wear.utility.KeyOboard.ui.components
 import android.view.MotionEvent
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -61,7 +62,7 @@ fun KeyboardKey(
         contentAlignment = Alignment.Center,
         modifier = Modifier
 //            .clip(RoundedCornerShape(30.dp))
-            .height(60.dp)
+            .fillMaxHeight()
 //            .clip(CircleShape)
 //            .aspectRatio(ratio, true)
 //            .background(color)

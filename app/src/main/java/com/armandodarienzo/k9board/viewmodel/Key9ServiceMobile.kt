@@ -4,10 +4,10 @@ import android.content.res.Configuration
 import android.os.Build
 import android.view.View
 import androidx.annotation.RequiresApi
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewTreeLifecycleOwner
 import androidx.lifecycle.ViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+
 import com.armandodarienzo.k9board.shared.Key9Service
 import com.armandodarienzo.k9board.ui.keyboard.ComposeKeyboardView
 
@@ -26,6 +26,7 @@ class Key9ServiceMobile: Key9Service() {
             Configuration.UI_MODE_NIGHT_YES -> android.R.color.system_neutral1_900
             else -> android.R.color.system_neutral2_50
         }
+
 
         view = ComposeKeyboardView(this, backgroundColorId)
 

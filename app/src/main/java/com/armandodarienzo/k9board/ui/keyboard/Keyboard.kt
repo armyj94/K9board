@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.flow
 fun CustomKeyboardPreview() {
     CustomKeyboard(
         backGroundColorId = android.R.color.system_accent1_50,
-        languageSetState = flow<String>{}.collectAsState(initial = "us-US"),
+        languageSet = "us-US",
         hapticFeedback = flow<Boolean>{}.collectAsState(initial = false))
 }
 
@@ -35,7 +35,7 @@ fun CustomKeyboardPreview() {
 @Composable
 fun CustomKeyboardPreviewRU() {
     CustomKeyboard(backGroundColorId = android.R.color.system_accent1_50,
-        languageSetState = flow<String>{}.collectAsState(initial = "ru-RU"),
+        languageSet = "ru-RU",
         hapticFeedback = flow<Boolean>{}.collectAsState(initial = false))
 }
 
@@ -46,11 +46,10 @@ fun CustomKeyboard(
     modifier: Modifier = Modifier,
     service: Key9Service? = null,
     backGroundColorId: Int,
-    languageSetState: State<String>,
+    languageSet: String,
     hapticFeedback: State<Boolean>,
 ) {
     val TAG = object {}::class.java.enclosingMethod?.name
-    val scope = rememberCoroutineScope()
 
     val backgroundColor: Color = colorResource(backGroundColorId)
     var reverseLayout by remember { mutableStateOf(false) }
@@ -62,42 +61,42 @@ fun CustomKeyboard(
     val isManual = service?.isManual
     var shiftKeyTimer by remember { mutableStateOf(0L) }
 
-    val key2text = when(languageSetState.value){
+    val key2text = when(languageSet){
         "ru-RU" -> "абвг"
         else -> KEY2_TEXT_LATIN
     }
 
-    val key3text = when(languageSetState.value){
+    val key3text = when(languageSet){
         "ru-RU" -> "дежз"
         else -> KEY3_TEXT_LATIN
     }
 
-    val key4text = when(languageSetState.value){
+    val key4text = when(languageSet){
         "ru-RU" -> "ийкл"
         else -> KEY4_TEXT_LATIN
     }
 
-    val key5text = when(languageSetState.value){
+    val key5text = when(languageSet){
         "ru-RU" -> "мноп"
         else -> KEY5_TEXT_LATIN
     }
 
-    val key6text = when(languageSetState.value){
+    val key6text = when(languageSet){
         "ru-RU" -> "рсту"
         else -> KEY6_TEXT_LATIN
     }
 
-    val key7text = when(languageSetState.value){
+    val key7text = when(languageSet){
         "ru-RU" -> "фхцч"
         else -> KEY7_TEXT_LATIN
     }
 
-    val key8text = when(languageSetState.value){
+    val key8text = when(languageSet){
         "ru-RU" -> "шщъы"
         else -> KEY8_TEXT_LATIN
     }
 
-    val key9text = when(languageSetState.value){
+    val key9text = when(languageSet){
         "ru-RU" -> "ьэюя"
         else -> KEY9_TEXT_LATIN
     }
@@ -278,7 +277,7 @@ fun CustomKeyboard(
                                     }
                                 ),
                             id = 3000,
-                            text = "",
+                            text = "⎵",
                             ratio = 3.3f
                         )
                         KeyboardKey(

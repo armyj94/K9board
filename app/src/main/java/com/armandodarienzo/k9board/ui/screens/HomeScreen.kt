@@ -16,8 +16,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
-import com.armandodarienzo.k9board.dataStore
+
 import com.armandodarienzo.k9board.model.MainMenuItem
+import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.armandodarienzo.k9board.ui.navigation.Screens
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map

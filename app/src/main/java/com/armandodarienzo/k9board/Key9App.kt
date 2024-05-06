@@ -6,10 +6,12 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import com.armandodarienzo.k9board.shared.USER_PREFERENCES_NAME
+
 import com.google.android.material.color.DynamicColors
+import dagger.hilt.android.HiltAndroidApp
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_prefs")
-
+@HiltAndroidApp
 class Key9App: Application() {
 
     override fun onCreate() {

@@ -16,7 +16,8 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.navigation.NavController
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
-import com.armandodarienzo.k9board.dataStore
+import com.armandodarienzo.k9board.shared.repository.dataStore
+
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
