@@ -19,6 +19,7 @@ import com.armandodarienzo.wear.utility.KeyOboard.ui.components.KeyboardTextKey
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.KeyboardCurrentView
 import com.armandodarienzo.k9board.shared.*
+import com.armandodarienzo.k9board.shared.model.KeyboardSize
 import com.armandodarienzo.k9board.ui.ReverseArrangement
 import kotlinx.coroutines.flow.flow
 
@@ -28,7 +29,8 @@ fun CustomKeyboardPreview() {
     CustomKeyboard(
         backGroundColorId = android.R.color.system_accent1_50,
         languageSet = "us-US",
-        hapticFeedback = flow<Boolean>{}.collectAsState(initial = false))
+        keyboardSize = KeyboardSize.MEDIUM,
+        hapticFeedback = false)
 }
 
 @Preview
@@ -36,7 +38,8 @@ fun CustomKeyboardPreview() {
 fun CustomKeyboardPreviewRU() {
     CustomKeyboard(backGroundColorId = android.R.color.system_accent1_50,
         languageSet = "ru-RU",
-        hapticFeedback = flow<Boolean>{}.collectAsState(initial = false))
+        keyboardSize = KeyboardSize.MEDIUM,
+        hapticFeedback = false)
 }
 
 
@@ -47,7 +50,8 @@ fun CustomKeyboard(
     service: Key9Service? = null,
     backGroundColorId: Int,
     languageSet: String,
-    hapticFeedback: State<Boolean>,
+    keyboardSize: KeyboardSize,
+    hapticFeedback: Boolean,
 ) {
     val TAG = object {}::class.java.enclosingMethod?.name
 
@@ -112,7 +116,9 @@ fun CustomKeyboard(
     ){
 
         Row(
-            Modifier.padding(top = 4.dp, bottom = 4.dp),
+            Modifier
+                .padding(top = 4.dp, bottom = 4.dp)
+                .height(keyboardSize.value.dp),
             horizontalArrangement =
                 if(reverseLayout){
                     ReverseArrangement
@@ -146,7 +152,7 @@ fun CustomKeyboard(
                 if (keyboardView == KeyboardCurrentView.TEXT_VIEW) {
                     /*First row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
 
@@ -180,7 +186,7 @@ fun CustomKeyboard(
 
                     /*Second row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         KeyboardTextKey(
@@ -215,7 +221,7 @@ fun CustomKeyboard(
 
                     /*Third row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         KeyboardTextKey(
@@ -250,7 +256,7 @@ fun CustomKeyboard(
 
                     /*4th row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         KeyboardKey(
@@ -332,26 +338,19 @@ fun CustomKeyboard(
                 } else if (keyboardView == KeyboardCurrentView.EMOJI_VIEW) {
                     Row(
                         modifier = Modifier
-                            .padding(start = 2.dp, end = 2.dp),
+                            .padding(start = 2.dp, end = 2.dp)
+                            .weight(4f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
-//            .clip(RoundedCornerShape(30.dp))
-//                                .fillMaxWidth()
                                 .fillMaxWidth()
-                                .padding(top = if (!collapsed) 4.dp else 0.dp)
-//                                .weight(1f)
-                                .height(230.dp)
-                                .aspectRatio(0.739f, false)
-//            .background(color)
+                                .fillMaxHeight()
                                 .then(modifier)
                         ){
                             EmojiPicker(service)
                         }
-
-
 
                     }
 
@@ -365,7 +364,7 @@ fun CustomKeyboard(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
@@ -389,7 +388,7 @@ fun CustomKeyboard(
 
                 }
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardRepeatableKey(
@@ -412,7 +411,7 @@ fun CustomKeyboard(
                     )
                 }
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
@@ -424,7 +423,7 @@ fun CustomKeyboard(
                     )
                 }
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(

@@ -65,7 +65,6 @@ fun KeyboardKey(
             .fillMaxHeight()
 //            .clip(CircleShape)
 //            .aspectRatio(ratio, true)
-//            .background(color)
             .clip(RoundedCornerShape(10))
             .background(color)
             .then(modifier)

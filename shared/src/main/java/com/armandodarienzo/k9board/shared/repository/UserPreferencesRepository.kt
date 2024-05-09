@@ -1,6 +1,6 @@
 package com.armandodarienzo.k9board.shared.repository
 
-import com.armandodarienzo.k9board.shared.model.KeyboardKeySize
+import com.armandodarienzo.k9board.shared.model.KeyboardSize
 
 interface UserPreferencesRepository {
 
@@ -16,10 +16,16 @@ interface UserPreferencesRepository {
 
     suspend fun getLanguage(): Result<String>
 
-    suspend fun setKeySize(
-        keySize: KeyboardKeySize
+    suspend fun setKeyboardSize(
+        keySize: KeyboardSize
     )
 
-    suspend fun getKeySize(): Result<KeyboardKeySize>
+    suspend fun getKeyboardSize(): Result<KeyboardSize>
+
+    suspend fun setHapticFeedback(
+        enabled: Boolean
+    )
+
+    suspend fun isHapticFeedbackEnabled(): Result<Boolean>
 
 }

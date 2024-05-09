@@ -2,17 +2,18 @@ package com.armandodarienzo.k9board.shared.repository
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.armandodarienzo.k9board.shared.LANGUAGE_TAG_ENGLISH_AMERICAN
-import com.armandodarienzo.k9board.shared.SHARED_PREFS_KEYS_SIZE
+import com.armandodarienzo.k9board.shared.SHARED_PREFS_HAPTIC_FEEDBACK
+import com.armandodarienzo.k9board.shared.SHARED_PREFS_KEYBOARD_SIZE
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_THEME
 import com.armandodarienzo.k9board.shared.THEME_MATERIAL_YOU
-import com.armandodarienzo.k9board.shared.model.KeyboardKeySize
-import kotlinx.coroutines.CoroutineScope
+import com.armandodarienzo.k9board.shared.model.KeyboardSize
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -24,32 +25,40 @@ class UserPreferencesRepositoryLocal @Inject constructor(
 ) : UserPreferencesRepository {
 
     override suspend fun setTheme(theme: String) {
-        setStringPreference(KEY_THEME, theme)
+        setPreference(KEY_THEME, theme)
     }
 
     override suspend fun getTheme(): Result<String> {
-        return getStringPreference(KEY_THEME, THEME_MATERIAL_YOU)
+        return getPreference(KEY_THEME, THEME_MATERIAL_YOU)
     }
 
     override suspend fun setLanguage(language: String) {
-        setStringPreference(KEY_LANGUAGE, language)
+        setPreference(KEY_LANGUAGE, language)
     }
 
     override suspend fun getLanguage(): Result<String> {
-        return getStringPreference(KEY_THEME, LANGUAGE_TAG_ENGLISH_AMERICAN)
+        return getPreference(KEY_THEME, LANGUAGE_TAG_ENGLISH_AMERICAN)
     }
 
-    override suspend fun setKeySize(keySize: KeyboardKeySize) {
-        setStringPreference(KEY_KEYS_SIZE, keySize.value)
+    override suspend fun setKeyboardSize(keySize: KeyboardSize) {
+        setPreference(KEY_KEYBOARD_SIZE, keySize.value)
     }
 
-    override suspend fun getKeySize(): Result<KeyboardKeySize> {
-        return getStringPreference(KEY_KEYS_SIZE, KeyboardKeySize.MEDIUM.value)
-            .mapCatching { KeyboardKeySize.from(it) ?: KeyboardKeySize.MEDIUM }
+    override suspend fun getKeyboardSize(): Result<KeyboardSize> {
+        return getPreference(KEY_KEYBOARD_SIZE, KeyboardSize.MEDIUM.value)
+            .mapCatching { KeyboardSize.from(it) ?: KeyboardSize.MEDIUM }
+    }
+
+    override suspend fun setHapticFeedback(enabled: Boolean) {
+        setPreference(KEY_HAPTIC_FEEDBACK, enabled)
+    }
+
+    override suspend fun isHapticFeedbackEnabled(): Result<Boolean> {
+        return getPreference(KEY_HAPTIC_FEEDBACK, false)
     }
 
 
-    private suspend fun <T> setStringPreference(key: Preferences.Key<T>, value: T) {
+    private suspend fun <T> setPreference(key: Preferences.Key<T>, value: T) {
         Result.runCatching {
             userDataStorePreferences.edit { preferences ->
                 preferences[key] = value
@@ -57,7 +66,7 @@ class UserPreferencesRepositoryLocal @Inject constructor(
         }
     }
 
-    private suspend fun <T> getStringPreference(key: Preferences.Key<T>, defaultValue: T): Result<T> {
+    private suspend fun <T> getPreference(key: Preferences.Key<T>, defaultValue: T): Result<T> {
         return Result.runCatching {
             val flow = userDataStorePreferences.data
                 .catch { exception ->
@@ -90,8 +99,12 @@ class UserPreferencesRepositoryLocal @Inject constructor(
             name = SHARED_PREFS_SET_LANGUAGE
         )
 
-        val KEY_KEYS_SIZE = intPreferencesKey(
-            name = SHARED_PREFS_KEYS_SIZE
+        val KEY_KEYBOARD_SIZE = intPreferencesKey(
+            name = SHARED_PREFS_KEYBOARD_SIZE
+        )
+
+        val KEY_HAPTIC_FEEDBACK = booleanPreferencesKey(
+            name = SHARED_PREFS_HAPTIC_FEEDBACK
         )
 
     }

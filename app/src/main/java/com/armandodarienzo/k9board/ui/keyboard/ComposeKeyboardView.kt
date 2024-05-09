@@ -12,6 +12,7 @@ import com.armandodarienzo.k9board.shared.SHARED_PREFS_HAPTIC_FEEDBACK
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
 
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_THEME
+import com.armandodarienzo.k9board.shared.model.KeyboardSize
 import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepositoryLocal
 import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.armandodarienzo.k9board.ui.theme.T9KeyboardTheme
@@ -32,6 +33,8 @@ class ComposeKeyboardView(
 
         var context = LocalContext.current
 
+
+
         val languageSet = runBlocking{
             var value = ""
             userPreferencesRepository.getLanguage().map {
@@ -49,6 +52,14 @@ class ComposeKeyboardView(
             value
         }
 
+        val keyboardSize = runBlocking{
+            var value = KeyboardSize.MEDIUM
+            userPreferencesRepository.getKeyboardSize().map {
+                value = it
+            }
+            value
+        }
+
 
 //        val theme = remember {
 //            when (themeSetState.value) {
@@ -60,20 +71,21 @@ class ComposeKeyboardView(
 //        composable()
 
 
-
-        val hapticFeedbackKey = booleanPreferencesKey(SHARED_PREFS_HAPTIC_FEEDBACK)
-        var hapticFeedback = flow {
-            context.dataStore.data.map {
-                it[hapticFeedbackKey]
-            }.collect(collector = {
-                if (it!=null){
-                    this.emit(it)
-                }
-            })
-        }.collectAsState(initial = false)
+        var hapticFeedback = runBlocking{
+            var value = false
+            userPreferencesRepository.isHapticFeedbackEnabled().map {
+                value = it
+            }
+            value
+        }
 
         T9KeyboardTheme(themePreference = themeSet) {
-            CustomKeyboard(backGroundColorId = backgroundColorId, service = service, languageSet = languageSet, hapticFeedback = hapticFeedback)
+            CustomKeyboard(
+                backGroundColorId = backgroundColorId,
+                service = service,
+                languageSet = languageSet,
+                keyboardSize = keyboardSize,
+                hapticFeedback = hapticFeedback)
         }
 
     }

@@ -1,9 +1,15 @@
 package com.armandodarienzo.k9board.shared.viewmodel
 
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.datastore.dataStore
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.armandodarienzo.k9board.shared.model.KeyboardSize
 import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 // view model
@@ -12,18 +18,19 @@ class PreferencesViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
-    fun cacheTheme(
-        theme: String
-    ) = flow {
-        userPreferencesRepository.setTheme(theme)
-        //emit(MainEvent.NamedCachedSuccess)
-        emit(theme)
+    private val _keyboardSizeState = mutableStateOf(KeyboardSize.MEDIUM)
+    val keyboardSizeState : State<KeyboardSize> = _keyboardSizeState
+
+    init {
+        viewModelScope.launch {
+            _keyboardSizeState.value = userPreferencesRepository.getKeyboardSize().getOrNull()!!
+        }
     }
 
-    fun getCachedTheme() = flow {
-        val result = userPreferencesRepository.getTheme()
-        val theme = result.getOrNull().orEmpty() // don't care if it failed right now but you might
-        //emit(MainEvent.CachedNameFetchSuccess(name))
-        emit(theme)
+    fun setKeyboardSize(size: KeyboardSize) {
+        _keyboardSizeState.value = size
+        viewModelScope.launch {
+            userPreferencesRepository.setKeyboardSize(size)
+        }
     }
 }
