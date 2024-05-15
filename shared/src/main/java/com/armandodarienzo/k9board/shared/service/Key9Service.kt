@@ -1,26 +1,27 @@
-package com.armandodarienzo.k9board.shared
+package com.armandodarienzo.k9board.shared.service
 
-import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
-import android.os.Build
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.emoji2.emojipicker.EmojiViewItem
-import androidx.lifecycle.*
-import androidx.savedstate.*
-import com.armandodarienzo.k9board.model.Word
-import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.savedstate.SavedStateRegistryController
+import androidx.savedstate.SavedStateRegistryOwner
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
-import dagger.hilt.android.AndroidEntryPoint
+import com.armandodarienzo.k9board.model.Word
+import com.armandodarienzo.k9board.shared.ASCII_CODE_SPACE
+import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import kotlin.collections.ArrayList
 import kotlin.system.measureTimeMillis
 
 open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwner,
@@ -28,7 +29,7 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     lateinit var view: View
 
-    private val TAG = Key9Service.Companion::class.java.simpleName
+    private val TAG = Companion::class.java.simpleName
 
     private var lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
 
@@ -197,7 +198,9 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
         val wordTextBeforeCursor = getWordTextBeforeCursor()
         val wordTextAfterCursor = getWordTextAfterCursor()
-        currentT9code = Word.getNumberDigitsCode(wordTextBeforeCursor) + (newCode?:"") + Word.getNumberDigitsCode(wordTextAfterCursor)
+        currentT9code = Word.getNumberDigitsCode(wordTextBeforeCursor) + (newCode?:"") + Word.getNumberDigitsCode(
+            wordTextAfterCursor
+        )
 
         words = db.getWordsByCode(currentT9code)
 
@@ -223,8 +226,10 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
 
                 currentWord = if (words.isNotEmpty()) words.first()
-                                else Word(wordTextBeforeCursor + newCode.toString()
-                                            + wordTextAfterCursor)
+                                else Word(
+                    wordTextBeforeCursor + newCode.toString()
+                            + wordTextAfterCursor
+                )
 
             }
 
@@ -486,7 +491,8 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
                         Log.d(TAG, "swapClick isManual $isManual")
 //                        changeModeToManual()
 //                        inputConnection.deleteSurroundingText(getWordTextBeforeCursor().length, getWordTextAfterCursor().length)
-                        if (isCaps.value == KeyboardCapsStatus.UPPER_CASE) isCaps.value = KeyboardCapsStatus.CAPS_LOCK
+                        if (isCaps.value == KeyboardCapsStatus.UPPER_CASE) isCaps.value =
+                            KeyboardCapsStatus.CAPS_LOCK
 //                    if (prefs.getString(service.getString(R.string.shared_prefs_set_language), service.getString(R.string.language_tag_english_american)) == service.getString(R.string.language_tag_russian)){
 //                        changeKeyboardviewTo(t9ManualKeyboardRussian)
 //                    } else changeKeyboardviewTo(t9ManualKeyboard)

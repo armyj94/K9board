@@ -1,4 +1,4 @@
-package com.armandodarienzo.k9board.viewmodel
+package com.armandodarienzo.k9board.service
 
 import android.content.res.Configuration
 import android.os.Build
@@ -8,8 +8,8 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewTreeLifecycleOwner
 import androidx.lifecycle.ViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.armandodarienzo.k9board.shared.service.Key9Service
 
-import com.armandodarienzo.k9board.shared.Key9Service
 import com.armandodarienzo.k9board.ui.keyboard.ComposeKeyboardView
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -25,7 +25,7 @@ class Key9ServiceMobile(): Key9Service() {
         val nightModeFlags: Int = this.resources.configuration.uiMode and
                 Configuration.UI_MODE_NIGHT_MASK
 
-        var backgroundColorId = when (nightModeFlags) {
+        val backgroundColorId = when (nightModeFlags) {
             Configuration.UI_MODE_NIGHT_YES -> android.R.color.system_neutral1_900
             else -> android.R.color.system_neutral2_50
         }

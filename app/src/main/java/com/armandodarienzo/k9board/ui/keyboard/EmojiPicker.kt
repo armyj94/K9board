@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.emoji2.emojipicker.EmojiPickerView
-import com.armandodarienzo.k9board.shared.Key9Service
+import com.armandodarienzo.k9board.shared.service.Key9Service
 import com.armandodarienzo.k9board.R
 
 

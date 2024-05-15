@@ -30,7 +30,7 @@
         </activity>
 
         <service
-            android:name=".viewmodel.Key9ServiceMobile"
+            android:name=".service.Key9ServiceMobile"
             android:exported="true"
             android:label="Key9Service"
             android:permission="android.permission.BIND_INPUT_METHOD"

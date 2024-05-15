@@ -1,6 +1,8 @@
 package com.armandodarienzo.k9board.ui.keyboard
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -11,18 +13,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
-import com.armandodarienzo.k9board.*
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.wear.utility.KeyOboard.ui.components.KeyboardKey
 import com.armandodarienzo.wear.utility.KeyOboard.ui.components.KeyboardRepeatableKey
 import com.armandodarienzo.wear.utility.KeyOboard.ui.components.KeyboardTextKey
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.KeyboardCurrentView
+import com.armandodarienzo.k9board.shared.service.Key9Service
 import com.armandodarienzo.k9board.shared.*
 import com.armandodarienzo.k9board.shared.model.KeyboardSize
 import com.armandodarienzo.k9board.ui.ReverseArrangement
-import kotlinx.coroutines.flow.flow
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Preview
 @Composable
 fun CustomKeyboardPreview() {
@@ -33,6 +35,7 @@ fun CustomKeyboardPreview() {
         hapticFeedback = false)
 }
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Preview
 @Composable
 fun CustomKeyboardPreviewRU() {
@@ -57,11 +60,11 @@ fun CustomKeyboard(
 
     val backgroundColor: Color = colorResource(backGroundColorId)
     var reverseLayout by remember { mutableStateOf(false) }
-    var collapsed by remember { mutableStateOf(false) }
+    val collapsed by remember { mutableStateOf(false) }
     var keyboardView by remember { mutableStateOf(KeyboardCurrentView.TEXT_VIEW) }
 
 
-    var caps = service?.isCaps
+    val caps = service?.isCaps
     val isManual = service?.isManual
     var shiftKeyTimer by remember { mutableStateOf(0L) }
 
