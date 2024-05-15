@@ -16,8 +16,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
-import com.armandodarienzo.k9board.dataStore
+
 import com.armandodarienzo.k9board.model.MainMenuItem
+import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.armandodarienzo.k9board.ui.navigation.Screens
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -79,7 +80,7 @@ fun HomeScreen(navController: NavController) {
             name = stringResource(id = R.string.main_activity_settings),
             optionKeyString = null,
             iconID = R.drawable.ic_baseline_settings_18,
-            navigationRoute = null
+            navigationRoute = Screens.PreferencesScreen.name
         ),
         //@TODO: enable this again after wearOS change
 //        MainMenuItem(

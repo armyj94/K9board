@@ -17,18 +17,18 @@ import androidx.savedstate.*
 import com.armandodarienzo.k9board.model.Word
 import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlin.collections.ArrayList
 import kotlin.system.measureTimeMillis
-
 
 open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwner,
     SavedStateRegistryOwner {
 
     lateinit var view: View
 
-    private val TAG = Key9Service.javaClass.simpleName
+    private val TAG = Key9Service.Companion::class.java.simpleName
 
     private var lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
 

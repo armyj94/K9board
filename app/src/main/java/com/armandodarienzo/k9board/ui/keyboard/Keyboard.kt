@@ -19,6 +19,7 @@ import com.armandodarienzo.wear.utility.KeyOboard.ui.components.KeyboardTextKey
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.KeyboardCurrentView
 import com.armandodarienzo.k9board.shared.*
+import com.armandodarienzo.k9board.shared.model.KeyboardSize
 import com.armandodarienzo.k9board.ui.ReverseArrangement
 import kotlinx.coroutines.flow.flow
 
@@ -27,16 +28,18 @@ import kotlinx.coroutines.flow.flow
 fun CustomKeyboardPreview() {
     CustomKeyboard(
         backGroundColorId = android.R.color.system_accent1_50,
-        languageSetState = flow<String>{}.collectAsState(initial = "us-US"),
-        hapticFeedback = flow<Boolean>{}.collectAsState(initial = false))
+        languageSet = "us-US",
+        keyboardSize = KeyboardSize.MEDIUM,
+        hapticFeedback = false)
 }
 
 @Preview
 @Composable
 fun CustomKeyboardPreviewRU() {
     CustomKeyboard(backGroundColorId = android.R.color.system_accent1_50,
-        languageSetState = flow<String>{}.collectAsState(initial = "ru-RU"),
-        hapticFeedback = flow<Boolean>{}.collectAsState(initial = false))
+        languageSet = "ru-RU",
+        keyboardSize = KeyboardSize.MEDIUM,
+        hapticFeedback = false)
 }
 
 
@@ -46,11 +49,11 @@ fun CustomKeyboard(
     modifier: Modifier = Modifier,
     service: Key9Service? = null,
     backGroundColorId: Int,
-    languageSetState: State<String>,
-    hapticFeedback: State<Boolean>,
+    languageSet: String,
+    keyboardSize: KeyboardSize,
+    hapticFeedback: Boolean,
 ) {
     val TAG = object {}::class.java.enclosingMethod?.name
-    val scope = rememberCoroutineScope()
 
     val backgroundColor: Color = colorResource(backGroundColorId)
     var reverseLayout by remember { mutableStateOf(false) }
@@ -62,42 +65,42 @@ fun CustomKeyboard(
     val isManual = service?.isManual
     var shiftKeyTimer by remember { mutableStateOf(0L) }
 
-    val key2text = when(languageSetState.value){
+    val key2text = when(languageSet){
         "ru-RU" -> "абвг"
         else -> KEY2_TEXT_LATIN
     }
 
-    val key3text = when(languageSetState.value){
+    val key3text = when(languageSet){
         "ru-RU" -> "дежз"
         else -> KEY3_TEXT_LATIN
     }
 
-    val key4text = when(languageSetState.value){
+    val key4text = when(languageSet){
         "ru-RU" -> "ийкл"
         else -> KEY4_TEXT_LATIN
     }
 
-    val key5text = when(languageSetState.value){
+    val key5text = when(languageSet){
         "ru-RU" -> "мноп"
         else -> KEY5_TEXT_LATIN
     }
 
-    val key6text = when(languageSetState.value){
+    val key6text = when(languageSet){
         "ru-RU" -> "рсту"
         else -> KEY6_TEXT_LATIN
     }
 
-    val key7text = when(languageSetState.value){
+    val key7text = when(languageSet){
         "ru-RU" -> "фхцч"
         else -> KEY7_TEXT_LATIN
     }
 
-    val key8text = when(languageSetState.value){
+    val key8text = when(languageSet){
         "ru-RU" -> "шщъы"
         else -> KEY8_TEXT_LATIN
     }
 
-    val key9text = when(languageSetState.value){
+    val key9text = when(languageSet){
         "ru-RU" -> "ьэюя"
         else -> KEY9_TEXT_LATIN
     }
@@ -113,7 +116,9 @@ fun CustomKeyboard(
     ){
 
         Row(
-            Modifier.padding(top = 4.dp, bottom = 4.dp),
+            Modifier
+                .padding(top = 4.dp, bottom = 4.dp)
+                .height(keyboardSize.value.dp),
             horizontalArrangement =
                 if(reverseLayout){
                     ReverseArrangement
@@ -140,119 +145,6 @@ fun CustomKeyboard(
                 }
             }
 
-            /*First special column*/
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    KeyboardKey(
-                        id = 102,
-                        text = "123",
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        modifier = Modifier
-                            .weight(1f)
-                    )
-                }
-                Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    KeyboardKey(
-                        id = 104,
-                        text = "emojis",
-                        iconID = R.drawable.ic_insert_emoticon_white_18dp,
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable {
-                                if (keyboardView == KeyboardCurrentView.EMOJI_VIEW)
-                                    keyboardView = KeyboardCurrentView.TEXT_VIEW
-                                else
-                                    keyboardView = KeyboardCurrentView.EMOJI_VIEW
-                            }
-//                                    .aspectRatio(1f, false)
-
-                    )
-                }
-                Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    KeyboardKey(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable {
-                                Log.d(
-                                    object {}::class.java.enclosingMethod?.name,
-                                    "shiftKeyTimer(START) = $shiftKeyTimer"
-                                )
-                                Log.d(
-                                    object {}::class.java.enclosingMethod?.name,
-                                    "caps(START) = $caps"
-                                )
-
-                                if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
-                                    shiftKeyTimer = System.currentTimeMillis()
-                                }
-
-                                val nowInMillis = System.currentTimeMillis()
-
-                                caps?.value =
-                                    if (nowInMillis - shiftKeyTimer < 500L && caps?.value == KeyboardCapsStatus.UPPER_CASE) {
-                                        KeyboardCapsStatus.CAPS_LOCK
-                                    } else if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
-                                        KeyboardCapsStatus.UPPER_CASE
-                                    } else {
-                                        KeyboardCapsStatus.LOWER_CASE
-                                    }
-
-                                Log.d(
-                                    object {}::class.java.enclosingMethod?.name,
-                                    "shiftKeyTimer(END) = $shiftKeyTimer"
-                                )
-                                Log.d(
-                                    object {}::class.java.enclosingMethod?.name,
-                                    "caps(END) = $caps"
-                                )
-                            },
-                        id = 106,
-                        text = "shift",
-                        iconID =
-                        when (caps?.value) {
-                            KeyboardCapsStatus.UPPER_CASE -> R.drawable.ic_system_filled_shift_24px
-                            KeyboardCapsStatus.CAPS_LOCK -> R.drawable.ic_system_filled_permanent_shift_24px
-                            else -> R.drawable.ic_keyboard_capslock_white_18dp
-                        },
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                    )
-                }
-                Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    KeyboardKey(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable {
-                                collapsed = !collapsed
-                            },
-                        id = 108,
-                        text = "Change size",
-                        iconID =
-                        if (collapsed) R.drawable.unfold_less_fill0_wght400_grad0_opsz48
-                        else R.drawable.expand_content_fill0_wght400_grad0_opsz48,
-                        iconAngle =
-                        if (collapsed) 45f
-                        else 0f,
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                    )
-                }
-            }
-
             Column(
                 modifier = Modifier.weight(3f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -260,7 +152,7 @@ fun CustomKeyboard(
                 if (keyboardView == KeyboardCurrentView.TEXT_VIEW) {
                     /*First row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
 
@@ -294,7 +186,7 @@ fun CustomKeyboard(
 
                     /*Second row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         KeyboardTextKey(
@@ -329,7 +221,7 @@ fun CustomKeyboard(
 
                     /*Third row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         KeyboardTextKey(
@@ -364,46 +256,101 @@ fun CustomKeyboard(
 
                     /*4th row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         KeyboardKey(
                             modifier = Modifier
-                                .weight(3f)
+                                .weight(1f)
+                                .clickable {
+                                    service?.swapClick()
+                                    Log.d(
+                                        object {}::class.java.enclosingMethod?.name,
+                                        "isManual = $isManual"
+                                    )
+                                },
+                            id = 107,
+                            text = "sync",
+                            iconID = if (isManual?.value == true) R.drawable.ic_baseline_edit_note_24 else R.drawable.ic_sync_white_12dp,
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                        )
+                        KeyboardKey(
+                            modifier = Modifier
+                                .weight(1f)
                                 .combinedClickable(
                                     onClick = {
                                         service?.spaceClick()
                                     }
                                 ),
                             id = 3000,
-                            text = "",
+                            text = "⎵",
                             ratio = 3.3f
+                        )
+                        KeyboardKey(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable {
+                                    Log.d(
+                                        object {}::class.java.enclosingMethod?.name,
+                                        "shiftKeyTimer(START) = $shiftKeyTimer"
+                                    )
+                                    Log.d(
+                                        object {}::class.java.enclosingMethod?.name,
+                                        "caps(START) = $caps"
+                                    )
+
+                                    if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
+                                        shiftKeyTimer = System.currentTimeMillis()
+                                    }
+
+                                    val nowInMillis = System.currentTimeMillis()
+
+                                    caps?.value =
+                                        if (nowInMillis - shiftKeyTimer < 500L && caps?.value == KeyboardCapsStatus.UPPER_CASE) {
+                                            KeyboardCapsStatus.CAPS_LOCK
+                                        } else if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
+                                            KeyboardCapsStatus.UPPER_CASE
+                                        } else {
+                                            KeyboardCapsStatus.LOWER_CASE
+                                        }
+
+                                    Log.d(
+                                        object {}::class.java.enclosingMethod?.name,
+                                        "shiftKeyTimer(END) = $shiftKeyTimer"
+                                    )
+                                    Log.d(
+                                        object {}::class.java.enclosingMethod?.name,
+                                        "caps(END) = $caps"
+                                    )
+                                },
+                            id = 106,
+                            text = "shift",
+                            iconID =
+                            when (caps?.value) {
+                                KeyboardCapsStatus.UPPER_CASE -> R.drawable.ic_system_filled_shift_24px
+                                KeyboardCapsStatus.CAPS_LOCK -> R.drawable.ic_system_filled_permanent_shift_24px
+                                else -> R.drawable.ic_keyboard_capslock_white_18dp
+                            },
+                            color = MaterialTheme.colorScheme.secondaryContainer,
                         )
 
                     }
                 } else if (keyboardView == KeyboardCurrentView.EMOJI_VIEW) {
                     Row(
                         modifier = Modifier
-                            .padding(start = 2.dp, end = 2.dp),
+                            .padding(start = 2.dp, end = 2.dp)
+                            .weight(4f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
-//            .clip(RoundedCornerShape(30.dp))
-//                                .fillMaxWidth()
                                 .fillMaxWidth()
-                                .padding(top = if (!collapsed) 4.dp else 0.dp)
-//                                .weight(1f)
-                                .height(230.dp)
-                                .aspectRatio(0.739f, false)
-//            .background(color)
+                                .fillMaxHeight()
                                 .then(modifier)
                         ){
                             EmojiPicker(service)
                         }
-
-
 
                     }
 
@@ -417,7 +364,7 @@ fun CustomKeyboard(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
@@ -438,9 +385,10 @@ fun CustomKeyboard(
                             MaterialTheme.colorScheme.inverseOnSurface,
 
                         )
+
                 }
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardRepeatableKey(
@@ -463,36 +411,36 @@ fun CustomKeyboard(
                     )
                 }
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
+                        id = 102,
+                        text = "123",
+                        color = MaterialTheme.colorScheme.secondaryContainer,
                         modifier = Modifier
                             .weight(1f)
-                            .clickable {
-                                service?.swapClick()
-                                Log.d(
-                                    object {}::class.java.enclosingMethod?.name,
-                                    "isManual = $isManual"
-                                )
-                            },
-                        id = 107,
-                        text = "sync",
-                        iconID = if (isManual?.value == true) R.drawable.ic_baseline_edit_note_24 else R.drawable.ic_sync_white_12dp,
-                        color = MaterialTheme.colorScheme.secondaryContainer,
                     )
                 }
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp),
+                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
-                        modifier = Modifier
-                            .weight(1f),
-                        id = 109,
-                        text = "canc",
-                        iconID = R.drawable.ic_baseline_select_all_24,
+                        id = 104,
+                        text = "emojis",
+                        iconID = R.drawable.ic_insert_emoticon_white_18dp,
                         color = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable {
+                                if (keyboardView == KeyboardCurrentView.EMOJI_VIEW)
+                                    keyboardView = KeyboardCurrentView.TEXT_VIEW
+                                else
+                                    keyboardView = KeyboardCurrentView.EMOJI_VIEW
+                            }
+//                                    .aspectRatio(1f, false)
+
                     )
                 }
             }

@@ -7,9 +7,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import com.armandodarienzo.k9board.shared.THEME_DYNAMIC
+import com.armandodarienzo.k9board.shared.THEME_MATERIAL_YOU
 import com.armandodarienzo.k9board.ui.navigation.Navigation
 import com.armandodarienzo.k9board.ui.theme.T9KeyboardTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivityCompose : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +41,7 @@ class MainActivityCompose : ComponentActivity() {
 
 @Composable
 fun MyApp(content: @Composable () -> Unit) {
-    T9KeyboardTheme {
+    T9KeyboardTheme (themePreference = THEME_MATERIAL_YOU) {
         // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize(),
