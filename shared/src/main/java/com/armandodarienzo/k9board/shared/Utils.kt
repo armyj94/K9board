@@ -14,3 +14,7 @@ fun codifyChars(text: String): MutableList<Int>{
     return codes
 
 }
+
+fun packName(tag: String) : String {
+    return "${ASSET_PACKS_BASE_NAME}_${tag.replace("-", "_")}"
+}

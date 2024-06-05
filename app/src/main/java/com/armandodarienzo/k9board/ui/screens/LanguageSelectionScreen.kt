@@ -5,87 +5,156 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.armandodarienzo.k9board.R
+import com.armandodarienzo.k9board.shared.ASSET_PACKS_BASE_NAME
+import com.armandodarienzo.k9board.shared.LANGUAGE_TAG_ENGLISH_AMERICAN
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
+import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
+import com.armandodarienzo.k9board.shared.packName
 import com.armandodarienzo.k9board.shared.repository.dataStore
-
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
+import com.armandodarienzo.k9board.shared.viewmodel.LanguageViewModel
+import com.google.android.play.core.assetpacks.AssetPackManagerFactory
+import com.google.android.play.core.assetpacks.AssetPackState
+import com.google.android.play.core.assetpacks.model.AssetPackStatus
+import java.util.Locale
 
 @Composable
-fun LanguageSelectionScreen(navController: NavController) {
-    LanguagesList()
+fun LanguageSelectionScreen(
+    navController: NavController,
+    viewModel: LanguageViewModel = hiltViewModel()
+) {
+
+    val selectedOption by viewModel.languageState
+    val assetPackStates by viewModel.assetPackStatesMapState
+
+    LanguagesList(
+        selectedOption = selectedOption,
+        assetPackStates = assetPackStates,
+        onSelected = { viewModel.setLanguage(it) },
+        onDownload = { viewModel.downloadLanguagePack(it) },
+        onCancel = {},
+        onRemove = {},
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview
 @Composable
-fun LanguagesList(){
-    var context = LocalContext.current
-    var scope = rememberCoroutineScope()
+@Preview
+fun LanguageListPreview() {
+    val assetPackStates = emptyMap<String, AssetPackState>().toMutableMap()
 
-    val languageSetKey = stringPreferencesKey(SHARED_PREFS_SET_LANGUAGE)
-    var languageSetState = flow{
-        context.dataStore.data.map {
-            it[languageSetKey]
-        }.collect(collector = {
-            if (it!=null){
-                this.emit(it)
-            }
-        })
-    }.collectAsState(initial = "us-US")
+    LanguagesList(
+        selectedOption = "us-US",
+        assetPackStates = assetPackStates,
+        onSelected = {},
+        onDownload = {},
+        onCancel = {},
+        onRemove = {},
+    )
+}
 
-    val radioOptions = listOf("us-US", "ru-RU")
-//    val (selectedOption, onOptionSelected) = remember { mutableStateOf( languageSetState.value) }
-//    var selectedOption by remember {
-//        mutableStateOf( radioOptions[1])
-//    }
-    val onOptionSelected = { text: String ->
-//        selectedOption = text
-        scope.launch {
-            changeLanguage(context, text)
-        }
-    }
+@Composable
+fun LanguagesList(
+    selectedOption: String,
+    assetPackStates: Map<String, AssetPackState>,
+    onSelected: (String) -> Unit,
+    onDownload: (String) -> Unit,
+    onCancel: (String) -> Unit,
+    onRemove: () -> Unit
+){
+    val TAG = object {}::class.java.enclosingMethod?.name
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val assetPackManager = AssetPackManagerFactory.getInstance(context)
+
+    val languageTags = SupportedLanguageTag.values().map { it.value  }
 
     Column {
-        radioOptions.forEach { text ->
+        languageTags.forEach { tag ->
+            val packName = packName(tag)
+            val locale = Locale.forLanguageTag(tag)
+            val assetPackState = assetPackStates[packName]
+            val assetPackStatus = assetPackState?.status() ?: AssetPackStatus.UNKNOWN
+
             Row(
                 Modifier
                     .fillMaxWidth()
                     .selectable(
-                        selected = (text == languageSetState.value),
+                        enabled =
+                        (
+                                (tag == LANGUAGE_TAG_ENGLISH_AMERICAN) ||
+                                        (assetPackManager
+                                            .getPackLocation(packName) != null)
+                                ),
+                        selected = (tag == selectedOption),
                         onClick = {
-                            onOptionSelected(text)
+                            //onOptionSelected(tag)
                         }
                     )
                     .padding(horizontal = 16.dp)
             ) {
                 RadioButton(
-                    selected = (text == languageSetState.value),
+                    selected = (tag == selectedOption),
                     onClick = {
-                        onOptionSelected(text)
-
+                        onSelected(tag)
                     }
                 )
                 Text(
-                    text = text,
+                    text = locale.displayName,
                     style = MaterialTheme.typography.bodySmall.merge(),
                     modifier = Modifier.padding(start = 8.dp, top = 16.dp)
                 )
+                if (assetPackStatus == AssetPackStatus.UNKNOWN) {
+                    IconButton(
+                        onClick = {
+                            onDownload(tag)
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(40.dp),
+                            painter = painterResource(com.armandodarienzo.k9board.shared.R.drawable.round_download_24),
+                            contentDescription = "Download",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                } else if (assetPackStatus == AssetPackStatus.DOWNLOADING) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(40.dp),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        strokeWidth = 4.dp,
+                        progress = assetPackState?.transferProgressPercentage()?.toFloat() ?: 0F
+                    )
+                    IconButton(
+                        onClick = {
+                            onCancel(tag)
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(40.dp),
+                            painter = painterResource(com.armandodarienzo.k9board.shared.R.drawable.round_cancel_24),
+                            contentDescription = "Download",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                }
+
+
             }
         }
-
-        TextField(value = "", onValueChange = {})
     }
 }
 

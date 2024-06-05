@@ -7,13 +7,13 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.armandodarienzo.k9board.shared.LANGUAGE_TAG_ENGLISH_AMERICAN
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_HAPTIC_FEEDBACK
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_KEYBOARD_SIZE
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_THEME
 import com.armandodarienzo.k9board.shared.THEME_MATERIAL_YOU
 import com.armandodarienzo.k9board.shared.model.KeyboardSize
+import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -37,7 +37,7 @@ class UserPreferencesRepositoryLocal @Inject constructor(
     }
 
     override suspend fun getLanguage(): Result<String> {
-        return getPreference(KEY_THEME, LANGUAGE_TAG_ENGLISH_AMERICAN)
+        return getPreference(KEY_LANGUAGE, SupportedLanguageTag.AMERICAN.value)
     }
 
     override suspend fun setKeyboardSize(keySize: KeyboardSize) {

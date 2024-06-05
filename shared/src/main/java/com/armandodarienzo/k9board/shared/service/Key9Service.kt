@@ -75,7 +75,7 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 //        )
 //        val dbBaseName = this.getString(R.string.db_base_name)
 //        db = DictionaryDataHelper(this, "${dbBaseName}_${setLanguage}.sqlite")
-        db = DictionaryDataHelper(this, "dictionary_en-US.sqlite")
+        db = DictionaryDataHelper(this, "dictionary.sqlite")
         db.writableDatabase.enableWriteAheadLogging()//db.readableDatabase
         db.writableDatabase.execSQL("PRAGMA synchronous = NORMAL")
 
