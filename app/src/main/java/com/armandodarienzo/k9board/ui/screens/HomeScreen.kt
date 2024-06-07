@@ -1,5 +1,7 @@
 package com.armandodarienzo.k9board.ui.screens
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -39,48 +41,51 @@ fun OptionsListElementPreview() {
             name = "Lingua",
             optionKeyString = "Italiano",
             iconID = R.drawable.ic_language_white_18dp,
-            navigationRoute = ""),
+            onClick = {}),
         navController = rememberNavController())
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
+
     val menuItems = listOf<MainMenuItem>(
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_languages),
             optionKeyString = SHARED_PREFS_SET_LANGUAGE,
             iconID = R.drawable.ic_language_white_18dp,
-            navigationRoute = Screens.LanguageSelectionScreen.name),
+            onClick = {
+                navController.navigate(route = Screens.LanguageSelectionScreen.name)
+            }
+        ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_enable_keyboard),
             optionKeyString = null,
             iconID = R.drawable.ic_keyboard_white_24dp,
-            navigationRoute = null
+            onClick = {
+
+            }
         ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_change_keyboard),
             optionKeyString = null,
             iconID = R.drawable.ic_baseline_compare_arrows_18,
-            navigationRoute = null
         ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_privacy_policy),
             optionKeyString = null,
             iconID = R.drawable.ic_security_white_18dp,
-            navigationRoute = null
         ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_tutorial),
             optionKeyString = null,
             iconID = R.drawable.ic_help_outline_white_18dp,
-            navigationRoute = null
         ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_settings),
             optionKeyString = null,
             iconID = R.drawable.ic_baseline_settings_18,
-            navigationRoute = Screens.PreferencesScreen.name
+//            navigationRoute = Screens.PreferencesScreen.name
         ),
         //@TODO: enable this again after wearOS change
 //        MainMenuItem(
@@ -131,7 +136,8 @@ fun OptionsListElement(
             .fillMaxWidth()
             .padding(start = 10.dp)
             .clickable {
-                menuItem.navigationRoute?.let { navController.navigate(route = it) }
+//                menuItem.navigationRoute?.let { navController.navigate(route = it) }
+                       menuItem.onClick
             },
     ) {
         Column(
@@ -158,22 +164,22 @@ fun OptionsListElement(
                 style = MaterialTheme.typography.headlineSmall,
 
                 )
-            if (menuItem.optionKeyString != null) {
-                val optionKey = stringPreferencesKey(menuItem.optionKeyString!!)
-                var languageSetState = flow{
-                    context.dataStore.data.map {
-                        it[optionKey]
-                    }.collect(collector = {
-                        if (it!=null){
-                            this.emit(it)
-                        }
-                    })
-                }.collectAsState(initial = "us-US")
-                Text(
-                    text = languageSetState.value,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
+//            if (menuItem.optionKeyString != null) {
+//                val optionKey = stringPreferencesKey(menuItem.optionKeyString!!)
+//                var languageSetState = flow{
+//                    context.dataStore.data.map {
+//                        it[optionKey]
+//                    }.collect(collector = {
+//                        if (it!=null){
+//                            this.emit(it)
+//                        }
+//                    })
+//                }.collectAsState(initial = "us-US")
+//                Text(
+//                    text = languageSetState.value,
+//                    style = MaterialTheme.typography.bodyMedium,
+//                )
+//            }
         }
     }
 }
