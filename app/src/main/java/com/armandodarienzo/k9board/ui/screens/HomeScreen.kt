@@ -91,7 +91,19 @@ fun HomeScreen(navController: NavController) {
 //    menuItems.add(MainMenuAdapter.MenuItem(R.drawable.ic_edit_white_18dp, this.getString(R.string.main_activity_test)))
     )
 
-    Scaffold() { paddingValues ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(text = stringResource(id = R.string.app_name))
+                },
+                colors = TopAppBarDefaults.smallTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                ),
+            )
+        }
+    ) { paddingValues ->
         Column(
             Modifier.padding(paddingValues)
         ) {
