@@ -13,7 +13,10 @@ import com.armandodarienzo.k9board.ui.screens.PreferencesScreen
 fun Navigation() {
     val navController = rememberNavController()
     
-    NavHost(navController = navController, startDestination = Screens.HomeScreen.name) {
+    NavHost(
+        navController = navController,
+        startDestination = Screens.HomeScreen.name
+    ) {
         composable(Screens.HomeScreen.name) {
             HomeScreen(navController = navController)
         }

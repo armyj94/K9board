@@ -15,6 +15,7 @@ import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
 
 import com.armandodarienzo.k9board.model.MainMenuItem
+import com.armandodarienzo.k9board.ui.elements.K9BoardTopAppBar
 import com.armandodarienzo.k9board.ui.navigation.Screens
 import com.armandodarienzo.k9board.viewmodel.HomeScreenViewModel
 
@@ -147,14 +148,9 @@ fun HomeScreenContent(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = stringResource(id = R.string.app_name))
-                },
-                colors = TopAppBarDefaults.smallTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.inverseOnSurface,
-                ),
+            K9BoardTopAppBar(
+                title = stringResource(id = R.string.app_name),
+                icon = null,
             )
         }
     ) { paddingValues ->
