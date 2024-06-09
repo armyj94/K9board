@@ -1,31 +1,22 @@
 package com.armandodarienzo.k9board.ui.screens
 
-import android.content.Intent
-import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
 
 import com.armandodarienzo.k9board.model.MainMenuItem
-import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.armandodarienzo.k9board.ui.navigation.Screens
 import com.armandodarienzo.k9board.viewmodel.HomeScreenViewModel
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 
 
 @Preview
@@ -72,7 +63,7 @@ fun ContentPreview() {
 //    menuItems.add(MainMenuAdapter.MenuItem(R.drawable.ic_edit_white_18dp, this.getString(R.string.main_activity_test)))
     )
 
-    Content(menuItems = menuItems)
+    HomeScreenContent(menuItems = menuItems)
 }
 
 @Preview
@@ -133,7 +124,7 @@ fun HomeScreen(
             optionKeyString = null,
             iconID = R.drawable.ic_baseline_settings_18,
             onClick = {
-                navController.navigate(route = Screens.LanguageSelectionScreen.name)
+                navController.navigate(route = Screens.PreferencesScreen.name)
             }
 //            navigationRoute = Screens.PreferencesScreen.name
         ),
@@ -146,12 +137,12 @@ fun HomeScreen(
 //    menuItems.add(MainMenuAdapter.MenuItem(R.drawable.ic_edit_white_18dp, this.getString(R.string.main_activity_test)))
     )
 
-    Content(menuItems = menuItems)
+    HomeScreenContent(menuItems = menuItems)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Content(
+fun HomeScreenContent(
     menuItems: List<MainMenuItem>
 ) {
     Scaffold(

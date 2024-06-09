@@ -6,56 +6,83 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.model.KeyboardSize
 import com.armandodarienzo.k9board.shared.viewmodel.PreferencesViewModel
-import kotlinx.coroutines.launch
-
-import kotlinx.coroutines.selects.ProcessResultFunction
-import java.util.prefs.Preferences
+import com.armandodarienzo.k9board.ui.elements.AppBarIcon
+import com.armandodarienzo.k9board.ui.elements.K9BoardTopAppBar
+import com.armandodarienzo.k9board.ui.elements.K9BoardTopAppBarPreview
 
 @Preview
 @Composable
 fun PreferencesScreenPreview() {
-    PreferencesScreen(navController = rememberNavController())
+    PreferencesScreenContent(
+        onBackIconClicked = {},
+        keyboardSizeSelected = KeyboardSize.MEDIUM,
+        onKeyboardSizeSelected = {}
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PreferencesScreen(
     navController: NavController,
     viewModel : PreferencesViewModel = hiltViewModel()
 ){
-    val radioOptions = KeyboardSize.values()
 
+    val onBackIconClicked : () -> Unit = {
+        navController.popBackStack()
+    }
 
-    val selectedOption = viewModel.keyboardSizeState.value
-
-    val onOptionSelected : (KeyboardSize) -> Unit = {
+    val keyboardSizeSelected = viewModel.keyboardSizeState.value
+    val onKeyboardSizeSelected : (KeyboardSize) -> Unit = {
         viewModel.setKeyboardSize(it)
     }
 
+    PreferencesScreenContent(
+        onBackIconClicked,
+        keyboardSizeSelected,
+        onKeyboardSizeSelected
+    )
 
-//    val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[2]) }
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PreferencesScreenContent(
+    onBackIconClicked : () -> Unit,
+    keyboardSizeSelected : KeyboardSize,
+    onKeyboardSizeSelected : (KeyboardSize) -> Unit
+) {
+    val radioOptions = KeyboardSize.values()
 
-
-    Scaffold() {
+    Scaffold (
+        topBar = {
+            K9BoardTopAppBar(
+                title = stringResource(id = R.string.main_activity_settings),
+                icon = AppBarIcon(
+                    imageVector = Icons.Default.ArrowBack,
+                ) {
+                    onBackIconClicked()
+                }
+            )
+        },
+    ) {
         Column(modifier = Modifier.padding(it)) {
 
             radioOptions.forEach { option ->
@@ -69,10 +96,10 @@ fun PreferencesScreen(
                         .selectable(
                             // this method is called when
                             // radio button is selected.
-                            selected = (option == selectedOption),
+                            selected = (option == keyboardSizeSelected),
                             // below method is called on
                             // clicking of radio button.
-                            onClick = { onOptionSelected(option) }
+                            onClick = { onKeyboardSizeSelected(option) }
                         )
                         // below line is use to add
                         // padding to radio button.
@@ -86,11 +113,11 @@ fun PreferencesScreen(
                     RadioButton(
                         // inside this method we are
                         // adding selected with a option.
-                        selected = (option == selectedOption),modifier = Modifier.padding(all = Dp(value = 8F)),
+                        selected = (option == keyboardSizeSelected),modifier = Modifier.padding(all = Dp(value = 8F)),
                         onClick = {
                             // inside on click method we are setting a
                             // selected option of our radio buttons.
-                            onOptionSelected(option)
+                            onKeyboardSizeSelected(option)
 
                             // after clicking a radio button
                             // we are displaying a toast message.
