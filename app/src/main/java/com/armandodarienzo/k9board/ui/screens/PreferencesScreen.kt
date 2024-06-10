@@ -14,11 +14,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,20 +31,26 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.armandodarienzo.k9board.shared.R
+import com.armandodarienzo.k9board.shared.model.DoubleSpaceCharacter
 import com.armandodarienzo.k9board.shared.model.KeyboardSize
 import com.armandodarienzo.k9board.shared.viewmodel.PreferencesViewModel
 import com.armandodarienzo.k9board.ui.elements.AppBarIcon
 import com.armandodarienzo.k9board.ui.elements.K9BoardTopAppBar
 import com.armandodarienzo.k9board.ui.elements.RadioDialog
 import com.armandodarienzo.k9board.ui.elements.RadioOption
+import com.armandodarienzo.k9board.ui.elements.ResizableText
 
 @Preview
 @Composable
 fun PreferencesScreenPreview() {
     PreferencesScreenContent(
         onBackIconClicked = {},
-        keyboardSizeSelected = KeyboardSize.MEDIUM,
-        onKeyboardSizeSelected = {}
+        keyboardSize = KeyboardSize.MEDIUM,
+        onKeyboardSizeSelected = {},
+        doubleSpaceCharacter = DoubleSpaceCharacter.COMMA,
+        onDoubleSpaceCharacterSelected = {},
+        startWithManual = false,
+        onStartWithManualSelected = {}
     )
 }
 
@@ -58,10 +69,24 @@ fun PreferencesScreen(
         viewModel.setKeyboardSize(it)
     }
 
+    val doubleSpaceCharacter = viewModel.doubleSpaceCharState.value
+    val onDoubleSpaceCharacterSelected : (DoubleSpaceCharacter) -> Unit = {
+        viewModel.setDoubleSpaceChar(it)
+    }
+
+    val startWithManual = viewModel.startWithManualState.value
+    val onStartWithManualSelected : (Boolean) -> Unit = {
+        viewModel.setStartWithManual(it)
+    }
+
     PreferencesScreenContent(
         onBackIconClicked,
         keyboardSizeSelected,
-        onKeyboardSizeSelected
+        onKeyboardSizeSelected,
+        doubleSpaceCharacter,
+        onDoubleSpaceCharacterSelected,
+        startWithManual,
+        onStartWithManualSelected
     )
 
 }
@@ -70,11 +95,15 @@ fun PreferencesScreen(
 @Composable
 fun PreferencesScreenContent(
     onBackIconClicked : () -> Unit,
-    keyboardSizeSelected : KeyboardSize,
-    onKeyboardSizeSelected : (KeyboardSize) -> Unit
+    keyboardSize : KeyboardSize,
+    onKeyboardSizeSelected : (KeyboardSize) -> Unit,
+    doubleSpaceCharacter: DoubleSpaceCharacter,
+    onDoubleSpaceCharacterSelected : (DoubleSpaceCharacter) -> Unit,
+    startWithManual : Boolean,
+    onStartWithManualSelected : (Boolean) -> Unit
 ) {
     val openKeyboardSizeDialog = remember { mutableStateOf(false) }
-    val radioOptions = KeyboardSize.values().map {
+    val keyboardSizeRadioOptions = KeyboardSize.values().map {
         val label = when (it) {
             KeyboardSize.SMALL -> "Small"
             KeyboardSize.MEDIUM -> "Medium"
@@ -82,21 +111,44 @@ fun PreferencesScreenContent(
             KeyboardSize.VERY_SMALL -> "Very small"
             KeyboardSize.VERY_LARGE -> "Very Large"
         }
-        RadioOption(label, keyboardSizeSelected == it, it)
+        RadioOption(label, keyboardSize == it, it)
     }.toTypedArray()
     when {
         openKeyboardSizeDialog.value -> {
             RadioDialog(
                 title = "Keyboard Size" ,
-                options = radioOptions,
+                options = keyboardSizeRadioOptions,
                 onDismissRequest = {
                     openKeyboardSizeDialog.value = false
-                }) {
+                }
+            ) {
                 onKeyboardSizeSelected(it.value)
             }
         }
     }
 
+    val openDoubleSpaceDialog = remember { mutableStateOf(false) }
+    val doubleSpaceRadioOptions = DoubleSpaceCharacter.values().map {
+        val label = when (it) {
+            DoubleSpaceCharacter.NONE -> "None"
+            DoubleSpaceCharacter.DOT -> "Dot"
+            DoubleSpaceCharacter.COMMA -> "Comma"
+        }
+        RadioOption(label, doubleSpaceCharacter == it, it)
+    }.toTypedArray()
+    when {
+        openDoubleSpaceDialog.value -> {
+            RadioDialog(
+                title = "Double space character" ,
+                options = doubleSpaceRadioOptions,
+                onDismissRequest = {
+                    openDoubleSpaceDialog.value = false
+                }
+            ) {
+                onDoubleSpaceCharacterSelected(it.value)
+            }
+        }
+    }
 
 
     Scaffold (
@@ -110,9 +162,10 @@ fun PreferencesScreenContent(
                 }
             )
         },
-    ) {
+    ) { paddingValues ->
+
         Column(
-            modifier = Modifier.padding(it)
+            modifier = Modifier.padding(paddingValues)
         ) {
             Row(
                 Modifier
@@ -124,60 +177,40 @@ fun PreferencesScreenContent(
 
             OptionRow(
                 optionName = "Keyboard size",
-                onClick = { openKeyboardSizeDialog.value = true }) {
+                onClick = { openKeyboardSizeDialog.value = true }
+            ) {
                 InputChip(
                     selected = true,
                     onClick = { openKeyboardSizeDialog.value = true },
-                    label = { Text(text = radioOptions.first { it.selected }.label) })
+                    label = { Text(text = keyboardSizeRadioOptions.first { it.selected }.label) }
+                )
             }
 
-//            radioOptions.forEach { option ->
-//                Row(
-//                    Modifier
-//                        // using modifier to add max
-//                        // width to our radio button.
-//                        .fillMaxWidth()
-//                        // below method is use to add
-//                        // selectable to our radio button.
-//                        .selectable(
-//                            // this method is called when
-//                            // radio button is selected.
-//                            selected = (option == keyboardSizeSelected),
-//                            // below method is called on
-//                            // clicking of radio button.
-//                            onClick = { onKeyboardSizeSelected(option) }
-//                        )
-//                        // below line is use to add
-//                        // padding to radio button.
-//                        .padding(horizontal = 16.dp)
-//                ) {
-//                    // below line is use to get context.
-//                    val context = LocalContext.current
-//
-//                    // below line is use to
-//                    // generate radio button
-//                    RadioButton(
-//                        // inside this method we are
-//                        // adding selected with a option.
-//                        selected = (option == keyboardSizeSelected),modifier = Modifier.padding(all = Dp(value = 8F)),
-//                        onClick = {
-//                            // inside on click method we are setting a
-//                            // selected option of our radio buttons.
-//                            onKeyboardSizeSelected(option)
-//
-//                            // after clicking a radio button
-//                            // we are displaying a toast message.
-//                            Toast.makeText(context, option.value.toString(), Toast.LENGTH_LONG).show()
-//                        }
-//                    )
-//                    // below line is use to add
-//                    // option to our radio buttons.
-//                    Text(
-//                        text = option.name.toString(),
-//                        modifier = Modifier.padding(start = 16.dp)
-//                    )
-//                }
-//            }
+            OptionRow(
+                optionName = "Double space character",
+                onClick = { openDoubleSpaceDialog.value = true }
+            ) {
+                if (doubleSpaceCharacter != DoubleSpaceCharacter.NONE)
+                    InputChip(
+                        selected = true,
+                        onClick = { openDoubleSpaceDialog.value = true },
+                        label = {
+                            Text(text = doubleSpaceRadioOptions.first { it.selected }.value.value)
+                        }
+                    )
+            }
+
+            OptionRow(
+                optionName = "Start with manual",
+                onClick = { onStartWithManualSelected(!startWithManual) }
+            ) {
+                Switch(
+                    checked = startWithManual,
+                    onCheckedChange = {
+                        onStartWithManualSelected(it)
+                    }
+                )
+            }
 
         }
     }
@@ -202,10 +235,8 @@ fun SectionText(
 fun OptionNameText (
     text: String
 ) {
-    Text(
-        text = text,
-        modifier = Modifier.padding(start = 16.dp),
-        style = MaterialTheme.typography.headlineSmall,
+    ResizableText(
+        text = text
     )
 }
 
@@ -218,7 +249,7 @@ fun OptionRow (
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(top = 16.dp)
+            .padding(top = 16.dp, start = 16.dp, end = 16.dp)
             .height(40.dp)
             .clickable { onClick() },
     ) {
@@ -234,7 +265,8 @@ fun OptionRow (
             Modifier
                 .weight(2f)
                 .fillMaxHeight(),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             optionDisplay()
         }
