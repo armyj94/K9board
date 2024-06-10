@@ -1,6 +1,5 @@
 package com.armandodarienzo.k9board.ui.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,35 +8,28 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.model.KeyboardSize
 import com.armandodarienzo.k9board.shared.viewmodel.PreferencesViewModel
 import com.armandodarienzo.k9board.ui.elements.AppBarIcon
 import com.armandodarienzo.k9board.ui.elements.K9BoardTopAppBar
-import com.armandodarienzo.k9board.ui.elements.K9BoardTopAppBarPreview
 import com.armandodarienzo.k9board.ui.elements.RadioDialog
 import com.armandodarienzo.k9board.ui.elements.RadioOption
 
@@ -81,7 +73,7 @@ fun PreferencesScreenContent(
     keyboardSizeSelected : KeyboardSize,
     onKeyboardSizeSelected : (KeyboardSize) -> Unit
 ) {
-    val openAlertDialog = remember { mutableStateOf(false) }
+    val openKeyboardSizeDialog = remember { mutableStateOf(false) }
     val radioOptions = KeyboardSize.values().map {
         val label = when (it) {
             KeyboardSize.SMALL -> "Small"
@@ -92,17 +84,13 @@ fun PreferencesScreenContent(
         }
         RadioOption(label, keyboardSizeSelected == it, it)
     }.toTypedArray()
-
-
     when {
-        // ...
-        openAlertDialog.value -> {
+        openKeyboardSizeDialog.value -> {
             RadioDialog(
                 title = "Keyboard Size" ,
                 options = radioOptions,
                 onDismissRequest = {
-//                    onKeyboardSizeSelected
-                    openAlertDialog.value = false
+                    openKeyboardSizeDialog.value = false
                 }) {
                 onKeyboardSizeSelected(it.value)
             }
@@ -136,8 +124,11 @@ fun PreferencesScreenContent(
 
             OptionRow(
                 optionName = "Keyboard size",
-                onClick = { openAlertDialog.value = true }) {
-                
+                onClick = { openKeyboardSizeDialog.value = true }) {
+                InputChip(
+                    selected = true,
+                    onClick = { openKeyboardSizeDialog.value = true },
+                    label = { Text(text = radioOptions.first { it.selected }.label) })
             }
 
 //            radioOptions.forEach { option ->
@@ -232,7 +223,10 @@ fun OptionRow (
             .clickable { onClick() },
     ) {
         Column(
-            Modifier.weight(5f)
+            Modifier
+                .weight(5f)
+                .fillMaxHeight(),
+            verticalArrangement = Arrangement.Center
         ) {
             OptionNameText(text = optionName)
         }
