@@ -1,7 +1,10 @@
 package com.armandodarienzo.k9board.ui.elements
 
+import com.armandodarienzo.k9board.shared.model.PreferencesOption
+
 class RadioOption<T>(
-    val label: String,
-    var selected: Boolean,
-    var value: T) {
+    var value: PreferencesOption<T>,
+    var selected: Boolean
+) {
+    val labelId: Int = value.getLabelId()
 }

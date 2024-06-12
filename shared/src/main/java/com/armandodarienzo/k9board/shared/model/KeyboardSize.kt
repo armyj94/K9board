@@ -1,11 +1,33 @@
 package com.armandodarienzo.k9board.shared.model
 
-enum class KeyboardSize(val value: Int) {
-    VERY_SMALL(220),
-    SMALL(280),
-    MEDIUM(320),
-    LARGE(380),
-    VERY_LARGE(440);
+import com.armandodarienzo.k9board.shared.R
+
+enum class KeyboardSize(override val value: Int) : PreferencesOption<Int>  {
+    VERY_SMALL(220) {
+        override fun getLabelId(): Int {
+            return R.string.keyboard_size_very_small
+        }
+    },
+    SMALL(280) {
+        override fun getLabelId(): Int {
+            return R.string.keyboard_size_small
+        }
+    },
+    MEDIUM(320) {
+        override fun getLabelId(): Int {
+            return R.string.keyboard_size_medium
+        }
+    },
+    LARGE(380) {
+        override fun getLabelId(): Int {
+            return R.string.keyboard_size_large
+        }
+    },
+    VERY_LARGE(440) {
+        override fun getLabelId(): Int {
+            return R.string.keyboard_size_very_large
+        }
+    };
 
     companion object {
         private val map = KeyboardSize.values().associateBy { it.value }

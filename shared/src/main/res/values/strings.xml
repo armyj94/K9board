@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">K9board</string>
 
+    <string name="confirm_text">OK</string>
 
     <!-- Main Activity strings -->
     <string name="title_activity_main_compose">MainActivityCompose</string>
@@ -10,5 +11,26 @@
     <string name="main_activity_privacy_policy">Privacy policy</string>
     <string name="main_activity_tutorial">Tutorial</string>
     <string name="main_activity_settings">Settings</string>
+
+    <!-- Preferences strings -->
+    <string name="layout_and_aspect_section">Layout and aspect</string>
+    <string name="keyboard_size">Keyboard size</string>
+    <string name="keyboard_size_very_small">Very small</string>
+    <string name="keyboard_size_small">Small</string>
+    <string name="keyboard_size_medium">Medium</string>
+    <string name="keyboard_size_large">Large</string>
+    <string name="keyboard_size_very_large">Very large</string>
+
+
+    <string name="functionalities_section">Functionalities</string>
+    <string name="double_space_character">Double space character</string>
+    <string name="double_space_none">None</string>
+    <string name="double_space_dot">Dot</string>
+    <string name="double_space_comma">Comma</string>
+
+    <string name="start_with_manual">Start with manual</string>
+
+
+
 
 </resources>
