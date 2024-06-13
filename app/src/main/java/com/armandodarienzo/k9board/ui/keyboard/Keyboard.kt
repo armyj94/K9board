@@ -31,7 +31,7 @@ fun CustomKeyboardPreview() {
     CustomKeyboard(
         backGroundColorId = android.R.color.system_accent1_50,
         languageSet = "us-US",
-        keyboardSize = KeyboardSize.MEDIUM,
+        keyboardSize = 280,
         hapticFeedback = false)
 }
 
@@ -41,7 +41,7 @@ fun CustomKeyboardPreview() {
 fun CustomKeyboardPreviewRU() {
     CustomKeyboard(backGroundColorId = android.R.color.system_accent1_50,
         languageSet = "ru-RU",
-        keyboardSize = KeyboardSize.MEDIUM,
+        keyboardSize = 280,
         hapticFeedback = false)
 }
 
@@ -53,7 +53,7 @@ fun CustomKeyboard(
     service: Key9Service? = null,
     backGroundColorId: Int,
     languageSet: String,
-    keyboardSize: KeyboardSize,
+    keyboardSize: Int,
     hapticFeedback: Boolean,
 ) {
     val TAG = object {}::class.java.enclosingMethod?.name
@@ -121,7 +121,7 @@ fun CustomKeyboard(
         Row(
             Modifier
                 .padding(top = 4.dp, bottom = 4.dp)
-                .height(keyboardSize.value.dp),
+                .height(keyboardSize.dp),
             horizontalArrangement =
                 if(reverseLayout){
                     ReverseArrangement
