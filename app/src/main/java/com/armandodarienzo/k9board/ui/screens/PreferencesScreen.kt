@@ -275,31 +275,3 @@ fun <T> OptionRow(
 
     }
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun OptionValueChip(
-    text: String,
-    onClick: () -> Unit
-) {
-    InputChip(
-        selected = true,
-        onClick = { onClick() },
-        label = {
-            Text(
-                text = text,
-                fontSize = 12.sp)
-        }
-    )
-}
-
-@Composable
-fun OptionValueText (
-    text: String
-) {
-    Text(
-        text = text,
-        modifier = Modifier.padding(start = 16.dp),
-        style = MaterialTheme.typography.bodyLarge,
-    )
-}

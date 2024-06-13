@@ -1,6 +1,8 @@
 package com.armandodarienzo.k9board.shared
 
 /***** Keyboard UI Constant values *****/
+const val KEYBOARD_MIN_SIZE = 180
+
 const val KEY1_ID: Int = 1
 const val KEY2_ID: Int = 2
 const val KEY3_ID: Int = 3

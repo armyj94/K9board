@@ -3,9 +3,9 @@ package com.armandodarienzo.k9board.shared.repository
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.armandodarienzo.k9board.shared.LANGUAGE_TAG_ENGLISH_AMERICAN
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_DOUBLE_SPACE_CHARACTER
@@ -119,7 +119,7 @@ class UserPreferencesRepositoryLocal @Inject constructor(
             name = SHARED_PREFS_SET_LANGUAGE
         )
 
-        val KEY_KEYBOARD_SIZE = intPreferencesKey(
+        val KEY_KEYBOARD_SIZE = doublePreferencesKey(
             name = SHARED_PREFS_KEYBOARD_SIZE
         )
 
