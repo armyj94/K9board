@@ -56,7 +56,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     var currentT9code: String = ""
 
     lateinit var indexesOfCaps: MutableList<Int>
-//    lateinit var indexesOfEmojis: MutableList<EmojiPlaceholder>
 
 
     var isCaps = mutableStateOf(KeyboardCapsStatus.LOWER_CASE)
@@ -64,8 +63,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     private var lastKeyId: Int? = 0
     private var keyCodesIndex: Int = 0
     private var keyTimer = 0L
-
-    lateinit var emojis: List<String>
 
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
@@ -86,13 +83,9 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         db.writableDatabase.execSQL("PRAGMA synchronous = NORMAL")
 
         indexesOfCaps = mutableListOf()
-//        indexesOfEmojis = mutableListOf()
 
         //TODO: fetch user preference
         isCaps.value = KeyboardCapsStatus.LOWER_CASE
-
-        //TODO: fetch emojis
-        emojis = ArrayList()
 
 
         GlobalScope.async {
@@ -178,26 +171,11 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     fun getWordTextBeforeCursor(): String{
         var text = currentInputConnection.getTextBeforeCursor(100, 0)?: ""
-//        emojis.forEach{
-//            text = text.toString().replace(it, "")
-//        }
-//        if (text.isNotBlank()){
-//            text = text.toString().substringAfterLast(' ')
-//        }
-        Log.d(TAG, "textBeforeCursor before: $text")
-        Log.d(TAG, "textBeforeCursor after: ${text.toString().substringAfterLastNotMatching(WORDS_REGEX)}")
         return text.toString().substringAfterLastNotMatching(WORDS_REGEX)
     }
 
     fun getWordTextAfterCursor(): String{
         val text = currentInputConnection.getTextAfterCursor(100, 0)?: ""
-//        emojis.forEach{
-//            text = text.toString().replace(it, "")
-//        }
-//        if (text.isNotBlank().also { text.contains(' ') } )
-//            text = text.toString().substringBefore(' ')
-        Log.d(TAG, "textAfterCursor before: $text")
-        Log.d(TAG, "textAfterCursor after: ${text.toString().substringAfterLastNotMatching(WORDS_REGEX)}")
         return text.toString().substringBeforeFirstNotMatching(WORDS_REGEX)
     }
 
@@ -210,9 +188,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         currentT9code = Word.getNumberDigitsCode(wordTextBeforeCursor) + (newCode?:"") + Word.getNumberDigitsCode(
             wordTextAfterCursor
         )
-        Log.d(TAG, "wordTextBeforeCursor: $wordTextBeforeCursor")
-        Log.d(TAG, "wordTextAfterCursor: $wordTextAfterCursor")
-        Log.d(TAG, "currentT9code: $currentT9code")
 
         words = db.getWordsByCode(currentT9code)
 
@@ -270,7 +245,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     fun deleteChar(){
 
-
         //Gestisco le maiuscole
         indexesOfCaps.remove(cursorPosition)
 
@@ -278,44 +252,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         val upEvent = KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL)
         currentInputConnection?.sendKeyEvent(downEvent)
         currentInputConnection?.sendKeyEvent(upEvent)
-
-
-
-//        //Gestisco le emoji che l'utente ha inserito attraverso la tastiera
-//        try {
-//            var emojiPlaceholder: EmojiPlaceholder = indexesOfEmojis.first { it.position + it.length == cursorPosition }
-//            var test = indexesOfEmojis.remove(emojiPlaceholder)
-//            Log.d(TAG, "emojiPlaceholder removed: $test at ${emojiPlaceholder.position}")
-//        } catch (ex: NoSuchElementException){}
-//
-//
-//        //Verifico se devo cancellare un carattere o un emoji.
-//        var lengthToDelete = 1
-//        run loop@{
-//
-//            emojis.forEach{
-//
-//                if (getTextBeforeCursor().endsWith(it)){
-//                    lengthToDelete = it.length
-//                    return@loop
-//                }
-//            }
-//
-//        }
-//
-//        //Riposiziono i placeholder per le emoji che ha inserito l'utente che si trovano dopo il cursore
-//        indexesOfEmojis.onEach {
-//
-//            if(it.position >= cursorPosition ){
-//                it.shiftLeft(lengthToDelete)
-//            }
-//
-//        }
-//
-//        //Cancell
-//        currentInputConnection.deleteSurroundingText(lengthToDelete, 0)
-
-
 
         currentInputConnection.requestCursorUpdates(InputConnection.CURSOR_UPDATE_IMMEDIATE)
 
@@ -383,15 +319,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
                  forceManual: Boolean,
                  keyId: Int) {
 
-//        indexesOfEmojis.onEach {
-//
-//            if (it.position >= cursorPosition) {
-//
-//                it.shiftRight(1)
-//
-//            }
-//
-//        }
 
         if (isManual.value || forceManual) {
 
@@ -519,18 +446,7 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     fun emojiClick(emojiViewItem: EmojiViewItem) {
         val emoji : String = emojiViewItem.emoji
-//        indexesOfEmojis.onEach {
-//
-//            if (it.position > cursorPosition) {
-//
-//                it.shiftRight(emoji.length)
-//
-//            }
-//
-//        }
-//
-//        Log.d(TAG, "cursorPositio $cursorPosition and emoji.length ${emoji.length}")
-//        indexesOfEmojis.add(EmojiPlaceholder(cursorPosition, emoji.length))
+
         currentInputConnection.commitText(emoji, 1)
     }
 

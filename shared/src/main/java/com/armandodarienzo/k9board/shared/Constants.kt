@@ -66,5 +66,5 @@ const val SHARED_PREFS_RECENT_EMOJIS = "shared_prefs_recent_emojis"
 
 
 /***** Functional values *****/
-const val WORDS_REGEX_STRING = "[',.\\':;\"\\?¿!¡+\\-=()\$@&\\\\#€*/₽£<>%1A-Za-zÀ-ÖØ-öø-ÿŒœŌōŐőŇňŃńА-Яа-яЁёЬьЭэЮюЯя0]"
+const val WORDS_REGEX_STRING = "[',.\\':;\"\\?¿!¡+\\-=()\$@&\\\\#€*/₽£<>%0-9A-Za-zÀ-ÖØ-öø-ÿŒœŌōŐőŇňŃńА-Яа-яЁёЬьЭэЮюЯя]"
 
