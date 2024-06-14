@@ -38,7 +38,6 @@ const val KEY9_TEXT_LATIN = "wxyz"
 
 
 /***** Keyboard Colors Constant values *****/
-
 const val THEME_DYNAMIC = "dynamic"
 const val THEME_MATERIAL_YOU = "material_you"
 
@@ -64,4 +63,8 @@ const val SHARED_PREFS_FIRST_EXECUTION = "shared_prefs_first_execution"
 const val SHARED_PREFS_CURRENT_LANGUAGE = "shared_prefs_current_language"
 const val SHARED_PREFS_LANGUAGE_ENABLED = "shared_prefs_language_enabled"
 const val SHARED_PREFS_RECENT_EMOJIS = "shared_prefs_recent_emojis"
+
+
+/***** Functional values *****/
+const val WORDS_REGEX_STRING = "[',.\\':;\"\\?¿!¡+\\-=()\$@&\\\\#€*/₽£<>%1A-Za-zÀ-ÖØ-öø-ÿŒœŌōŐőŇňŃńА-Яа-яЁёЬьЭэЮюЯя0]"
 

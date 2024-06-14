@@ -86,14 +86,14 @@ fun HomeScreen(
     viewModel: HomeScreenViewModel = hiltViewModel()
 ) {
     val menuItems = listOf(
-        MainMenuItem(
-            name = stringResource(id = R.string.main_activity_languages),
-            optionKeyString = SHARED_PREFS_SET_LANGUAGE,
-            iconID = R.drawable.ic_language_white_18dp,
-            onClick = {
-                navController.navigate(route = Screens.LanguageSelectionScreen.name)
-            }
-        ),
+//        MainMenuItem(
+//            name = stringResource(id = R.string.main_activity_languages),
+//            optionKeyString = SHARED_PREFS_SET_LANGUAGE,
+//            iconID = R.drawable.ic_language_white_18dp,
+//            onClick = {
+//                navController.navigate(route = Screens.LanguageSelectionScreen.name)
+//            }
+//        ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_enable_keyboard),
             optionKeyString = null,

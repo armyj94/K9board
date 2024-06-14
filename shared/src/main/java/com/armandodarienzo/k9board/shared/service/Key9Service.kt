@@ -19,17 +19,23 @@ import androidx.savedstate.SavedStateRegistryOwner
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.Word
 import com.armandodarienzo.k9board.shared.ASCII_CODE_SPACE
+import com.armandodarienzo.k9board.shared.WORDS_REGEX_STRING
+import com.armandodarienzo.k9board.shared.substringAfterLastNotMatching
+import com.armandodarienzo.k9board.shared.substringBeforeFirstNotMatching
 import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlin.system.measureTimeMillis
 
+@AndroidEntryPoint
 open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwner,
     SavedStateRegistryOwner {
 
     lateinit var view: View
 
     private val TAG = Companion::class.java.simpleName
+
 
     private var lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
 
@@ -127,7 +133,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     override fun onUpdateCursorAnchorInfo(cursorAnchorInfo: CursorAnchorInfo?) {
 
-
         super.onUpdateCursorAnchorInfo(cursorAnchorInfo)
 
         var indexesofCapsString: String = ""
@@ -173,23 +178,27 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     fun getWordTextBeforeCursor(): String{
         var text = currentInputConnection.getTextBeforeCursor(100, 0)?: ""
-        emojis.forEach{
-            text = text.toString().replace(it, "")
-        }
-        if (text.isNotBlank()){
-            text = text.toString().substringAfterLast(' ')
-        }
-        return text.toString()
+//        emojis.forEach{
+//            text = text.toString().replace(it, "")
+//        }
+//        if (text.isNotBlank()){
+//            text = text.toString().substringAfterLast(' ')
+//        }
+        Log.d(TAG, "textBeforeCursor before: $text")
+        Log.d(TAG, "textBeforeCursor after: ${text.toString().substringAfterLastNotMatching(WORDS_REGEX)}")
+        return text.toString().substringAfterLastNotMatching(WORDS_REGEX)
     }
 
     fun getWordTextAfterCursor(): String{
-        var text = currentInputConnection.getTextAfterCursor(100, 0)?: ""
-        emojis.forEach{
-            text = text.toString().replace(it, "")
-        }
-        if (text.isNotBlank().also { text.contains(' ') } )
-            text = text.toString().substringBefore(' ')
-        return text.toString()
+        val text = currentInputConnection.getTextAfterCursor(100, 0)?: ""
+//        emojis.forEach{
+//            text = text.toString().replace(it, "")
+//        }
+//        if (text.isNotBlank().also { text.contains(' ') } )
+//            text = text.toString().substringBefore(' ')
+        Log.d(TAG, "textAfterCursor before: $text")
+        Log.d(TAG, "textAfterCursor after: ${text.toString().substringAfterLastNotMatching(WORDS_REGEX)}")
+        return text.toString().substringBeforeFirstNotMatching(WORDS_REGEX)
     }
 
     fun updateCurrentWord(newCode: Char?){
@@ -201,6 +210,9 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         currentT9code = Word.getNumberDigitsCode(wordTextBeforeCursor) + (newCode?:"") + Word.getNumberDigitsCode(
             wordTextAfterCursor
         )
+        Log.d(TAG, "wordTextBeforeCursor: $wordTextBeforeCursor")
+        Log.d(TAG, "wordTextAfterCursor: $wordTextAfterCursor")
+        Log.d(TAG, "currentT9code: $currentT9code")
 
         words = db.getWordsByCode(currentT9code)
 
@@ -535,5 +547,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     companion object {
         const val LONG_PRESSURE_TIME_MILLIS = 500L
+        val WORDS_REGEX = WORDS_REGEX_STRING.toRegex()
     }
 }
