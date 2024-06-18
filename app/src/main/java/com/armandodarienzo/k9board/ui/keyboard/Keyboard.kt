@@ -2,6 +2,7 @@ package com.armandodarienzo.k9board.ui.keyboard
 
 import android.os.Build
 import android.util.Log
+import android.view.inputmethod.EditorInfo
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -63,6 +64,39 @@ fun CustomKeyboard(
     val collapsed by remember { mutableStateOf(false) }
     var keyboardView by remember { mutableStateOf(KeyboardCurrentView.TEXT_VIEW) }
 
+    val actionId = service?.currentInputEditorInfo?.imeOptions?.and(EditorInfo.IME_MASK_ACTION)
+
+    val actionIconId =
+        when (actionId) {
+            EditorInfo.IME_ACTION_SEND -> {
+                R.drawable.ic_baseline_send_18
+            }
+            EditorInfo.IME_ACTION_SEARCH -> {
+                R.drawable.ic_baseline_search_18
+            }
+            EditorInfo.IME_ACTION_NEXT -> {
+                R.drawable.rounded_keyboard_double_arrow_right_24
+            }
+            EditorInfo.IME_ACTION_GO -> {
+                R.drawable.outline_arrow_right_alt_24
+            }
+            else -> {
+               R.drawable.rounded_subdirectory_arrow_left_24
+            }
+        }
+
+    val imeAction =
+        when (actionId) {
+            EditorInfo.IME_ACTION_SEND,
+            EditorInfo.IME_ACTION_SEARCH,
+            EditorInfo.IME_ACTION_NEXT,
+            EditorInfo.IME_ACTION_GO -> {
+                { service.currentInputConnection?.performEditorAction(actionId) }
+            }
+            else -> {
+                { service?.newLine() }
+            }
+        }
 
     val caps = service?.isCaps
     val isManual = service?.isManual
@@ -114,6 +148,7 @@ fun CustomKeyboard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .height(keyboardSize.dp)
             .then(modifier),
         color = backgroundColor
     ){
@@ -121,7 +156,7 @@ fun CustomKeyboard(
         Row(
             Modifier
                 .padding(top = 4.dp, bottom = 4.dp)
-                .height(keyboardSize.dp),
+                .fillMaxHeight(),
             horizontalArrangement =
                 if(reverseLayout){
                     ReverseArrangement
@@ -272,7 +307,7 @@ fun CustomKeyboard(
                                         "isManual = $isManual"
                                     )
                                 },
-                            id = 107,
+                            id = KEYSWAP_ID,
                             text = "sync",
                             iconID = if (isManual?.value == true) R.drawable.ic_baseline_edit_note_24 else R.drawable.ic_sync_white_12dp,
                             color = MaterialTheme.colorScheme.secondaryContainer,
@@ -285,7 +320,7 @@ fun CustomKeyboard(
                                         service?.spaceClick()
                                     }
                                 ),
-                            id = 3000,
+                            id = KEYSPACE_ID,
                             text = "⎵",
                             ratio = 3.3f
                         )
@@ -293,14 +328,6 @@ fun CustomKeyboard(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable {
-                                    Log.d(
-                                        object {}::class.java.enclosingMethod?.name,
-                                        "shiftKeyTimer(START) = $shiftKeyTimer"
-                                    )
-                                    Log.d(
-                                        object {}::class.java.enclosingMethod?.name,
-                                        "caps(START) = $caps"
-                                    )
 
                                     if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
                                         shiftKeyTimer = System.currentTimeMillis()
@@ -317,23 +344,18 @@ fun CustomKeyboard(
                                             KeyboardCapsStatus.LOWER_CASE
                                         }
 
-                                    Log.d(
-                                        object {}::class.java.enclosingMethod?.name,
-                                        "shiftKeyTimer(END) = $shiftKeyTimer"
-                                    )
-                                    Log.d(
-                                        object {}::class.java.enclosingMethod?.name,
-                                        "caps(END) = $caps"
-                                    )
                                 },
-                            id = 106,
+                            id = KEYSHIFT_ID,
                             text = "shift",
                             iconID =
-                            when (caps?.value) {
-                                KeyboardCapsStatus.UPPER_CASE -> R.drawable.ic_system_filled_shift_24px
-                                KeyboardCapsStatus.CAPS_LOCK -> R.drawable.ic_system_filled_permanent_shift_24px
-                                else -> R.drawable.ic_keyboard_capslock_white_18dp
-                            },
+                                when (caps?.value) {
+                                    KeyboardCapsStatus.UPPER_CASE ->
+                                        R.drawable.ic_system_filled_shift_24px
+                                    KeyboardCapsStatus.CAPS_LOCK ->
+                                        R.drawable.ic_system_filled_permanent_shift_24px
+                                    else ->
+                                        R.drawable.ic_keyboard_capslock_white_18dp
+                                },
                             color = MaterialTheme.colorScheme.secondaryContainer,
                         )
 
@@ -372,10 +394,13 @@ fun CustomKeyboard(
                 ) {
                     KeyboardKey(
                         modifier = Modifier
-                            .weight(1f),
-                        id = 103,
+                            .weight(1f)
+                            .clickable {
+                                imeAction()
+                            },
+                        id = KEYACTION_ID,
                         text = "IMEAction",
-                        iconID = R.drawable.ic_baseline_send_18,
+                        iconID = actionIconId,
                         color =
                         if(!isSystemInDarkTheme())
                             MaterialTheme.colorScheme.inversePrimary
@@ -406,7 +431,7 @@ fun CustomKeyboard(
 //                                }
 //                            ),
                              ,
-                        id = 105,
+                        id = KEYDELETE_ID,
                         text = "canc",
                         iconID = R.drawable.ic_backspace_white_18dp,
                         color = MaterialTheme.colorScheme.secondaryContainer,
@@ -430,7 +455,7 @@ fun CustomKeyboard(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
-                        id = 104,
+                        id = KEYEMOJI_ID,
                         text = "emojis",
                         iconID = R.drawable.ic_insert_emoticon_white_18dp,
                         color = MaterialTheme.colorScheme.secondaryContainer,

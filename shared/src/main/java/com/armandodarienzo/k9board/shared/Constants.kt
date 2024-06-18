@@ -12,6 +12,12 @@ const val KEY6_ID: Int = 6
 const val KEY7_ID: Int = 7
 const val KEY8_ID: Int = 8
 const val KEY9_ID: Int = 9
+const val KEYACTION_ID: Int = 103
+const val KEYEMOJI_ID: Int = 104
+const val KEYDELETE_ID: Int = 105
+const val KEYSHIFT_ID: Int = 106
+const val KEYSWAP_ID: Int = 107
+const val KEYSPACE_ID: Int = 3000
 
 const val ASCII_CODE_SPACE = 32
 const val ASCII_CODE_1 = 49

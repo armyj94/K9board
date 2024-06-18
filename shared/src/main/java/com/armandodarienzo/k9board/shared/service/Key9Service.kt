@@ -1,12 +1,15 @@
 package com.armandodarienzo.k9board.shared.service
 
+import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
+import android.os.Build
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.emoji2.emojipicker.EmojiViewItem
 import androidx.lifecycle.Lifecycle
@@ -14,24 +17,31 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.ViewTreeLifecycleOwner
+import androidx.lifecycle.ViewTreeViewModelStoreOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.Word
 import com.armandodarienzo.k9board.shared.ASCII_CODE_SPACE
 import com.armandodarienzo.k9board.shared.WORDS_REGEX_STRING
+import com.armandodarienzo.k9board.shared.model.DoubleSpaceCharacter
+import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepositoryLocal
+import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.armandodarienzo.k9board.shared.substringAfterLastNotMatching
 import com.armandodarienzo.k9board.shared.substringBeforeFirstNotMatching
 import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlin.system.measureTimeMillis
 
 @AndroidEntryPoint
 open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwner,
     SavedStateRegistryOwner {
 
+    var backgroundColorId: Int = 0
     lateinit var view: View
 
     private val TAG = Companion::class.java.simpleName
@@ -59,17 +69,41 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
 
     var isCaps = mutableStateOf(KeyboardCapsStatus.LOWER_CASE)
+    var doubleSpaceChar = mutableStateOf(DoubleSpaceCharacter.NONE)
     var isManual = mutableStateOf(false)
+
+
     private var lastKeyId: Int? = 0
     private var keyCodesIndex: Int = 0
     private var keyTimer = 0L
 
+    /*We access directly the repository because it is not possible to
+        * inject a hiltViewModel in an AbstractComposeView at the moment*/
+    private lateinit var userPreferencesRepository : UserPreferencesRepositoryLocal
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
     }
 
     override fun onCreateInputView(): View {
+
+        window!!.window!!.decorView.let { decorView ->
+            ViewTreeLifecycleOwner.set(decorView, this)
+            ViewTreeViewModelStoreOwner.set(decorView, this)
+//            ViewTreeSavedStateRegistryOwner.set(decorView, this)
+            decorView.setViewTreeSavedStateRegistryOwner(this)
+        }
+        window!!.window!!.navigationBarColor = this.getColor(backgroundColorId)
+        view.let {
+            ViewTreeLifecycleOwner.set(it, this)
+            ViewTreeViewModelStoreOwner.set(it, this)
+//            ViewTreeSavedStateRegistryOwner.set(it, this)
+            it.setViewTreeSavedStateRegistryOwner(this)
+        }
+
+
+        userPreferencesRepository = UserPreferencesRepositoryLocal(this.dataStore)
+
 
 //        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
 //        val setLanguage = prefs.getString(
@@ -82,21 +116,23 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         db.writableDatabase.enableWriteAheadLogging()//db.readableDatabase
         db.writableDatabase.execSQL("PRAGMA synchronous = NORMAL")
 
+        lifecycleScope.launch {
+            isManual.value = userPreferencesRepository.isStartWithManualEnabled().getOrNull()!!
+            doubleSpaceChar.value = userPreferencesRepository.getDoubleSpaceCharacter().getOrNull()!!
+
+            var getFrequencyTime = measureTimeMillis {
+                meanFrequency = db.getMeanFrequency()
+                wordsMaxLength = db.getMaxLength()
+            }
+        }
+
+
         indexesOfCaps = mutableListOf()
 
         //TODO: fetch user preference
         isCaps.value = KeyboardCapsStatus.LOWER_CASE
 
 
-        GlobalScope.async {
-
-            var getFrequencyTime = measureTimeMillis {
-                meanFrequency = db.getMeanFrequency()
-                wordsMaxLength = db.getMaxLength()
-            }
-            Log.d(TAG, "Time: $getFrequencyTime")
-
-        }
 
 
         return view
@@ -160,6 +196,17 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     private val store = ViewModelStore()
 
     override fun getViewModelStore(): ViewModelStore = store
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    fun setBackgroundColorId() {
+        val nightModeFlags: Int = this.resources.configuration.uiMode and
+                Configuration.UI_MODE_NIGHT_MASK
+
+        backgroundColorId = when (nightModeFlags) {
+            Configuration.UI_MODE_NIGHT_YES -> android.R.color.system_neutral1_900
+            else -> android.R.color.system_neutral2_50
+        }
+    }
 
     fun getTextBeforeCursor(): CharSequence{
         return currentInputConnection.getTextBeforeCursor(5000, 0)?: ""
@@ -255,6 +302,10 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
         currentInputConnection.requestCursorUpdates(InputConnection.CURSOR_UPDATE_IMMEDIATE)
 
+    }
+
+    fun newLine(){
+        currentInputConnection?.commitText("\n", 1)
     }
 
     private fun addCharToCurrentWord(code: Int) {
