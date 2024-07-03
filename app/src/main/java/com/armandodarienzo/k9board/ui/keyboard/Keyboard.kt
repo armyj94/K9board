@@ -47,6 +47,7 @@ fun CustomKeyboardPreviewRU() {
 }
 
 
+@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CustomKeyboard(
@@ -65,7 +66,6 @@ fun CustomKeyboard(
     var keyboardView by remember { mutableStateOf(KeyboardCurrentView.TEXT_VIEW) }
 
     val actionId = service?.currentInputEditorInfo?.imeOptions?.and(EditorInfo.IME_MASK_ACTION)
-
     val actionIconId =
         when (actionId) {
             EditorInfo.IME_ACTION_SEND -> {
@@ -84,7 +84,6 @@ fun CustomKeyboard(
                R.drawable.rounded_subdirectory_arrow_left_24
             }
         }
-
     val imeAction =
         when (actionId) {
             EditorInfo.IME_ACTION_SEND,
@@ -142,7 +141,7 @@ fun CustomKeyboard(
         else -> KEY9_TEXT_LATIN
     }
 
-
+//    val visibleBox = remember { mutableStateOf(false) }
 
 
     Surface(
@@ -190,7 +189,9 @@ fun CustomKeyboard(
                 if (keyboardView == KeyboardCurrentView.TEXT_VIEW) {
                     /*First row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                        modifier = Modifier
+                            .padding(start = 2.dp, end = 2.dp)
+                            .weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
 
@@ -200,7 +201,7 @@ fun CustomKeyboard(
                             id = KEY1_ID,
                             text = KEY1_TEXT,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_1
+                            numberASCIIcode = ASCII_CODE_1,
                         )
                         KeyboardTextKey(
                             id = KEY2_ID,
@@ -209,8 +210,12 @@ fun CustomKeyboard(
                             text = key2text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_2
+                            numberASCIIcode = ASCII_CODE_2,
+//                            onLongClick = {
+//                                visibleBox.value = true
+//                            }
                         )
+
                         KeyboardTextKey(
                             modifier = Modifier
                                 .weight(1f),
@@ -224,7 +229,9 @@ fun CustomKeyboard(
 
                     /*Second row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                        modifier = Modifier
+                            .padding(start = 2.dp, end = 2.dp)
+                            .weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         KeyboardTextKey(
@@ -259,7 +266,9 @@ fun CustomKeyboard(
 
                     /*Third row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                        modifier = Modifier
+                            .padding(start = 2.dp, end = 2.dp)
+                            .weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         KeyboardTextKey(
@@ -294,7 +303,9 @@ fun CustomKeyboard(
 
                     /*4th row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                        modifier = Modifier
+                            .padding(start = 2.dp, end = 2.dp)
+                            .weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         KeyboardKey(
@@ -389,7 +400,9 @@ fun CustomKeyboard(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                    modifier = Modifier
+                        .padding(start = 2.dp, end = 2.dp)
+                        .weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
@@ -402,21 +415,23 @@ fun CustomKeyboard(
                         text = "IMEAction",
                         iconID = actionIconId,
                         color =
-                        if(!isSystemInDarkTheme())
-                            MaterialTheme.colorScheme.inversePrimary
-                        else
-                            MaterialTheme.colorScheme.primary,
+                            if(!isSystemInDarkTheme())
+                                MaterialTheme.colorScheme.inversePrimary
+                            else
+                                MaterialTheme.colorScheme.primary,
                         symbolsColor =
-                        if(!isSystemInDarkTheme())
-                            MaterialTheme.colorScheme.onSurface
-                        else
-                            MaterialTheme.colorScheme.inverseOnSurface,
+                            if(!isSystemInDarkTheme())
+                                MaterialTheme.colorScheme.onSurface
+                            else
+                                MaterialTheme.colorScheme.inverseOnSurface,
 
-                        )
+                            )
 
                 }
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                    modifier = Modifier
+                        .padding(start = 2.dp, end = 2.dp)
+                        .weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardRepeatableKey(
@@ -439,7 +454,9 @@ fun CustomKeyboard(
                     )
                 }
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                    modifier = Modifier
+                        .padding(start = 2.dp, end = 2.dp)
+                        .weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
@@ -451,7 +468,9 @@ fun CustomKeyboard(
                     )
                 }
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                    modifier = Modifier
+                        .padding(start = 2.dp, end = 2.dp)
+                        .weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(

@@ -2,6 +2,7 @@ package com.armandodarienzo.k9board.shared
 
 /***** Keyboard UI Constant values *****/
 const val KEYBOARD_MIN_SIZE = 180
+const val KEYBOARD_POPUP_MAX_COLUMNS = 3
 
 const val KEY1_ID: Int = 1
 const val KEY2_ID: Int = 2
@@ -41,7 +42,21 @@ const val KEY7_TEXT_LATIN = "pqrs"
 const val KEY8_TEXT_LATIN = "tuv"
 const val KEY9_TEXT_LATIN = "wxyz"
 
-
+object KEY2_SPECIAL_CHARS {
+    val VALUES = listOf(
+        "á",
+        "à",
+        "â",
+        "ä",
+        "ã",
+        "å",
+        "ą",
+        "æ",
+        "ć",
+        "č",
+        "ç"
+    )
+}
 
 /***** Keyboard Colors Constant values *****/
 const val THEME_DYNAMIC = "dynamic"
