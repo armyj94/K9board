@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -68,14 +69,15 @@ fun PopupBox(
     showPopup: Boolean,
     onClickOutside: () -> Unit,
     color: Color,
+    gridState: LazyGridState = rememberLazyGridState(),
+    selectedId: Int = 0,
     capsStatus: KeyboardCapsStatus? = KeyboardCapsStatus.LOWER_CASE,
 ) {
 
     val configuration = LocalConfiguration.current
     val popupWidth = (configuration.screenWidthDp / 2).dp
 
-    var selectedId by rememberSaveable { mutableStateOf(0) }
-    val gridState = rememberLazyGridState()
+
 
 
     val columns =
@@ -111,12 +113,11 @@ fun PopupBox(
 
                     LazyVerticalGrid(
                         state = gridState,
-                        modifier = Modifier.popupDragHandler(
-                            lazyGridState = gridState,
-                            setSelectedId = { selectedId = it },
-                            autoScrollThreshold = with(LocalDensity.current) { 40.dp.toPx() },
-                            closePopup = onClickOutside
-                        ),
+//                        modifier = Modifier.popupDragHandler(
+//                            lazyGridState = gridState,
+//                            setSelectedId = setSelectedId,
+//                            closePopup = onClickOutside
+//                        ),
                         columns = GridCells.Fixed(columns),
                         userScrollEnabled = false
                     ) {
@@ -124,6 +125,7 @@ fun PopupBox(
                             PopUpKey(
                                 text = characters[it],
                                 selected = it == selectedId,
+                                capsStatus = capsStatus
                             )
                         }
                     }
@@ -197,17 +199,16 @@ fun PopUpKey(
 
 fun Modifier.popupDragHandler(
     lazyGridState: LazyGridState,
-    autoScrollThreshold: Float,
     setSelectedId: (Int) -> Unit = { },
     closePopup: () -> Unit = { },
     setAutoScrollSpeed: (Float) -> Unit = { },
-) : Modifier = pointerInput(autoScrollThreshold, setSelectedId, setAutoScrollSpeed) {
+) : Modifier = pointerInput(setSelectedId) {
     fun charIndexAtOffset(hitPoint: Offset): Int? =
         lazyGridState.layoutInfo.visibleItemsInfo.find { itemInfo ->
             itemInfo.size.toIntRect().contains(hitPoint.round() - itemInfo.offset)
         }?.index
 
-    detectDragGestures(
+    detectDragGesturesAfterLongPress(
         onDragStart = { offset ->
 //            Log.d("test", "onDragStart: $offset")
 //            charIndexAtOffset(offset)?.let { key ->
@@ -218,18 +219,14 @@ fun Modifier.popupDragHandler(
         onDragCancel = {
             setAutoScrollSpeed(0f)
             setSelectedId(0)
-            Log.d("test", "onDragCancel")
             closePopup()},
         onDragEnd = {
             setAutoScrollSpeed(0f)
             setSelectedId(0)
-            Log.d("test", "onDragEnd")
             //TODO: write char to InputConnection
             closePopup()},
         onDrag = { change, _ ->
-
                 charIndexAtOffset(change.position)?.let { pointerCharIndex ->
-                    Log.d("test", "onDrag pointerCharIndex: $pointerCharIndex")
                     setSelectedId(pointerCharIndex)
                 }
         }
