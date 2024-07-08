@@ -4,7 +4,6 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -20,10 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,11 +28,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.minus
+import androidx.compose.ui.unit.plus
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toIntRect
@@ -69,6 +66,7 @@ fun PopupBox(
     showPopup: Boolean,
     onClickOutside: () -> Unit,
     color: Color,
+    boxOffset: IntOffset = IntOffset(0, 0),
     gridState: LazyGridState = rememberLazyGridState(),
     selectedId: Int = 0,
     capsStatus: KeyboardCapsStatus? = KeyboardCapsStatus.LOWER_CASE,
@@ -77,16 +75,12 @@ fun PopupBox(
     val configuration = LocalConfiguration.current
     val popupWidth = (configuration.screenWidthDp / 2).dp
 
-
-
-
     val columns =
         min(
             characters.size, KEYBOARD_POPUP_MAX_COLUMNS
         )
 
     if (showPopup) {
-        Scrim(onClose = { onClickOutside() })
         // popup
         Box(
 
@@ -97,27 +91,20 @@ fun PopupBox(
                     excludeFromSystemGesture = true,
                     clippingEnabled = false
                 ),
-                offset = IntOffset(0, 0),
+                offset = boxOffset,
                 // to dismiss on click outside
                 onDismissRequest = { onClickOutside() }
             ) {
                 Box(
                     Modifier
                         .width(popupWidth)
-                        .aspectRatio(1f)
                         .clip(RoundedCornerShape(20))
                         .background(color),
                     contentAlignment = Alignment.Center
                 ) {
 
-
                     LazyVerticalGrid(
                         state = gridState,
-//                        modifier = Modifier.popupDragHandler(
-//                            lazyGridState = gridState,
-//                            setSelectedId = setSelectedId,
-//                            closePopup = onClickOutside
-//                        ),
                         columns = GridCells.Fixed(columns),
                         userScrollEnabled = false
                     ) {
@@ -199,9 +186,9 @@ fun PopUpKey(
 
 fun Modifier.popupDragHandler(
     lazyGridState: LazyGridState,
+    boxOffset: MutableState<IntOffset>,
     setSelectedId: (Int) -> Unit = { },
-    closePopup: () -> Unit = { },
-    setAutoScrollSpeed: (Float) -> Unit = { },
+    closePopup: () -> Unit = { }
 ) : Modifier = pointerInput(setSelectedId) {
     fun charIndexAtOffset(hitPoint: Offset): Int? =
         lazyGridState.layoutInfo.visibleItemsInfo.find { itemInfo ->
@@ -217,16 +204,14 @@ fun Modifier.popupDragHandler(
 //            }
         },
         onDragCancel = {
-            setAutoScrollSpeed(0f)
             setSelectedId(0)
             closePopup()},
         onDragEnd = {
-            setAutoScrollSpeed(0f)
             setSelectedId(0)
             //TODO: write char to InputConnection
             closePopup()},
         onDrag = { change, _ ->
-                charIndexAtOffset(change.position)?.let { pointerCharIndex ->
+                charIndexAtOffset(change.position.minus(boxOffset.value))?.let { pointerCharIndex ->
                     setSelectedId(pointerCharIndex)
                 }
         }

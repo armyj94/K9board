@@ -28,16 +28,22 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.toIntRect
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
@@ -50,6 +56,7 @@ import com.armandodarienzo.k9board.ui.keyboard.PopupBox
 import com.armandodarienzo.k9board.ui.keyboard.popupDragHandler
 import kotlinx.coroutines.delay
 import java.util.*
+import kotlin.math.roundToInt
 
 @Preview
 @Composable
@@ -197,33 +204,45 @@ fun KeyboardTextKey(
 
     val visibleBox = remember { mutableStateOf(false) }
     val gridState = rememberLazyGridState()
-    var selectedId by rememberSaveable { mutableStateOf(0) }
+    var selectedId by rememberSaveable { mutableStateOf(8) }
+    val boxOffset = remember { mutableStateOf(IntOffset.Zero) }
+    var keySize by remember { mutableStateOf(IntSize.Zero) }
+
 
     Box(
         modifier = modifier
+            .onGloballyPositioned {
+                keySize = it.size
+
+                val offsetX = (keySize.width / 2f).roundToInt()
+                val offsetY = -(keySize.height / 0.75f).roundToInt()
+
+                boxOffset.value = IntOffset(offsetX, offsetY)
+            }
     ) {
         KeyboardKey(
             modifier =
-                Modifier
-                    .combinedClickable(
-                        onClick = {
-                            service?.keyClick(
-                                codifyChars(
-                                    if (capsStatus == KeyboardCapsStatus.LOWER_CASE) text
-                                    else text.uppercase(Locale.ROOT)
-                                )
-                                    .also { it.add(numberASCIIcode) }
-                                    .toIntArray(), false, numberASCIIcode)
-                        },
-                        onLongClick = {
-                            visibleBox.value = true
-                        }
-                    )
-                    .popupDragHandler(
-                        lazyGridState = gridState,
-                        setSelectedId = { selectedId = it },
-                        closePopup = { visibleBox.value = false }
-                    ),
+            Modifier
+                .combinedClickable(
+                    onClick = {
+                        service?.keyClick(
+                            codifyChars(
+                                if (capsStatus == KeyboardCapsStatus.LOWER_CASE) text
+                                else text.uppercase(Locale.ROOT)
+                            )
+                                .also { it.add(numberASCIIcode) }
+                                .toIntArray(), false, numberASCIIcode)
+                    },
+                    onLongClick = {
+                        visibleBox.value = true
+                    }
+                )
+                .popupDragHandler(
+                    lazyGridState = gridState,
+                    boxOffset = boxOffset,
+                    setSelectedId = { selectedId = it },
+                    closePopup = { visibleBox.value = false }
+                ),
             id = id,
             text = text,
             iconID = iconID,
@@ -239,6 +258,7 @@ fun KeyboardTextKey(
             showPopup = visibleBox.value,
             onClickOutside = { visibleBox.value = false },
             color = color,
+            boxOffset = boxOffset.value,
             gridState = gridState,
             selectedId = selectedId,
             capsStatus = capsStatus
@@ -248,18 +268,4 @@ fun KeyboardTextKey(
 
 
 }
-
-
-//fun Modifier.keyDragHandler(
-//    openPopup: () -> Unit,
-//) : Modifier = pointerInput(openPopup) {
-//
-//    detectDragGesturesAfterLongPress(
-//        onDragStart = { openPopup() },
-//        onDrag = { change, dragAmount ->
-//
-//        }
-//    )
-//
-//} then Modifier.graphicsLayer { this.alpha = alpha }
 
