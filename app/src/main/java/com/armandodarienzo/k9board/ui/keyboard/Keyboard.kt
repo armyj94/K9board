@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import com.armandodarienzo.k9board.model.KeyPopupProperties
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.wear.utility.KeyOboard.ui.components.KeyboardKey
 import com.armandodarienzo.wear.utility.KeyOboard.ui.components.KeyboardRepeatableKey
@@ -202,6 +203,7 @@ fun CustomKeyboard(
                             text = KEY1_TEXT,
                             service = service,
                             numberASCIIcode = ASCII_CODE_1,
+                            keyboardHeight = keyboardSize
                         )
                         KeyboardTextKey(
                             id = KEY2_ID,
@@ -211,9 +213,12 @@ fun CustomKeyboard(
                             capsStatus = caps?.value,
                             service = service,
                             numberASCIIcode = ASCII_CODE_2,
-//                            onLongClick = {
-//                                visibleBox.value = true
-//                            }
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    KEY2_SPECIAL_CHARS.VALUES,
+                                    Alignment.BottomCenter
+                                )
                         )
 
                         KeyboardTextKey(
@@ -223,7 +228,8 @@ fun CustomKeyboard(
                             text = key3text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_3
+                            numberASCIIcode = ASCII_CODE_3,
+                            keyboardHeight = keyboardSize
                         )
                     }
 
@@ -241,7 +247,8 @@ fun CustomKeyboard(
                             text = key4text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_4
+                            numberASCIIcode = ASCII_CODE_4,
+                            keyboardHeight = keyboardSize
                         )
                         KeyboardTextKey(
                             modifier = Modifier
@@ -250,7 +257,8 @@ fun CustomKeyboard(
                             text = key5text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_5
+                            numberASCIIcode = ASCII_CODE_5,
+                            keyboardHeight = keyboardSize
                         )
                         KeyboardTextKey(
                             modifier = Modifier
@@ -259,7 +267,8 @@ fun CustomKeyboard(
                             text = key6text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_6
+                            numberASCIIcode = ASCII_CODE_6,
+                            keyboardHeight = keyboardSize
                         )
 
                     }
@@ -278,7 +287,8 @@ fun CustomKeyboard(
                             text = key7text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_7
+                            numberASCIIcode = ASCII_CODE_7,
+                            keyboardHeight = keyboardSize
                         )
                         KeyboardTextKey(
                             modifier = Modifier
@@ -287,7 +297,8 @@ fun CustomKeyboard(
                             text = key8text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_8
+                            numberASCIIcode = ASCII_CODE_8,
+                            keyboardHeight = keyboardSize
                         )
                         KeyboardTextKey(
                             modifier = Modifier
@@ -296,7 +307,8 @@ fun CustomKeyboard(
                             text = key9text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_9
+                            numberASCIIcode = ASCII_CODE_9,
+                            keyboardHeight = keyboardSize
                         )
 
                     }
