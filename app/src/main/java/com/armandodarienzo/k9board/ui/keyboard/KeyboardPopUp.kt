@@ -145,7 +145,7 @@ fun PopupBox(
                         state = gridState,
                         verticalArrangement = Arrangement.Center,
                         horizontalArrangement = Arrangement.Center,
-                        columns = GridCells.Adaptive(minSize = popupWidth / columns),
+                        columns = GridCells.Fixed(columns),
                         userScrollEnabled = false
                     ) {
 
