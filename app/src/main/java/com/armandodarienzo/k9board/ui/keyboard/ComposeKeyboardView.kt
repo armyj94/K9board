@@ -1,5 +1,7 @@
 package com.armandodarienzo.k9board.ui.keyboard
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.LocalConfiguration
@@ -17,6 +19,7 @@ class ComposeKeyboardView(
     private var backgroundColorId: Int,
 ) : AbstractComposeView(service) {
 
+    @RequiresApi(Build.VERSION_CODES.S)
     @Composable
     override fun Content() {
 

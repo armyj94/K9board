@@ -34,6 +34,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.minus
 import androidx.compose.ui.unit.round
@@ -68,7 +69,6 @@ fun PopupBoxPreview() {
 @Composable
 fun PopupBox(
     characters: List<String>,
-    alignment: Alignment = Alignment.Center,
     showPopup: Boolean,
     popupWidth: Dp,
     popupHeight: Dp,
@@ -80,10 +80,6 @@ fun PopupBox(
     capsStatus: KeyboardCapsStatus? = KeyboardCapsStatus.LOWER_CASE,
 ) {
 
-
-
-
-
     val columns =
         min(
             characters.size, KEYBOARD_POPUP_MAX_COLUMNS
@@ -91,10 +87,6 @@ fun PopupBox(
 
     val rows = ceil((characters.size.toFloat() / columns)).toInt()
     val popupKeyRatio = (popupWidth * rows) / (popupHeight * columns)
-
-    Log.d("testPopup", "columns: $columns")
-    Log.d("testPopup", "rows: $rows")
-    Log.d("testPopup", "popupRatio: $popupKeyRatio")
 
     if (showPopup) {
         // popup
@@ -232,7 +224,9 @@ fun PopUpKey(
 fun Modifier.popupDragHandler(
     lazyGridState: LazyGridState,
     boxOffset: MutableState<IntOffset>,
+    startId: Int = 0,
     setSelectedId: (Int) -> Unit = { },
+    selectId: () -> Unit = { },
     closePopup: () -> Unit = { }
 ) : Modifier = pointerInput(setSelectedId) {
     fun charIndexAtOffset(hitPoint: Offset): Int? =
@@ -240,25 +234,44 @@ fun Modifier.popupDragHandler(
             itemInfo.size.toIntRect().contains(hitPoint.round() - itemInfo.offset)
         }?.index
 
+    fun charIndexAtOffsetWithTolerance(hitPoint: Offset, scaleFactor: Float = 1.5f): Int? =
+        charIndexAtOffset(hitPoint) ?:
+        lazyGridState.layoutInfo.visibleItemsInfo.find { itemInfo ->
+            val originalRect = itemInfo.size.toIntRect()
+            val newLeft = (originalRect.left * scaleFactor).toInt()
+            val newTop = (originalRect.top * scaleFactor).toInt()
+            val newRight = (originalRect.right * scaleFactor).toInt()
+            val newBottom = (originalRect.bottom * scaleFactor).toInt()
+
+            val newRect = IntRect(newLeft, newTop, newRight, newBottom)
+
+            newRect.contains(hitPoint.round() - itemInfo.offset)
+        }?.index
+
+    var charIndex: Int? = startId
+
     detectDragGesturesAfterLongPress(
-        onDragStart = { offset ->
-//            Log.d("test", "onDragStart: $offset")
-//            charIndexAtOffset(offset)?.let { key ->
-//                Log.d("test", "onDrag key: $key")
-//                setSelectedId(key)
-//            }
-        },
+        onDragStart = { _ ->  },
         onDragCancel = {
-            setSelectedId(0)
-            closePopup()},
+            setSelectedId(startId)
+            charIndex = startId
+            closePopup()
+        },
         onDragEnd = {
-            setSelectedId(0)
-            //TODO: write char to InputConnection
-            closePopup()},
+            charIndex?.let {
+                selectId()
+            }
+            setSelectedId(startId)
+            charIndex = startId
+            closePopup()
+        },
         onDrag = { change, _ ->
-                charIndexAtOffset(change.position.minus(boxOffset.value))?.let { pointerCharIndex ->
-                    setSelectedId(pointerCharIndex)
-                }
+            charIndex = charIndexAtOffsetWithTolerance(change.position.minus(boxOffset.value))
+
+            charIndex?.let { pointerCharIndex ->
+                setSelectedId(pointerCharIndex)
+            }
+
         }
     )
 

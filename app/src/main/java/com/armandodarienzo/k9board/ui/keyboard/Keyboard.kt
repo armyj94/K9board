@@ -217,7 +217,8 @@ fun CustomKeyboard(
                             keyPopupProperties =
                                 KeyPopupProperties(
                                     KEY2_SPECIAL_CHARS.VALUES,
-                                    Alignment.BottomCenter
+                                    Alignment.BottomCenter,
+
                                 )
                         )
 

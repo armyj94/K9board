@@ -36,10 +36,13 @@ import com.armandodarienzo.k9board.shared.service.Key9Service
 import com.armandodarienzo.k9board.shared.codifyChars
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.KeyPopupProperties
+import com.armandodarienzo.k9board.shared.KEYBOARD_POPUP_MAX_COLUMNS
 import com.armandodarienzo.k9board.ui.keyboard.PopupBox
 import com.armandodarienzo.k9board.ui.keyboard.popupDragHandler
 import kotlinx.coroutines.delay
 import java.util.*
+import kotlin.math.ceil
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 @Preview
@@ -188,9 +191,42 @@ fun KeyboardTextKey(
     keyPopupProperties: KeyPopupProperties? = null
 ){
 
+    var charList = mutableListOf<String>()
+    var startId = 0
+
+    keyPopupProperties?.let {
+        charList =
+            text.toCharArray().map{ char -> char.toString() }.toMutableList().also { list ->
+                list.addAll(it.chars)
+            }
+
+        val columns =
+            min(
+                charList.size, KEYBOARD_POPUP_MAX_COLUMNS
+            )
+
+        val rows = ceil((charList.size.toFloat() / columns)).toInt()
+
+        //TODO: improve startId logic for Top alignments
+        startId =
+            when (keyPopupProperties.alignment) {
+                Alignment.BottomStart -> 0
+                Alignment.BottomCenter -> ceil(columns / 2f).toInt() - 1
+                Alignment.BottomEnd -> columns - 1
+                Alignment.CenterStart -> columns * ceil(rows / 2f).toInt() - 1
+                Alignment.Center -> columns * ceil(rows / 2f).toInt() + ceil(columns / 2f).toInt() - 1
+                Alignment.CenterEnd -> columns * ceil(rows / 2f).toInt() + columns - 1
+                Alignment.TopStart -> charList.size - 1
+                Alignment.TopCenter -> charList.size - ceil(columns / 2f).toInt()
+                Alignment.TopEnd -> charList.size - columns
+                else -> 0
+            }
+
+    }
+
     val visibleBox = remember { mutableStateOf(false) }
     val gridState = rememberLazyGridState()
-    var selectedId by rememberSaveable { mutableStateOf(0) }
+    var selectedId by rememberSaveable { mutableStateOf(startId) }
     val boxOffset = remember { mutableStateOf(IntOffset.Zero) }
     var keySize by remember { mutableStateOf(IntSize.Zero) }
 
@@ -256,6 +292,8 @@ fun KeyboardTextKey(
                 .popupDragHandler(
                     lazyGridState = gridState,
                     boxOffset = boxOffset,
+                    startId = startId,
+                    selectId = { service?.currentInputConnection?.commitText(charList.getOrNull(selectedId), 1) },
                     setSelectedId = { selectedId = it },
                     closePopup = { visibleBox.value = false }
                 ),
@@ -270,14 +308,9 @@ fun KeyboardTextKey(
             symbolsColor = symbolsColor)
 
         keyPopupProperties?.let {
-            val charList =
-                text.toCharArray().map{ char -> char.toString() }.toMutableList().also { list ->
-                    list.addAll(it.chars)
-                }
 
             PopupBox(
                 characters = charList,
-                alignment = it.alignment,
                 popupWidth = popupWidth,
                 popupHeight = popupHeight,
                 showPopup = visibleBox.value,
