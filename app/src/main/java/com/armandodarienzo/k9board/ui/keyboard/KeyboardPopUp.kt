@@ -234,20 +234,6 @@ fun Modifier.popupDragHandler(
             itemInfo.size.toIntRect().contains(hitPoint.round() - itemInfo.offset)
         }?.index
 
-    fun charIndexAtOffsetWithTolerance(hitPoint: Offset, scaleFactor: Float = 1.5f): Int? =
-        charIndexAtOffset(hitPoint) ?:
-        lazyGridState.layoutInfo.visibleItemsInfo.find { itemInfo ->
-            val originalRect = itemInfo.size.toIntRect()
-            val newLeft = (originalRect.left * scaleFactor).toInt()
-            val newTop = (originalRect.top * scaleFactor).toInt()
-            val newRight = (originalRect.right * scaleFactor).toInt()
-            val newBottom = (originalRect.bottom * scaleFactor).toInt()
-
-            val newRect = IntRect(newLeft, newTop, newRight, newBottom)
-
-            newRect.contains(hitPoint.round() - itemInfo.offset)
-        }?.index
-
     var charIndex: Int? = startId
 
     detectDragGesturesAfterLongPress(
@@ -266,7 +252,7 @@ fun Modifier.popupDragHandler(
             closePopup()
         },
         onDrag = { change, _ ->
-            charIndex = charIndexAtOffsetWithTolerance(change.position.minus(boxOffset.value))
+            charIndex = charIndexAtOffset(change.position.minus(boxOffset.value))
 
             charIndex?.let { pointerCharIndex ->
                 setSelectedId(pointerCharIndex)
