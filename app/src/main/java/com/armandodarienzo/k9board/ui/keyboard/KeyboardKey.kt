@@ -1,5 +1,6 @@
 package com.armandodarienzo.wear.utility.KeyOboard.ui.components
 
+import android.graphics.Paint.Align
 import android.os.Build
 import android.util.Log
 import android.view.MotionEvent
@@ -207,18 +208,24 @@ fun KeyboardTextKey(
 
         val rows = ceil((charList.size.toFloat() / columns)).toInt()
 
-        //TODO: improve startId logic for Top alignments
+        //TODO: improve startId logic for TopStart alignment
         startId =
             when (keyPopupProperties.alignment) {
-                Alignment.BottomStart -> 0
+                Alignment.BottomStart -> columns - 1
                 Alignment.BottomCenter -> ceil(columns / 2f).toInt() - 1
-                Alignment.BottomEnd -> columns - 1
-                Alignment.CenterStart -> columns * ceil(rows / 2f).toInt() - 1
-                Alignment.Center -> columns * ceil(rows / 2f).toInt() + ceil(columns / 2f).toInt() - 1
-                Alignment.CenterEnd -> columns * ceil(rows / 2f).toInt() + columns - 1
+                Alignment.BottomEnd -> 0
+                Alignment.CenterStart ->
+                    columns * (ceil(rows / 2f).toInt() - 1) + columns -1
+                Alignment.Center ->
+                    columns * (ceil(rows / 2f).toInt() - 1) + ceil(columns / 2f).toInt() - 1
+                Alignment.CenterEnd -> columns * (ceil(rows / 2f).toInt() - 1)
                 Alignment.TopStart -> charList.size - 1
-                Alignment.TopCenter -> charList.size - ceil(columns / 2f).toInt()
-                Alignment.TopEnd -> charList.size - columns
+                Alignment.TopCenter ->
+                    min(
+                        columns * (rows - 1) + ceil(columns / 2f).toInt() - 1,
+                        charList.size - 1
+                    )
+                Alignment.TopEnd -> columns * (rows - 1)
                 else -> 0
             }
 
@@ -231,7 +238,7 @@ fun KeyboardTextKey(
     var keySize by remember { mutableStateOf(IntSize.Zero) }
 
     val configuration = LocalConfiguration.current
-    val popupWidth = (configuration.screenWidthDp / 1.5).dp
+    val popupWidth = (configuration.screenWidthDp * 0.6).dp
     val popupHeight = (keyboardHeight * 0.7).dp
 
     val popupWidthPx = with(LocalDensity.current) { popupWidth.toPx() }
@@ -246,7 +253,7 @@ fun KeyboardTextKey(
                     when (keyPopupProperties?.alignment) {
                         Alignment.TopStart, Alignment.CenterStart, Alignment.BottomStart,
                         Alignment.Start ->
-                            -(keySize.width / 2f).roundToInt()
+                            - popupWidthPx.roundToInt() + (keySize.width / 2f).roundToInt()
                         Alignment.TopEnd, Alignment.CenterEnd, Alignment.BottomEnd, Alignment.End ->
                             (keySize.width / 2f).roundToInt()
                         Alignment.BottomCenter, Alignment.TopCenter, Alignment.Center -> {
@@ -259,10 +266,13 @@ fun KeyboardTextKey(
                 val offsetY =
                     when (keyPopupProperties?.alignment) {
                         Alignment.TopStart, Alignment.TopCenter,
-                        Alignment.TopEnd, Alignment.Top -> -(keySize.height / 2f).roundToInt()
+                        Alignment.TopEnd, Alignment.Top ->
+                            - popupHeightPx.roundToInt() + (keySize.height / 2f).roundToInt()
                         Alignment.BottomStart, Alignment.BottomCenter,
-                        Alignment.BottomEnd, Alignment.Bottom -> (keySize.height / 2f).roundToInt()
-                        Alignment.End, Alignment.Start, Alignment.Center ->
+                        Alignment.BottomEnd, Alignment.Bottom ->
+                            (keySize.height / 2f).roundToInt()
+                        Alignment.End, Alignment.Start, Alignment.Center,
+                            Alignment.CenterStart, Alignment.CenterEnd->
                             - (popupHeightPx / 2f).roundToInt() + (keySize.height / 2f).roundToInt()
 
                         else -> 0

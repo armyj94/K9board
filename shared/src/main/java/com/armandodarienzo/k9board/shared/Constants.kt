@@ -42,21 +42,55 @@ const val KEY7_TEXT_LATIN = "pqrs"
 const val KEY8_TEXT_LATIN = "tuv"
 const val KEY9_TEXT_LATIN = "wxyz"
 
-object KEY2_SPECIAL_CHARS {
+object Key2SpecialChars {
     val VALUES = listOf(
-        "á",
-        "à",
-        "â",
-        "ä",
-        "ã",
-        "å",
-        "ą",
-        "æ",
-        "ć",
-        "č",
-        "ç"
+        "á", "à", "â", "ä", "ã", "å", "ą", "æ", "ć", "č", "ç"
     )
 }
+
+object Key3SpecialChars {
+    val VALUES = listOf(
+        "ď", "đ", "ð", "é", "è", "ė", "ê", "ë", "ě", "ę"
+    )
+}
+
+object Key4SpecialChars {
+    val VALUES = listOf(
+        "ı", "í", "ì", "İ", "î", "ï", "į"
+    )
+}
+
+object Key5SpecialChars {
+    val VALUES = listOf(
+        "ľ", "ł"
+    )
+}
+
+object Key6SpecialChars {
+    val VALUES = listOf(
+        "ń", "ň", "ñ", "ó", "ò", "ô", "ö", "ō", "õ", "ő", "ø", "œ"
+    )
+}
+
+object Key7SpecialChars {
+    val VALUES = listOf(
+        "ř", "ś", "š", "ş", "ș"
+    )
+}
+
+object Key8SpecialChars {
+    val VALUES = listOf(
+        "ť", "ţ", "ț", "ú", "ù", "û", "ü", "ū", "ů", "ų", "ű"
+    )
+}
+
+object Key9SpecialChars {
+    val VALUES = listOf(
+        "ý", "ÿ", "ź", "ż", "ž"
+    )
+}
+
+
 
 /***** Keyboard Colors Constant values *****/
 const val THEME_DYNAMIC = "dynamic"

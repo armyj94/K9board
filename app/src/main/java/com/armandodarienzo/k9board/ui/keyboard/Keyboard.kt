@@ -23,7 +23,6 @@ import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.KeyboardCurrentView
 import com.armandodarienzo.k9board.shared.service.Key9Service
 import com.armandodarienzo.k9board.shared.*
-import com.armandodarienzo.k9board.shared.model.KeyboardSize
 import com.armandodarienzo.k9board.ui.ReverseArrangement
 
 @RequiresApi(Build.VERSION_CODES.S)
@@ -216,9 +215,8 @@ fun CustomKeyboard(
                             keyboardHeight = keyboardSize,
                             keyPopupProperties =
                                 KeyPopupProperties(
-                                    KEY2_SPECIAL_CHARS.VALUES,
+                                    Key2SpecialChars.VALUES,
                                     Alignment.BottomCenter,
-
                                 )
                         )
 
@@ -230,7 +228,12 @@ fun CustomKeyboard(
                             capsStatus = caps?.value,
                             service = service,
                             numberASCIIcode = ASCII_CODE_3,
-                            keyboardHeight = keyboardSize
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key3SpecialChars.VALUES,
+                                    Alignment.BottomStart,
+                                )
                         )
                     }
 
@@ -249,7 +252,12 @@ fun CustomKeyboard(
                             capsStatus = caps?.value,
                             service = service,
                             numberASCIIcode = ASCII_CODE_4,
-                            keyboardHeight = keyboardSize
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key4SpecialChars.VALUES,
+                                    Alignment.CenterEnd,
+                                )
                         )
                         KeyboardTextKey(
                             modifier = Modifier
@@ -259,7 +267,12 @@ fun CustomKeyboard(
                             capsStatus = caps?.value,
                             service = service,
                             numberASCIIcode = ASCII_CODE_5,
-                            keyboardHeight = keyboardSize
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key5SpecialChars.VALUES,
+                                    Alignment.Center,
+                                )
                         )
                         KeyboardTextKey(
                             modifier = Modifier
@@ -269,7 +282,12 @@ fun CustomKeyboard(
                             capsStatus = caps?.value,
                             service = service,
                             numberASCIIcode = ASCII_CODE_6,
-                            keyboardHeight = keyboardSize
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key6SpecialChars.VALUES,
+                                    Alignment.CenterStart,
+                                )
                         )
 
                     }
@@ -289,7 +307,12 @@ fun CustomKeyboard(
                             capsStatus = caps?.value,
                             service = service,
                             numberASCIIcode = ASCII_CODE_7,
-                            keyboardHeight = keyboardSize
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key7SpecialChars.VALUES,
+                                    Alignment.TopEnd,
+                                )
                         )
                         KeyboardTextKey(
                             modifier = Modifier
@@ -299,7 +322,12 @@ fun CustomKeyboard(
                             capsStatus = caps?.value,
                             service = service,
                             numberASCIIcode = ASCII_CODE_8,
-                            keyboardHeight = keyboardSize
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key8SpecialChars.VALUES,
+                                    Alignment.TopCenter,
+                                )
                         )
                         KeyboardTextKey(
                             modifier = Modifier
@@ -309,7 +337,12 @@ fun CustomKeyboard(
                             capsStatus = caps?.value,
                             service = service,
                             numberASCIIcode = ASCII_CODE_9,
-                            keyboardHeight = keyboardSize
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key9SpecialChars.VALUES,
+                                    Alignment.TopStart,
+                                )
                         )
 
                     }

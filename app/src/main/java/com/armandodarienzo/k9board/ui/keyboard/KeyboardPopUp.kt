@@ -1,7 +1,6 @@
 package com.armandodarienzo.k9board.ui.keyboard
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
@@ -34,7 +33,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.minus
 import androidx.compose.ui.unit.round
@@ -43,7 +41,7 @@ import androidx.compose.ui.unit.toIntRect
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
-import com.armandodarienzo.k9board.shared.KEY2_SPECIAL_CHARS
+import com.armandodarienzo.k9board.shared.Key2SpecialChars
 import com.armandodarienzo.k9board.shared.KEYBOARD_POPUP_MAX_COLUMNS
 import java.util.Locale
 import kotlin.math.ceil
@@ -60,7 +58,7 @@ fun PopupBoxPreview() {
         popupHeight = 400.dp,
         onClickOutside = { },
         color = MaterialTheme.colorScheme.background,
-        characters = KEY2_SPECIAL_CHARS.VALUES
+        characters = Key2SpecialChars.VALUES
     )
 
 }
@@ -108,26 +106,6 @@ fun PopupBox(
                         .height(popupHeight)
                         .clip(RoundedCornerShape(20))
                         .background(color),
-//                        .onGloballyPositioned {
-//                            popupSize = it.size
-//
-//                            val offsetX =
-//                                when (alignment) {
-//                                    Alignment.TopCenter, Alignment.BottomCenter,
-//                                        Alignment.Center -> (popupSize.width / 2f).roundToInt()
-//                                    else -> 0
-//                                }
-//
-//                            val offsetY =
-//                                when (alignment) {
-//                                    Alignment.CenterStart, Alignment.CenterEnd, Alignment.Center-> (popupSize.height / 2f).roundToInt()
-//                                    else -> 0
-//                                }
-//
-//                            Log.d("testOffset", "alignment: $alignment")
-//                            Log.d("testOffset", "x: $offsetX, y: $offsetY")
-//                            boxOffset.value += IntOffset(offsetX, offsetY)
-//                        },
                     contentAlignment = Alignment.Center
                 ) {
 
