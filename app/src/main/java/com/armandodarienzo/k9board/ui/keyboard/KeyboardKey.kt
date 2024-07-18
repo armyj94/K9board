@@ -1,5 +1,6 @@
 package com.armandodarienzo.wear.utility.KeyOboard.ui.components
 
+import android.annotation.SuppressLint
 import android.graphics.Paint.Align
 import android.os.Build
 import android.util.Log
@@ -170,6 +171,7 @@ fun KeyboardRepeatableKey(
         symbolsColor = symbolsColor)
 }
 
+@SuppressLint("MutableCollectionMutableState")
 @RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -192,21 +194,25 @@ fun KeyboardTextKey(
     keyPopupProperties: KeyPopupProperties? = null
 ){
 
-    var charList = mutableListOf<String>()
+    val charList = remember { mutableStateOf(mutableListOf<String>()) }
     var startId = 0
 
     keyPopupProperties?.let {
-        charList =
+        charList.value =
             text.toCharArray().map{ char -> char.toString() }.toMutableList().also { list ->
                 list.addAll(it.chars)
-            }
+            }.map { char ->
+                if (capsStatus != KeyboardCapsStatus.LOWER_CASE) {
+                    char.uppercase(Locale.ROOT)
+                } else char
+            }.toMutableStateList()
 
         val columns =
             min(
-                charList.size, KEYBOARD_POPUP_MAX_COLUMNS
+                charList.value.size, KEYBOARD_POPUP_MAX_COLUMNS
             )
 
-        val rows = ceil((charList.size.toFloat() / columns)).toInt()
+        val rows = ceil((charList.value.size.toFloat() / columns)).toInt()
 
         //TODO: improve startId logic for TopStart alignment
         startId =
@@ -219,11 +225,11 @@ fun KeyboardTextKey(
                 Alignment.Center ->
                     columns * (ceil(rows / 2f).toInt() - 1) + ceil(columns / 2f).toInt() - 1
                 Alignment.CenterEnd -> columns * (ceil(rows / 2f).toInt() - 1)
-                Alignment.TopStart -> charList.size - 1
+                Alignment.TopStart -> charList.value.size - 1
                 Alignment.TopCenter ->
                     min(
                         columns * (rows - 1) + ceil(columns / 2f).toInt() - 1,
-                        charList.size - 1
+                        charList.value.size - 1
                     )
                 Alignment.TopEnd -> columns * (rows - 1)
                 else -> 0
@@ -299,13 +305,17 @@ fun KeyboardTextKey(
                         visibleBox.value = true
                     }
                 )
-                .popupDragHandler(
-                    lazyGridState = gridState,
-                    boxOffset = boxOffset,
-                    startId = startId,
-                    selectId = { service?.currentInputConnection?.commitText(charList.getOrNull(selectedId), 1) },
-                    setSelectedId = { selectedId = it },
-                    closePopup = { visibleBox.value = false }
+                .applyIf(
+                    keyPopupProperties != null, {
+                        popupDragHandler(
+                            lazyGridState = gridState,
+                            boxOffset = boxOffset,
+                            startId = startId,
+                            selectId = { keyPopupProperties!!.onIdSelected(charList.value[selectedId]) },
+                            setSelectedId = { selectedId = it },
+                            closePopup = { visibleBox.value = false }
+                        )
+                    }
                 ),
             id = id,
             text = text,
@@ -320,7 +330,7 @@ fun KeyboardTextKey(
         keyPopupProperties?.let {
 
             PopupBox(
-                characters = charList,
+                characters = charList.value,
                 popupWidth = popupWidth,
                 popupHeight = popupHeight,
                 showPopup = visibleBox.value,
@@ -329,7 +339,6 @@ fun KeyboardTextKey(
                 boxOffset = boxOffset,
                 gridState = gridState,
                 selectedId = selectedId,
-                capsStatus = capsStatus
             )
         }
 
@@ -340,5 +349,15 @@ fun KeyboardTextKey(
 
 
 
+}
+
+inline fun Modifier.applyIf(
+    condition: Boolean,
+    ifTrue: Modifier.() -> Modifier,
+    ifFalse: Modifier.() -> Modifier = { this },
+): Modifier = if (condition) {
+    then(ifTrue(Modifier))
+} else {
+    then(ifFalse(Modifier))
 }
 

@@ -217,6 +217,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key2SpecialChars.VALUES,
                                     Alignment.BottomCenter,
+                                    onIdSelected = { service?.addCharToCurrentText(it) }
                                 )
                         )
 
@@ -233,6 +234,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key3SpecialChars.VALUES,
                                     Alignment.BottomStart,
+                                    onIdSelected = { service?.addCharToCurrentText(it) }
                                 )
                         )
                     }
@@ -257,6 +259,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key4SpecialChars.VALUES,
                                     Alignment.CenterEnd,
+                                    onIdSelected = { service?.addCharToCurrentText(it) }
                                 )
                         )
                         KeyboardTextKey(
@@ -272,6 +275,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key5SpecialChars.VALUES,
                                     Alignment.Center,
+                                    onIdSelected = { service?.addCharToCurrentText(it) }
                                 )
                         )
                         KeyboardTextKey(
@@ -287,6 +291,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key6SpecialChars.VALUES,
                                     Alignment.CenterStart,
+                                    onIdSelected = { service?.addCharToCurrentText(it) }
                                 )
                         )
 
@@ -312,6 +317,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key7SpecialChars.VALUES,
                                     Alignment.TopEnd,
+                                    onIdSelected = { service?.addCharToCurrentText(it) }
                                 )
                         )
                         KeyboardTextKey(
@@ -327,6 +333,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key8SpecialChars.VALUES,
                                     Alignment.TopCenter,
+                                    onIdSelected = { service?.addCharToCurrentText(it) }
                                 )
                         )
                         KeyboardTextKey(
@@ -342,6 +349,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key9SpecialChars.VALUES,
                                     Alignment.TopStart,
+                                    onIdSelected = { service?.addCharToCurrentText(it) }
                                 )
                         )
 

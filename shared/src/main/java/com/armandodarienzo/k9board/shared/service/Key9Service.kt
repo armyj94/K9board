@@ -355,9 +355,10 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         var code = String(iToByteArray, Charsets.UTF_16).toCharArray()
 
         if (isCaps.value == KeyboardCapsStatus.UPPER_CASE) {
-            /*è inutile aggiungere indici di caratteri Maiuscoli in modalità manuale
-            * dato che essenzialmente la modalità manuale è prevista per parole che non esistono in DB.
-            * Se l'utente scrive in modalità manuale, non ha bisogno di premere il tasto SWAP e quindi non potrà mai invalidare le maiuscole che ha inserito in tal modo*/
+            /* It's unnecessary to add uppercase character indexes in manual mode since manual mode
+             * is essentially intended for words that don't exist in the database. If the user is
+             * typing in manual mode, they don't need to press the SWAP key and therefore will never
+             *  be able to invalidate the uppercase letters they entered in this way. */
             isCaps.value = KeyboardCapsStatus.LOWER_CASE
 
         }
@@ -366,10 +367,28 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     }
 
+    fun addCharToCurrentText(char: String) {
+
+        Log.d(TAG, "addCharToCurrentText $char")
+        Log.d(TAG, "isCaps.value ${isCaps.value}")
+        currentInputConnection.commitText(char, 1)
+        if (isCaps.value == KeyboardCapsStatus.UPPER_CASE) {
+            /* It's unnecessary to add uppercase character indexes in manual mode since manual mode
+             * is essentially intended for words that don't exist in the database. If the user is
+             * typing in manual mode, they don't need to press the SWAP key and therefore will never
+             *  be able to invalidate the uppercase letters they entered in this way. */
+            isCaps.value = KeyboardCapsStatus.LOWER_CASE
+
+        }
+
+
+    }
+
     fun keyClick(codes: IntArray,
                  forceManual: Boolean,
                  keyId: Int) {
 
+        Log.d(TAG, "keyClick")
 
         if (isManual.value || forceManual) {
 

@@ -1,6 +1,7 @@
 package com.armandodarienzo.k9board.ui.keyboard
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
@@ -55,7 +56,7 @@ fun PopupBoxPreview() {
     PopupBox(
         showPopup = true,
         popupWidth = 200.dp,
-        popupHeight = 400.dp,
+        popupHeight = 200.dp,
         onClickOutside = { },
         color = MaterialTheme.colorScheme.background,
         characters = Key2SpecialChars.VALUES
@@ -75,7 +76,6 @@ fun PopupBox(
     boxOffset: MutableState<IntOffset> = mutableStateOf(IntOffset.Zero),
     gridState: LazyGridState = rememberLazyGridState(),
     selectedId: Int = 0,
-    capsStatus: KeyboardCapsStatus? = KeyboardCapsStatus.LOWER_CASE,
 ) {
 
     val columns =
@@ -125,7 +125,6 @@ fun PopupBox(
                             PopUpKey(
                                 text = characters[it],
                                 selected = it == selectedId,
-                                capsStatus = capsStatus,
                                 ratio = popupKeyRatio
                             )
                         }
