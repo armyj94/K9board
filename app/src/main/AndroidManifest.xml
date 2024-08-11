@@ -16,7 +16,6 @@
         <activity
             android:name=".MainActivityCompose"
             android:exported="true"
-            android:label="@string/title_activity_main_compose"
             android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
