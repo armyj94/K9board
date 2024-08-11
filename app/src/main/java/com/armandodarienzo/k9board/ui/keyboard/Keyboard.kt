@@ -1,7 +1,6 @@
 package com.armandodarienzo.k9board.ui.keyboard
 
 import android.os.Build
-import android.util.Log
 import android.view.inputmethod.EditorInfo
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.*
@@ -217,7 +216,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key2SpecialChars.VALUES,
                                     Alignment.BottomCenter,
-                                    onIdSelected = { service?.addCharToCurrentText(it) }
+                                    onIdSelected = { service?.writeSpecificChar(it) }
                                 )
                         )
 
@@ -234,7 +233,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key3SpecialChars.VALUES,
                                     Alignment.BottomStart,
-                                    onIdSelected = { service?.addCharToCurrentText(it) }
+                                    onIdSelected = { service?.writeSpecificChar(it) }
                                 )
                         )
                     }
@@ -259,7 +258,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key4SpecialChars.VALUES,
                                     Alignment.CenterEnd,
-                                    onIdSelected = { service?.addCharToCurrentText(it) }
+                                    onIdSelected = { service?.writeSpecificChar(it) }
                                 )
                         )
                         KeyboardTextKey(
@@ -275,7 +274,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key5SpecialChars.VALUES,
                                     Alignment.Center,
-                                    onIdSelected = { service?.addCharToCurrentText(it) }
+                                    onIdSelected = { service?.writeSpecificChar(it) }
                                 )
                         )
                         KeyboardTextKey(
@@ -291,7 +290,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key6SpecialChars.VALUES,
                                     Alignment.CenterStart,
-                                    onIdSelected = { service?.addCharToCurrentText(it) }
+                                    onIdSelected = { service?.writeSpecificChar(it) }
                                 )
                         )
 
@@ -317,7 +316,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key7SpecialChars.VALUES,
                                     Alignment.TopEnd,
-                                    onIdSelected = { service?.addCharToCurrentText(it) }
+                                    onIdSelected = { service?.writeSpecificChar(it) }
                                 )
                         )
                         KeyboardTextKey(
@@ -333,7 +332,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key8SpecialChars.VALUES,
                                     Alignment.TopCenter,
-                                    onIdSelected = { service?.addCharToCurrentText(it) }
+                                    onIdSelected = { service?.writeSpecificChar(it) }
                                 )
                         )
                         KeyboardTextKey(
@@ -349,7 +348,7 @@ fun CustomKeyboard(
                                 KeyPopupProperties(
                                     Key9SpecialChars.VALUES,
                                     Alignment.TopStart,
-                                    onIdSelected = { service?.addCharToCurrentText(it) }
+                                    onIdSelected = { service?.writeSpecificChar(it) }
                                 )
                         )
 
@@ -365,13 +364,18 @@ fun CustomKeyboard(
                         KeyboardKey(
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable {
-                                    service?.swapClick()
-                                    Log.d(
-                                        object {}::class.java.enclosingMethod?.name,
-                                        "isManual = $isManual"
-                                    )
-                                },
+                                .combinedClickable(
+                                    onClick = {
+                                        if (isManual?.value == true) {
+                                            service.exitManualMode()
+                                        } else {
+                                            service?.swapClick()
+                                        }
+                                    },
+                                    onLongClick = {
+                                        service?.enterManualMode()
+                                    }
+                                ),
                             id = KEYSWAP_ID,
                             text = "sync",
                             iconID = if (isManual?.value == true) R.drawable.ic_baseline_edit_note_24 else R.drawable.ic_sync_white_12dp,
@@ -401,7 +405,13 @@ fun CustomKeyboard(
                                     val nowInMillis = System.currentTimeMillis()
 
                                     caps?.value =
-                                        if (nowInMillis - shiftKeyTimer < 500L && caps?.value == KeyboardCapsStatus.UPPER_CASE) {
+                                        if (
+                                            (nowInMillis - shiftKeyTimer < 500L
+                                                    && caps?.value == KeyboardCapsStatus.UPPER_CASE)
+                                            || (isManual?.value == true
+                                                    && caps?.value == KeyboardCapsStatus.LOWER_CASE)
+                                            )
+                                        {
                                             KeyboardCapsStatus.CAPS_LOCK
                                         } else if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
                                             KeyboardCapsStatus.UPPER_CASE

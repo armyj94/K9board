@@ -3,12 +3,11 @@ package com.armandodarienzo.k9board.shared.service
 import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.os.Build
+import android.text.InputType
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
-import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputConnection
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.emoji2.emojipicker.EmojiViewItem
@@ -26,8 +25,12 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.Word
 import com.armandodarienzo.k9board.shared.ASCII_CODE_SPACE
+import com.armandodarienzo.k9board.shared.USER_WORDS_FLAG
 import com.armandodarienzo.k9board.shared.WORDS_REGEX_STRING
+import com.armandodarienzo.k9board.shared.WORDS_SPACE_REGEX_STRING
 import com.armandodarienzo.k9board.shared.model.DoubleSpaceCharacter
+import com.armandodarienzo.k9board.shared.model.TextComposition
+import com.armandodarienzo.k9board.shared.model.TextSelection
 import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepositoryLocal
 import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.armandodarienzo.k9board.shared.substringAfterLastNotMatching
@@ -37,6 +40,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlin.system.measureTimeMillis
 
+
 @AndroidEntryPoint
 open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwner,
     SavedStateRegistryOwner {
@@ -44,10 +48,15 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     var backgroundColorId: Int = 0
     lateinit var view: View
 
-    private val TAG = Companion::class.java.simpleName
+    private val TAG = Key9Service::class.java.simpleName
 
 
     private var lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
+    private val savedStateRegistryController = SavedStateRegistryController.create(this)
+    override val savedStateRegistry = savedStateRegistryController.savedStateRegistry
+
+    var classInputType = 0
+    var variationInputType = 0
 
     //DbDataHelper
     lateinit var db: DictionaryDataHelper
@@ -57,35 +66,73 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     var words = mutableListOf<Word>()
     var currentWord: Word? = null
 
-    private val savedStateRegistryController = SavedStateRegistryController.create(this)
-    override val savedStateRegistry = savedStateRegistryController.savedStateRegistry
-
-    var cursorPosition: Int = 0
-    var previousTextLength = 0
 
     var currentT9code: String = ""
 
-    lateinit var indexesOfCaps: MutableList<Int>
+    lateinit var capsIndexes: MutableList<Int>
 
 
     var isCaps = mutableStateOf(KeyboardCapsStatus.LOWER_CASE)
     var doubleSpaceChar = mutableStateOf(DoubleSpaceCharacter.NONE)
     var isManual = mutableStateOf(false)
 
-
-    private var lastKeyId: Int? = 0
+    private var lastKeyId: Int = 0
     private var keyCodesIndex: Int = 0
     private var keyTimer = 0L
 
+    private lateinit var textSelection: TextSelection
+    private lateinit var textBeforeCursor: String
+    private lateinit var textAfterCursor: String
+
+    private lateinit var textComposition: TextComposition
+
     /*We access directly the repository because it is not possible to
-        * inject a hiltViewModel in an AbstractComposeView at the moment*/
+    * inject a hiltViewModel in an AbstractComposeView at the moment*/
     private lateinit var userPreferencesRepository : UserPreferencesRepositoryLocal
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
+
+        info?.let {
+            classInputType = info.inputType and InputType.TYPE_MASK_CLASS
+            variationInputType = info.inputType and InputType.TYPE_MASK_VARIATION
+        }
+
+        val selectedText = (currentInputConnection.getSelectedText(0) ?: "").toString()
+        val capsIndexes = mutableListOf<Int>()
+
+        textBeforeCursor = (currentInputConnection?.getTextBeforeCursor(5000, 0) ?: "").toString()
+        textAfterCursor = (currentInputConnection?.getTextAfterCursor(5000, 0) ?: "").toString()
+
+
+        textSelection =
+                TextSelection(
+                    textBeforeCursor.length,
+                    textBeforeCursor.length + selectedText.length,
+                    selectedText
+                )
+
+        val text = textBeforeCursor + textSelection.text + textAfterCursor
+
+
+        text.toCharArray().forEachIndexed { index, c ->
+            if (c.isUpperCase())
+                capsIndexes.add(index)
+        }
+
+        this.capsIndexes = capsIndexes
+
+
+        textComposition = TextComposition(textBeforeCursor.length, textBeforeCursor.length, "")
+        if (textSelection.length == 0 ) {
+            setComposingRegion()
+        } else finishComposingText()
+
     }
 
     override fun onCreateInputView(): View {
+
+        Log.d(TAG, "onCreateInputView")
 
         window!!.window!!.decorView.let { decorView ->
             ViewTreeLifecycleOwner.set(decorView, this)
@@ -126,22 +173,60 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
             }
         }
 
-
-        indexesOfCaps = mutableListOf()
-
         //TODO: fetch user preference
         isCaps.value = KeyboardCapsStatus.LOWER_CASE
-
-
-
 
         return view
     }
 
+    override fun onFinishInputView(finishingInput: Boolean) {
+        Log.d(TAG, "onFinishInputView")
+        super.onFinishInputView(finishingInput)
+
+        Log.d(TAG, "$textBeforeCursor${textSelection.text}$textAfterCursor")
+
+        if (!inputIsPassword()) {
+            val admissibleChars = mutableListOf<Char>()
+
+            (textBeforeCursor + textSelection.text + textAfterCursor)
+                .toCharArray()
+                .toMutableList()
+                .forEach{char ->
+                    if (char.toString().matches(WORDS_SPACE_REGEX)) {
+                        admissibleChars.add(char)
+                    }
+                }
+
+            val writtenWords = admissibleChars.joinToString("").split(" ")
+
+            writtenWords.forEach {
+                val word =
+                    Word(
+                        it,
+                        USER_WORDS_FLAG
+                    )
+                Log.d(TAG, "word = ${word.text}")
+                db.upsert(word)
+            }
+        }
+
+        currentWord = null
+        currentT9code = ""
+        words.clear()
+
+        currentInputConnection.finishComposingText()
+        textComposition.reset()
+
+        capsIndexes.clear()
+
+        textBeforeCursor = ""
+        textAfterCursor = ""
+
+
+        Log.d(TAG, "onFinishInputView")
+    }
+
     //Lifecylce Methods
-
-
-
     override fun getLifecycle(): Lifecycle {
         return lifecycleRegistry
     }
@@ -160,35 +245,41 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     }
 
-    override fun onUpdateCursorAnchorInfo(cursorAnchorInfo: CursorAnchorInfo?) {
+    override fun onUpdateSelection(
+        oldSelStart: Int,
+        oldSelEnd: Int,
+        newSelStart: Int,
+        newSelEnd: Int,
+        candidatesStart: Int,
+        candidatesEnd: Int
+    ) {
+        super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
 
-        super.onUpdateCursorAnchorInfo(cursorAnchorInfo)
+        Log.d(TAG, "onUpdateSelection")
+        Log.d(TAG, "newSelStart: $newSelStart | newSelEnd: $newSelEnd")
+        Log.d(TAG, "oldSelStart: $oldSelStart | oldSelEnd: $oldSelEnd")
 
-        var indexesofCapsString: String = ""
-        indexesOfCaps.forEach { indexesofCapsString += it }
+        /* The if check is due to the case when the user is selecting a text and then moves the end
+        * cursor before the start cursor. When this happen onUpdateSelection is being recalled with
+        * the two cursors in the correct order */
+        if ( newSelStart <= newSelEnd) {
 
+            textBeforeCursor =
+                (currentInputConnection?.getTextBeforeCursor(5000, 0) ?: "").toString()
+            textAfterCursor =
+                (currentInputConnection?.getTextAfterCursor(5000, 0) ?: "").toString()
+            textSelection
+                .setSelection(
+                    newSelStart,
+                    (currentInputConnection?.getSelectedText(0) ?: "").toString()
+                )
 
-        val textBeforeCursor = getTextBeforeCursor()
-        val textAfterCursor = getTextAfterCursor()
-//        inputConnection = currentInputConnection //Riassegnare la inputConnection previene i crash quando apro e chiudo una TextEdit all'interno della stessa activity
-
-
-        cursorPosition = textBeforeCursor.length
-
-        updateCurrentWord(null)
-
-
-        if (previousTextLength != textBeforeCursor.length + textAfterCursor.length) {
-
-            indexesOfCaps =
-                indexesOfCaps.map { if (it > cursorPosition) it + textBeforeCursor.length + textAfterCursor.length - previousTextLength else it }
-                    .toMutableList()
+            if (textSelection.text.isNotEmpty()) {
+                finishComposingText()
+            } else if (!isManual.value)
+                setComposingRegion()
 
         }
-
-
-        previousTextLength = textBeforeCursor.length + textAfterCursor.length
-
 
     }
 
@@ -208,49 +299,50 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         }
     }
 
-    fun getTextBeforeCursor(): CharSequence{
-        return currentInputConnection.getTextBeforeCursor(5000, 0)?: ""
+    private fun getWordTextBeforeCursor(): String{
+        return textBeforeCursor.substringAfterLastNotMatching(WORDS_REGEX)
     }
 
-    fun getTextAfterCursor(): CharSequence{
-        return currentInputConnection.getTextAfterCursor(5000, 0)?: ""
+    private fun getWordTextAfterCursor(): String{
+        return textAfterCursor.substringBeforeFirstNotMatching(WORDS_REGEX)
     }
 
-    fun getWordTextBeforeCursor(): String{
-        var text = currentInputConnection.getTextBeforeCursor(100, 0)?: ""
-        return text.toString().substringAfterLastNotMatching(WORDS_REGEX)
-    }
+    private fun updateCurrentWord(newCode: Char?){
 
-    fun getWordTextAfterCursor(): String{
-        val text = currentInputConnection.getTextAfterCursor(100, 0)?: ""
-        return text.toString().substringBeforeFirstNotMatching(WORDS_REGEX)
-    }
-
-    fun updateCurrentWord(newCode: Char?){
-
-        var attempt: Int = 1
+        var attempt = 1
 
         val wordTextBeforeCursor = getWordTextBeforeCursor()
         val wordTextAfterCursor = getWordTextAfterCursor()
-        currentT9code = Word.getNumberDigitsCode(wordTextBeforeCursor) + (newCode?:"") + Word.getNumberDigitsCode(
-            wordTextAfterCursor
-        )
+        currentT9code =
+            Word.getNumberDigitsCode(wordTextBeforeCursor) + (newCode?:"") +
+                    Word.getNumberDigitsCode(wordTextAfterCursor)
 
         words = db.getWordsByCode(currentT9code)
+        words.forEach {
+            Log.d(TAG, "word = ${it.text}")
+        }
 
 
         if(newCode == null){
 
-            currentWord = words.filter { word: Word ->  (word.text.compareTo( wordTextBeforeCursor + wordTextAfterCursor, ignoreCase = true) == 0) }.firstOrNull()?: Word(
+            currentWord =
+                words
+                    .filter { word: Word ->
+                        word.text.compareTo(
+                            wordTextBeforeCursor + wordTextAfterCursor,
+                            ignoreCase = true) == 0
+                    }
+                    .firstOrNull()?: Word(
                 wordTextBeforeCursor + wordTextAfterCursor
-            )
+                )
 
         } else {
 
             if (words.isNotEmpty()){
                 currentWord = words.first()
-            } else if (words.isEmpty() && currentT9code.isNotEmpty()){
+            } else if (currentT9code.isNotEmpty()){
 
+                //TODO: improve this fetch
                 if(currentT9code.length > 2){ //Ottimizzazione per inizio composizione
                     while (words.isEmpty() && currentT9code.length + attempt <= wordsMaxLength ){
                         words.addAll(db.gePlaceholderWordsByCode(currentT9code, attempt))
@@ -271,41 +363,42 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     }
 
-    fun getCapsIndexesOfCurrentWord(): List<Int>{
+    private fun getCapsIndexesOfCurrentWord(): List<Int>{
 
-        var relativeCapsIndexes = listOf<Int>()
+        val capsIndexesOfCurrentWord: List<Int>
 
-//    Log.d("COMMON", "cursorPosition: $cursorPosition")
-//    Log.d("COMMON", "getWordTextBeforeCursor().length: ${textBeforeCursor.length}")
-//    Log.d("COMMON", "getWordTextAfterCursor().length: ${textAfterCursor.length}")
-        relativeCapsIndexes = indexesOfCaps.filter {
-            it >= cursorPosition - getWordTextBeforeCursor().length
-                    && it <= cursorPosition + getWordTextAfterCursor().length + 1
-        }.map { it - (cursorPosition - getWordTextBeforeCursor().length) }
+        capsIndexesOfCurrentWord =
+            capsIndexes
+                .filter {
+                    it >= textSelection.startIndex - getWordTextBeforeCursor().length
+                    && it <= textSelection.startIndex + getWordTextAfterCursor().length + 1
+                }
+                .map { it - (textSelection.startIndex - getWordTextBeforeCursor().length) }
 
-
-//    Log.d("COMMON", "Indexes of Caps filtered: ${indexesOfCaps.filter { it >= cursorPosition - getWordTextBeforeCursor().length && it <= cursorPosition + getWordTextAfterCursor().length }}")
-
-        return relativeCapsIndexes
+        return capsIndexesOfCurrentWord
 
     }
 
     fun deleteChar(){
-
-        //Gestisco le maiuscole
-        indexesOfCaps.remove(cursorPosition)
+        if (textSelection.text.isEmpty() && textBeforeCursor.isNotEmpty()) {
+            capsIndexes.remove(textSelection.startIndex - 1)
+        } else if (textSelection.text.isNotEmpty()) {
+            capsIndexes.removeAll(
+                textSelection.startIndex until textSelection.endIndex
+            )
+        }
 
         val downEvent = KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL)
         val upEvent = KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL)
         currentInputConnection?.sendKeyEvent(downEvent)
         currentInputConnection?.sendKeyEvent(upEvent)
 
-        currentInputConnection.requestCursorUpdates(InputConnection.CURSOR_UPDATE_IMMEDIATE)
-
     }
 
+
+
     fun newLine(){
-        currentInputConnection?.commitText("\n", 1)
+        commitText("\n")
     }
 
     private fun addCharToCurrentWord(code: Int) {
@@ -314,22 +407,15 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
         updateCurrentWord(digit)
 
-        var currentWordCharArray = currentWord!!.text.toCharArray()
+        val currentWordCharArray = currentWord!!.text.toCharArray()
 
         val wordTextBeforeCursor = getWordTextBeforeCursor()
-        val wordTextAfterCursor = getWordTextAfterCursor()
-
-
-        currentInputConnection.deleteSurroundingText(
-            wordTextBeforeCursor.length,
-            wordTextAfterCursor.length
-        )
 
         if (isCaps.value == KeyboardCapsStatus.UPPER_CASE || isCaps.value == KeyboardCapsStatus.CAPS_LOCK) {
 
-            indexesOfCaps.add(cursorPosition + 1)
+            capsIndexes.add(textSelection.startIndex)
             currentWordCharArray[wordTextBeforeCursor.length] =
-                currentWordCharArray[wordTextBeforeCursor.length].toUpperCase()
+                currentWordCharArray[wordTextBeforeCursor.length].uppercaseChar()
 
             if (isCaps.value == KeyboardCapsStatus.UPPER_CASE) {
                 isCaps.value = KeyboardCapsStatus.LOWER_CASE
@@ -341,198 +427,169 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         var capsIndexesOfCurrentWord = getCapsIndexesOfCurrentWord()
         capsIndexesOfCurrentWord.forEach {
 
-            currentWordCharArray[it - 1] = currentWordCharArray[it - 1].toUpperCase()
+            currentWordCharArray[it] = currentWordCharArray[it].uppercaseChar()
 
         }
 
-        currentInputConnection.commitText(String(currentWordCharArray), 1)
+        setComposingText(String(currentWordCharArray))
 
     }
 
     private fun addCodeToCurrentText(inputCode: Int) {
 
-        var iToByteArray = String(intArrayOf(inputCode), 0, 1).toByteArray(Charsets.UTF_16)
-        var code = String(iToByteArray, Charsets.UTF_16).toCharArray()
+        val iToByteArray =
+            String(intArrayOf(inputCode), 0, 1).toByteArray(Charsets.UTF_16)
+        val code = String(iToByteArray, Charsets.UTF_16).toCharArray()
 
+        setComposingText(String(code))
+    }
+
+    fun writeSpecificChar(char: String) {
+        commitText(char)
         if (isCaps.value == KeyboardCapsStatus.UPPER_CASE) {
-            /* It's unnecessary to add uppercase character indexes in manual mode since manual mode
-             * is essentially intended for words that don't exist in the database. If the user is
-             * typing in manual mode, they don't need to press the SWAP key and therefore will never
-             *  be able to invalidate the uppercase letters they entered in this way. */
             isCaps.value = KeyboardCapsStatus.LOWER_CASE
 
         }
-
-        currentInputConnection.commitText(String(code), 1)
-
     }
 
-    fun addCharToCurrentText(char: String) {
+    fun keyClick(codes: IntArray) {
 
-        Log.d(TAG, "addCharToCurrentText $char")
-        Log.d(TAG, "isCaps.value ${isCaps.value}")
-        currentInputConnection.commitText(char, 1)
-        if (isCaps.value == KeyboardCapsStatus.UPPER_CASE) {
-            /* It's unnecessary to add uppercase character indexes in manual mode since manual mode
-             * is essentially intended for words that don't exist in the database. If the user is
-             * typing in manual mode, they don't need to press the SWAP key and therefore will never
-             *  be able to invalidate the uppercase letters they entered in this way. */
-            isCaps.value = KeyboardCapsStatus.LOWER_CASE
-
-        }
-
-
-    }
-
-    fun keyClick(codes: IntArray,
-                 forceManual: Boolean,
-                 keyId: Int) {
-
-        Log.d(TAG, "keyClick")
-
-        if (isManual.value || forceManual) {
-
-            if (lastKeyId == keyId && System.currentTimeMillis() - keyTimer < LONG_PRESSURE_TIME_MILLIS) {
-
-                deleteChar()
-                if (keyCodesIndex < codes.size - 1) {
-                    keyCodesIndex += 1
-                } else {
-                    keyCodesIndex = 0
-                }
-
-
-            } else {
-
-                keyCodesIndex = 0
-
-            }
-
-            addCodeToCurrentText(codes[keyCodesIndex]) //TODO: sistemare caps e modalità manuale
-            lastKeyId = keyId
-            keyTimer = System.currentTimeMillis()
-
-        } else {
-            Log.d(TAG, "isNotManual")
+            Log.d(TAG, "keyClick")
             var digitCode = codes.last()
 
             if (digitCode != null) addCharToCurrentWord(digitCode)
-        }
     }
 
+    fun addCharToCurrentText(codes: IntArray, keyId: Int) {
+
+        if (lastKeyId == keyId &&
+            System.currentTimeMillis() - keyTimer < LONG_PRESSURE_TIME_MILLIS) {
+
+            if (keyCodesIndex < codes.size - 1) {
+                keyCodesIndex += 1
+            } else {
+                keyCodesIndex = 0
+            }
+
+        } else {
+            finishComposingText()
+            if (isCaps.value != KeyboardCapsStatus.LOWER_CASE) {
+                capsIndexes.add(textSelection.startIndex)
+            }
+            keyCodesIndex = 0
+
+        }
+
+        addCodeToCurrentText(codes[keyCodesIndex])
+        lastKeyId = keyId
+        keyTimer = System.currentTimeMillis()
+
+    }
+
+
+
     fun spaceClick() {
-//        val nowInMillis = System.currentTimeMillis()
-
         val code = ASCII_CODE_SPACE.toChar()
-//        if (currentInputConnection.getTextBeforeCursor(2, 0)
-//                .toString() == ", " && prefs.getBoolean(
-//                this.getString(R.string.user_prefs_dot_double_space_key),
-//                false
-//            ) && nowInMillis - spaceKeyTimer < LONG_PRESSURE_TIME_MILLIS
-//        ) {
-//            currentInputConnection.deleteSurroundingText(2, 0)
-//            currentInputConnection.commitText(".", 1)
-//            //                if (!isCaps) onPress(Keyboard.KEYCODE_SHIFT) TODO: fixare e riabilitare
-//        }
-//        if (currentInputConnection.getTextBeforeCursor(1, 0).toString() == " " && prefs.getBoolean(
-//                service.getString(R.string.user_prefs_dot_double_space_key),
-//                false
-//            ) && nowInMillis - spaceKeyTimer < LONG_PRESSURE_TIME_MILLIS
-//        ) {
-//            currentInputConnection.deleteSurroundingText(1, 0)
-//            if (prefs.getBoolean(
-//                    service.getString(R.string.user_prefs_dot_triple_space_key),
-//                    false
-//                )
-//            ) currentInputConnection.commitText(",", 1)
-//            else {
-//                currentInputConnection.commitText(".", 1)
-//                //                    if (!isCaps) onPress(Keyboard.KEYCODE_SHIFT) TODO: fixare e riabilitare
-//            }
-//        }
-
-        currentInputConnection.commitText(code.toString(), 1)
-//        spaceKeyTimer = System.currentTimeMillis()
+        commitText(code.toString())
     }
 
     fun swapClick() {
-        if (isManual.value) {
+            var currentWordCharArray: CharArray
 
-            isManual.value = false
-
-        } else {
-
-            currentInputConnection.requestCursorUpdates(InputConnection.CURSOR_UPDATE_IMMEDIATE)
-                .apply {
-
-                    var currentWordCharArray: CharArray
+            var currentIndex = words.indexOf(currentWord)
 
 
-                    val currentIndex = words.indexOf(currentWord)
+            try {
 
-                    try {
+                currentWord = words[currentIndex + 1]
+                Log.d(TAG, "new currentWord = ${currentWord!!.text}")
+                currentWordCharArray = currentWord!!.text.toCharArray()
 
-                        currentWord = words[currentIndex + 1]
-                        currentWordCharArray = currentWord!!.text.toCharArray()
-//                        Log.d(TAG, "indexesOfCaps = $indexesOfCaps")
-//                        Log.d(TAG, "getCapsIndexesOfCurrentWord = ${getCapsIndexesOfCurrentWord()}")
-                        getCapsIndexesOfCurrentWord().forEach {
+                getCapsIndexesOfCurrentWord().forEach {
 
-                            currentWordCharArray[it - 1] =
-                                currentWordCharArray[it - 1].toUpperCase()
-
-                        }
-
-
-                        currentInputConnection.deleteSurroundingText(
-                            getWordTextBeforeCursor().length,
-                            getWordTextAfterCursor().length
-                        )
-
-                        currentInputConnection.commitText(String(currentWordCharArray), 1)
-                        currentInputConnection.requestCursorUpdates(InputConnection.CURSOR_UPDATE_IMMEDIATE)
-
-//                        currentInputConnection.setComposingRegion(getWordTextAfterCursor().length, getWordTextBeforeCursor().length);
-//                        currentInputConnection.setComposingText(String(currentWordCharArray), 1)
-//                        currentInputConnection.requestCursorUpdates(InputConnection.CURSOR_UPDATE_IMMEDIATE)
-                    } catch (e: IndexOutOfBoundsException) {
-
-                        Log.d(TAG, "swapClick isManual $isManual")
-//                        changeModeToManual()
-//                        inputConnection.deleteSurroundingText(getWordTextBeforeCursor().length, getWordTextAfterCursor().length)
-                        if (isCaps.value == KeyboardCapsStatus.UPPER_CASE) isCaps.value =
-                            KeyboardCapsStatus.CAPS_LOCK
-//                    if (prefs.getString(service.getString(R.string.shared_prefs_set_language), service.getString(R.string.language_tag_english_american)) == service.getString(R.string.language_tag_russian)){
-//                        changeKeyboardviewTo(t9ManualKeyboardRussian)
-//                    } else changeKeyboardviewTo(t9ManualKeyboard)
-                        isManual.value = true
-
-                    }
+                    currentWordCharArray[it] =
+                        currentWordCharArray[it].uppercaseChar()
 
                 }
 
-        }
+                setComposingText(String(currentWordCharArray))
+
+            } catch (e: IndexOutOfBoundsException) {
+
+                Log.d(TAG, "index out of bounds")
+
+                enterManualMode()
+
+            }
+
+
     }
 
     fun emojiClick(emojiViewItem: EmojiViewItem) {
         val emoji : String = emojiViewItem.emoji
-
-        currentInputConnection.commitText(emoji, 1)
+        commitText(emoji)
     }
 
+    fun enterManualMode() {
+        if (isCaps.value == KeyboardCapsStatus.UPPER_CASE) isCaps.value =
+            KeyboardCapsStatus.CAPS_LOCK
+        isManual.value = true
+        finishComposingText()
+    }
 
+    fun exitManualMode() {
+        isManual.value = false
+    }
 
+    private fun commitText(s: String) {
+        finishComposingText()
+        textComposition.reset(textBeforeCursor.length + s.length)
+        if (isCaps.value != KeyboardCapsStatus.LOWER_CASE) {
+            capsIndexes.add(textSelection.startIndex)
+        }
+        currentInputConnection?.commitText(s, 1)
+    }
 
-//    fun isManual() : Boolean {
-//        return isManual;
-//    }
-//
-//    fun setManual(value: Boolean) {
-//        isManual = value;
-//    }
+    private fun setComposingRegion() {
+        val composingStartIndex: Int
+        val composingEndIndex: Int
+
+        val wordTextBeforeCursor: String = getWordTextBeforeCursor()
+        val wordTextAfterCursor: String = getWordTextAfterCursor()
+
+        if (wordTextBeforeCursor.isNotEmpty())
+            composingStartIndex = textBeforeCursor.lastIndexOf(wordTextBeforeCursor)
+        else
+            composingStartIndex = textBeforeCursor.length
+
+        composingEndIndex =
+            composingStartIndex + wordTextBeforeCursor.length + wordTextAfterCursor.length
+
+        updateCurrentWord(null)
+
+        textComposition.setRegion(composingStartIndex, wordTextBeforeCursor + wordTextAfterCursor)
+        currentInputConnection.setComposingRegion(composingStartIndex, composingEndIndex)
+    }
+
+    private fun finishComposingText() {
+        textComposition.reset(textBeforeCursor.length)
+        currentInputConnection.finishComposingText()
+    }
+
+    private fun setComposingText(newText: String) {
+        textComposition.setText(newText)
+        currentInputConnection.setComposingText(newText, 1)
+    }
+
+    fun inputIsPassword() : Boolean {
+        return variationInputType == InputType.TYPE_TEXT_VARIATION_PASSWORD
+                || variationInputType == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                || variationInputType == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD
+    }
 
     companion object {
         const val LONG_PRESSURE_TIME_MILLIS = 500L
         val WORDS_REGEX = WORDS_REGEX_STRING.toRegex()
+        val WORDS_SPACE_REGEX = WORDS_SPACE_REGEX_STRING.toRegex()
     }
 }

@@ -1,9 +1,7 @@
 package com.armandodarienzo.wear.utility.KeyOboard.ui.components
 
 import android.annotation.SuppressLint
-import android.graphics.Paint.Align
 import android.os.Build
-import android.util.Log
 import android.view.MotionEvent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.*
@@ -29,7 +27,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -293,13 +290,26 @@ fun KeyboardTextKey(
             Modifier
                 .combinedClickable(
                     onClick = {
-                        service?.keyClick(
-                            codifyChars(
-                                if (capsStatus == KeyboardCapsStatus.LOWER_CASE) text
-                                else text.uppercase(Locale.ROOT)
-                            )
+                        if (service?.isManual?.value == true) {
+                            service.addCharToCurrentText(
+                                codifyChars(
+                                    if (capsStatus == KeyboardCapsStatus.LOWER_CASE) text
+                                    else text.uppercase(Locale.ROOT)
+                                )
                                 .also { it.add(numberASCIIcode) }
-                                .toIntArray(), false, numberASCIIcode)
+                                .toIntArray(),
+                                numberASCIIcode)
+                        } else {
+                            service?.keyClick(
+                                codifyChars(
+                                    if (capsStatus == KeyboardCapsStatus.LOWER_CASE) text
+                                    else text.uppercase(Locale.ROOT)
+                                )
+                                    .also { it.add(numberASCIIcode) }
+                                    .toIntArray())
+                        }
+
+
                     },
                     onLongClick = {
                         visibleBox.value = true
