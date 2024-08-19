@@ -13,8 +13,8 @@ android {
         applicationId "com.armandodarienzo.k9board"
         minSdk 29
         targetSdk 34
-        versionCode 4
-        versionName "assetPackTest"
+        versionCode 7
+        versionName "assetPackTest3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -29,7 +29,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.3.2"
+        kotlinCompilerExtensionVersion = "1.5.15"
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -48,10 +48,11 @@ android {
 dependencies {
 
     implementation project(path: ':shared')
-    implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
 //    implementation 'com.google.android.material:material:1.11.0'
-    implementation 'com.google.android.material:material:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-android:2.8.4'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
@@ -74,7 +75,7 @@ dependencies {
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
     // Optional - Integration with activities
-    implementation 'androidx.activity:activity-compose:1.6.1'
+    implementation 'androidx.activity:activity-compose:1.9.1'
     // Optional - Integration with ViewModels
 //    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1'
 //    // Optional - Integration with LiveData
@@ -92,17 +93,17 @@ dependencies {
     implementation "androidx.emoji2:emoji2-emojipicker:1.4.0"
 
     /***** Hilt *****/
-    implementation "com.google.dagger:hilt-android:2.44"
-    kapt "com.google.dagger:hilt-compiler:2.44"
+    implementation "com.google.dagger:hilt-android:2.49"
+    kapt "com.google.dagger:hilt-compiler:2.49"
 
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
 
     /***** Play asset delivery *****/
-//    implementation "com.google.android.play:asset-delivery-ktx:2.2.2"
-    implementation 'com.google.android.play:core:1.8.0'
+    implementation "com.google.android.play:asset-delivery-ktx:2.2.2"
+//    implementation 'com.google.android.play:core-ktx:1.8.1'
 
     /***** Play services *****/
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.1"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3"
 
 }
 

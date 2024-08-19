@@ -5,8 +5,8 @@ import android.os.Build
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.annotation.RequiresApi
-import androidx.lifecycle.ViewTreeLifecycleOwner
-import androidx.lifecycle.ViewTreeViewModelStoreOwner
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.armandodarienzo.k9board.shared.service.Key9Service
 
@@ -34,15 +34,15 @@ class Key9ServiceMobile(): Key9Service() {
         view = ComposeKeyboardView(this, backgroundColorId)
 
         window!!.window!!.decorView.let { decorView ->
-            ViewTreeLifecycleOwner.set(decorView, this)
-            ViewTreeViewModelStoreOwner.set(decorView, this)
+            decorView.setViewTreeLifecycleOwner(this)
+            decorView.setViewTreeViewModelStoreOwner(this)
 //            ViewTreeSavedStateRegistryOwner.set(decorView, this)
             decorView.setViewTreeSavedStateRegistryOwner(this)
         }
         window!!.window!!.navigationBarColor = this.getColor(backgroundColorId)
         view.let {
-            ViewTreeLifecycleOwner.set(it, this)
-            ViewTreeViewModelStoreOwner.set(it, this)
+            it.setViewTreeLifecycleOwner(this)
+            it.setViewTreeViewModelStoreOwner(this)
 //            ViewTreeSavedStateRegistryOwner.set(it, this)
             it.setViewTreeSavedStateRegistryOwner(this)
         }

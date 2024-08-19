@@ -32,6 +32,11 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     private val TAG = Companion::class.java.simpleName
 
     private var lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
+    private val savedStateRegistryController = SavedStateRegistryController.create(this)
+    override val lifecycle: Lifecycle = this.lifecycleRegistry
+    override val savedStateRegistry = savedStateRegistryController.savedStateRegistry
+
+    override val viewModelStore: ViewModelStore = ViewModelStore()
 
     //DbDataHelper
     lateinit var db: DictionaryDataHelper
@@ -41,8 +46,7 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     var words = mutableListOf<Word>()
     var currentWord: Word? = null
 
-    private val savedStateRegistryController = SavedStateRegistryController.create(this)
-    override val savedStateRegistry = savedStateRegistryController.savedStateRegistry
+
 
     var cursorPosition: Int = 0
     var previousTextLength = 0
@@ -105,12 +109,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     //Lifecylce Methods
 
-
-
-    override fun getLifecycle(): Lifecycle {
-        return lifecycleRegistry
-    }
-
     private fun handleLifecycleEvent(event: Lifecycle.Event) =
         lifecycleRegistry.handleLifecycleEvent(event)
 
@@ -157,11 +155,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
 
     }
-
-    //ViewModelStore Methods
-    private val store = ViewModelStore()
-
-    override fun getViewModelStore(): ViewModelStore = store
 
     fun getTextBeforeCursor(): CharSequence{
         return currentInputConnection.getTextBeforeCursor(5000, 0)?: ""
@@ -536,4 +529,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     companion object {
         const val LONG_PRESSURE_TIME_MILLIS = 500L
     }
+
+
 }

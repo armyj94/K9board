@@ -6,7 +6,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.armandodarienzo.k9board.shared.ASSET_PACKS_BASE_NAME
 import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
 import com.armandodarienzo.k9board.shared.packName
 import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepository
@@ -46,11 +45,12 @@ class LanguageViewModel@Inject constructor(
 
     init {
         viewModelScope.launch {
+
             _languageState.value = userPreferencesRepository.getLanguage().getOrNull()!!
             Log.d(TAG, "init: ${userPreferencesRepository.getLanguage().getOrNull()}")
 
             assetPackManager.requestPackStates(
-                languagePackNames
+                languagePackNames.minus(packName(SupportedLanguageTag.AMERICAN.value))
             ).runCatching {
                 _assetPackStatesMapState.value = this.packStates()
             }

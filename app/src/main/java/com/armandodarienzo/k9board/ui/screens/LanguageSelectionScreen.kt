@@ -77,11 +77,9 @@ fun LanguagesList(
     val TAG = object {}::class.java.enclosingMethod?.name
 
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
+    val assetPackManager = remember{ AssetPackManagerFactory.getInstance(context) }
 
-    val assetPackManager = AssetPackManagerFactory.getInstance(context)
-
-    val languageTags = SupportedLanguageTag.values().map { it.value  }
+    val languageTags = remember{ SupportedLanguageTag.values().map{ it.value } }
 
     Column {
         languageTags.forEach { tag ->
@@ -89,17 +87,13 @@ fun LanguagesList(
             val locale = Locale.forLanguageTag(tag)
             val assetPackState = assetPackStates[packName]
             val assetPackStatus = assetPackState?.status() ?: AssetPackStatus.UNKNOWN
+            val assetPackLocation = assetPackManager.getPackLocation(packName)
 
             Row(
                 Modifier
                     .fillMaxWidth()
                     .selectable(
-                        enabled =
-                        (
-                                (tag == LANGUAGE_TAG_ENGLISH_AMERICAN) ||
-                                        (assetPackManager
-                                            .getPackLocation(packName) != null)
-                                ),
+                        enabled = (assetPackLocation != null),
                         selected = (tag == selectedOption),
                         onClick = {
                             //onOptionSelected(tag)
@@ -108,6 +102,7 @@ fun LanguagesList(
                     .padding(horizontal = 16.dp)
             ) {
                 RadioButton(
+                    enabled = (assetPackLocation != null),
                     selected = (tag == selectedOption),
                     onClick = {
                         onSelected(tag)
@@ -118,7 +113,7 @@ fun LanguagesList(
                     style = MaterialTheme.typography.bodySmall.merge(),
                     modifier = Modifier.padding(start = 8.dp, top = 16.dp)
                 )
-                if (assetPackStatus == AssetPackStatus.UNKNOWN) {
+                if (assetPackLocation == null) {
                     IconButton(
                         onClick = {
                             onDownload(tag)
