@@ -11,6 +11,7 @@ import com.armandodarienzo.k9board.shared.packName
 import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepository
 import com.google.android.play.core.assetpacks.AssetPackManagerFactory
 import com.google.android.play.core.assetpacks.AssetPackState
+import com.google.android.play.core.assetpacks.model.AssetPackStatus
 import com.google.android.play.core.ktx.packStates
 import com.google.android.play.core.ktx.requestFetch
 import com.google.android.play.core.ktx.requestPackStates
@@ -30,7 +31,7 @@ class LanguageViewModel@Inject constructor(
 
     private val assetPackManager = AssetPackManagerFactory.getInstance(mContext)
 
-    private val languagePackNames = SupportedLanguageTag.values()
+    private val languagePackNames = SupportedLanguageTag.entries
         .toMutableList()
         .map { it.value }
         .map { tag ->
@@ -47,13 +48,19 @@ class LanguageViewModel@Inject constructor(
         viewModelScope.launch {
 
             _languageState.value = userPreferencesRepository.getLanguage().getOrNull()!!
-            Log.d(TAG, "init: ${userPreferencesRepository.getLanguage().getOrNull()}")
 
             assetPackManager.requestPackStates(
                 languagePackNames.minus(packName(SupportedLanguageTag.AMERICAN.value))
             ).runCatching {
                 _assetPackStatesMapState.value = this.packStates()
+                assetPackManager.registerListener { assetPackState ->
+                    val map = _assetPackStatesMapState.value.toMutableMap()
+                    map[assetPackState.name()] = assetPackState
+                    _assetPackStatesMapState.value = map
+                }
+
             }
+
         }
     }
 
@@ -67,11 +74,7 @@ class LanguageViewModel@Inject constructor(
     fun downloadLanguagePack(tag: String) {
         val packName = packName(tag)
         viewModelScope.launch {
-            assetPackManager.requestFetch(listOf(packName)).runCatching {
-                val mutableMap = _assetPackStatesMapState.value.toMutableMap()
-                mutableMap[packName] = this.packStates.values.first()
-                _assetPackStatesMapState.value = mutableMap
-            }
+            assetPackManager.requestFetch(listOf(packName))
         }
     }
 

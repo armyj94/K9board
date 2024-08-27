@@ -13,8 +13,8 @@ android {
         applicationId "com.armandodarienzo.k9board"
         minSdk 29
         targetSdk 34
-        versionCode 7
-        versionName "assetPackTest3"
+        versionCode 22
+        versionName "assetPackTest22"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
