@@ -11,7 +11,6 @@ import com.armandodarienzo.k9board.shared.packName
 import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepository
 import com.google.android.play.core.assetpacks.AssetPackManagerFactory
 import com.google.android.play.core.assetpacks.AssetPackState
-import com.google.android.play.core.assetpacks.model.AssetPackStatus
 import com.google.android.play.core.ktx.packStates
 import com.google.android.play.core.ktx.requestFetch
 import com.google.android.play.core.ktx.requestPackStates
@@ -75,6 +74,42 @@ class LanguageViewModel@Inject constructor(
         val packName = packName(tag)
         viewModelScope.launch {
             assetPackManager.requestFetch(listOf(packName))
+        }
+    }
+
+    fun cancelDownload(tag: String) {
+        val packName = packName(tag)
+        assetPackManager.cancel(listOf(packName)).packStates.values.forEach {
+            Log.d(TAG, "cancelDownload assetPackState.status = ${it.status()}")
+            val map = _assetPackStatesMapState.value.toMutableMap()
+            map[it.name()] = it
+            _assetPackStatesMapState.value = map
+        }
+        assetPackManager.removePack(packName)
+    }
+
+    fun removePack(tag: String) {
+        val packName = packName(tag)
+        if (languageState.value == tag) {
+            setLanguage(SupportedLanguageTag.AMERICAN.value)
+        }
+
+        //TODO: remove copied database files
+
+        assetPackManager.removePack(packName)
+    }
+
+    fun getDownloadProgress(tag: String) : Float {
+        val map = _assetPackStatesMapState.value
+        val packName = packName(tag)
+
+        val downloaded = map[packName]?.bytesDownloaded() ?: 0
+        val totalSize = map[packName]?.totalBytesToDownload() ?: 0
+
+        try {
+            return (100L * downloaded / totalSize) / 100F
+        } catch (e: ArithmeticException) {
+            return 0F
         }
     }
 
