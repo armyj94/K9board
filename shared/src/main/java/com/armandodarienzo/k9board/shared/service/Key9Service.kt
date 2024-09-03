@@ -19,9 +19,14 @@ import androidx.savedstate.SavedStateRegistryOwner
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.Word
 import com.armandodarienzo.k9board.shared.ASCII_CODE_SPACE
+import com.armandodarienzo.k9board.shared.BuildConfig
+import com.armandodarienzo.k9board.shared.DATABASE_NAME
+import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepositoryLocal
+import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import kotlin.system.measureTimeMillis
 
 open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwner,
@@ -79,9 +84,25 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 //        )
 //        val dbBaseName = this.getString(R.string.db_base_name)
 //        db = DictionaryDataHelper(this, "${dbBaseName}_${setLanguage}.sqlite")
-        db = DictionaryDataHelper(this, "dictionary.sqlite")
+        val userPreferencesRepository = UserPreferencesRepositoryLocal(application.dataStore)
+        val languageSet = runBlocking{
+            var value = ""
+            userPreferencesRepository.getLanguage().map {
+                value = it
+            }
+            value
+        }
+
+        if (BuildConfig.DEBUG) {
+            db = DictionaryDataHelper(this, "dictionary.sqlite")
+        } else {
+            db = DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
+        }
+
+//        db = DictionaryDataHelper(this, "dictionary.sqlite")
         db.writableDatabase.enableWriteAheadLogging()//db.readableDatabase
         db.writableDatabase.execSQL("PRAGMA synchronous = NORMAL")
+
 
         indexesOfCaps = mutableListOf()
 //        indexesOfEmojis = mutableListOf()
