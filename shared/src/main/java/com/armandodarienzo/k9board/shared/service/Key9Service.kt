@@ -34,7 +34,7 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     lateinit var view: View
 
-    private val TAG = Companion::class.java.simpleName
+    private val TAG = Key9Service::class.java.simpleName
 
     private var lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
@@ -93,10 +93,10 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
             value
         }
 
-        if (BuildConfig.DEBUG) {
-            db = DictionaryDataHelper(this, "dictionary.sqlite")
+        db = if (BuildConfig.DEBUG) {
+            DictionaryDataHelper(this, "dictionary.sqlite")
         } else {
-            db = DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
+            DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
         }
 
 //        db = DictionaryDataHelper(this, "dictionary.sqlite")
@@ -142,6 +142,33 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     override fun onDestroy() {
         super.onDestroy()
         handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    }
+
+    override fun onWindowShown() {
+        val userPreferencesRepository = UserPreferencesRepositoryLocal(application.dataStore)
+        val languageSet = runBlocking{
+            var value = ""
+            userPreferencesRepository.getLanguage().map {
+                value = it
+            }
+            value
+        }
+
+        db = if (BuildConfig.DEBUG) {
+            DictionaryDataHelper(this, "dictionary.sqlite")
+        } else {
+            DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
+        }
+
+//        db = DictionaryDataHelper(this, "dictionary.sqlite")
+        db.writableDatabase.enableWriteAheadLogging()//db.readableDatabase
+        db.writableDatabase.execSQL("PRAGMA synchronous = NORMAL")
+        super.onWindowShown()
+    }
+
+    override fun onWindowHidden() {
+        db.close()
+        super.onWindowHidden()
     }
 
     override fun onUpdateCursorAnchorInfo(cursorAnchorInfo: CursorAnchorInfo?) {

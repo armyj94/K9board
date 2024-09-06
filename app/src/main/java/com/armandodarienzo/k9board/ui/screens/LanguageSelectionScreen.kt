@@ -1,6 +1,7 @@
 package com.armandodarienzo.k9board.ui.screens
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -198,6 +199,7 @@ fun LanguageRow(
                         .weight(1f)
                 ) {
                     RadioButton(
+                        modifier = Modifier.fillMaxSize(),
                         enabled = (assetPackLocation != null),
                         selected = (tag == selectedOption),
                         onClick = {
@@ -212,9 +214,9 @@ fun LanguageRow(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        modifier = Modifier.padding(start = 16.dp),
-                        text = locale.displayName,
-                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(start = 12.dp),
+                        text = locale.displayName.replaceFirstChar { it.uppercase() },
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
                 Column(

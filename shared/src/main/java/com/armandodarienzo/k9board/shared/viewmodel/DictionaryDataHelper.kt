@@ -14,6 +14,7 @@ import com.armandodarienzo.k9board.shared.BuildConfig
 import com.armandodarienzo.k9board.shared.LANGUAGE_TAG_ENGLISH_AMERICAN
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
 import com.armandodarienzo.k9board.shared.USER_WORDS_FLAG
+import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
 import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepositoryLocal
 import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.google.android.play.core.assetpacks.AssetPackManagerFactory
@@ -117,7 +118,7 @@ class DictionaryDataHelper(val context: Context, private val dbName: String): SQ
         if(!dbInstalled()){
 
             val inputStream: InputStream
-            if (BuildConfig.DEBUG)
+            if (BuildConfig.DEBUG || languageSet == SupportedLanguageTag.AMERICAN.value)
                 inputStream = context.assets.open(languageRelativePath)
             else
             {
