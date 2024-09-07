@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         minSdk 29
-        targetSdk 33
+        targetSdk 34
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -34,11 +34,12 @@ android {
 
 dependencies {
 
-    implementation 'androidx.core:core-ktx:1.7.0'
-    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
 //    implementation 'com.google.android.material:material:1.11.0'
-    implementation 'com.google.android.material:material:1.7.0'
-    implementation 'com.google.android.play:core-ktx:1.8.1'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-android:2.8.4'
+//    implementation 'com.google.android.play:core-ktx:1.8.1'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
@@ -79,15 +80,15 @@ dependencies {
     implementation "androidx.emoji2:emoji2-emojipicker:1.4.0"
 
     /***** AssetPackManager *****/
-    implementation 'com.google.android.play:core:1.8.0'
-    //    implementation 'com.google.android.play:asset-delivery-ktx:2.2.2'
+//    implementation 'com.google.android.play:core-ktx:1.8.1'
+    implementation 'com.google.android.play:asset-delivery-ktx:2.2.2'
 
     /***** Hilt *****/
-    implementation "com.google.dagger:hilt-android:2.44"
-    kapt "com.google.dagger:hilt-compiler:2.44"
+    implementation "com.google.dagger:hilt-android:2.49"
+    kapt "com.google.dagger:hilt-compiler:2.49"
 
     /***** Kotlin coroutines *****/
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
 }
 
 // Allow references to generated code

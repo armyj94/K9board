@@ -16,9 +16,9 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
-import androidx.lifecycle.ViewTreeLifecycleOwner
-import androidx.lifecycle.ViewTreeViewModelStoreOwner
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
@@ -35,9 +35,15 @@ import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepositoryLo
 import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.armandodarienzo.k9board.shared.substringAfterLastNotMatching
 import com.armandodarienzo.k9board.shared.substringBeforeFirstNotMatching
+import com.armandodarienzo.k9board.shared.BuildConfig
+import com.armandodarienzo.k9board.shared.DATABASE_NAME
+import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import kotlin.system.measureTimeMillis
 
 
@@ -50,10 +56,12 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     private val TAG = Key9Service::class.java.simpleName
 
-
     private var lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
+    override val lifecycle: Lifecycle = this.lifecycleRegistry
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
     override val savedStateRegistry = savedStateRegistryController.savedStateRegistry
+
+    override val viewModelStore: ViewModelStore = ViewModelStore()
 
     var classInputType = 0
     var variationInputType = 0
@@ -135,19 +143,18 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         Log.d(TAG, "onCreateInputView")
 
         window!!.window!!.decorView.let { decorView ->
-            ViewTreeLifecycleOwner.set(decorView, this)
-            ViewTreeViewModelStoreOwner.set(decorView, this)
+            decorView.setViewTreeLifecycleOwner(this)
+            decorView.setViewTreeViewModelStoreOwner(this)
 //            ViewTreeSavedStateRegistryOwner.set(decorView, this)
             decorView.setViewTreeSavedStateRegistryOwner(this)
         }
         window!!.window!!.navigationBarColor = this.getColor(backgroundColorId)
         view.let {
-            ViewTreeLifecycleOwner.set(it, this)
-            ViewTreeViewModelStoreOwner.set(it, this)
+            it.setViewTreeLifecycleOwner(this)
+            it.setViewTreeViewModelStoreOwner(this)
 //            ViewTreeSavedStateRegistryOwner.set(it, this)
             it.setViewTreeSavedStateRegistryOwner(this)
         }
-
 
         userPreferencesRepository = UserPreferencesRepositoryLocal(this.dataStore)
 
@@ -159,7 +166,22 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 //        )
 //        val dbBaseName = this.getString(R.string.db_base_name)
 //        db = DictionaryDataHelper(this, "${dbBaseName}_${setLanguage}.sqlite")
-        db = DictionaryDataHelper(this, "dictionary.sqlite")
+        val userPreferencesRepository = UserPreferencesRepositoryLocal(application.dataStore)
+        val languageSet = runBlocking{
+            var value = ""
+            userPreferencesRepository.getLanguage().map {
+                value = it
+            }
+            value
+        }
+
+        db = if (BuildConfig.DEBUG) {
+            DictionaryDataHelper(this, "dictionary.sqlite")
+        } else {
+            DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
+        }
+
+//        db = DictionaryDataHelper(this, "dictionary.sqlite")
         db.writableDatabase.enableWriteAheadLogging()//db.readableDatabase
         db.writableDatabase.execSQL("PRAGMA synchronous = NORMAL")
 
@@ -227,9 +249,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     }
 
     //Lifecylce Methods
-    override fun getLifecycle(): Lifecycle {
-        return lifecycleRegistry
-    }
 
     private fun handleLifecycleEvent(event: Lifecycle.Event) =
         lifecycleRegistry.handleLifecycleEvent(event)
@@ -243,6 +262,33 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     override fun onDestroy() {
         super.onDestroy()
         handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    }
+
+    override fun onWindowShown() {
+        val userPreferencesRepository = UserPreferencesRepositoryLocal(application.dataStore)
+        val languageSet = runBlocking{
+            var value = ""
+            userPreferencesRepository.getLanguage().map {
+                value = it
+            }
+            value
+        }
+
+        db = if (BuildConfig.DEBUG) {
+            DictionaryDataHelper(this, "dictionary.sqlite")
+        } else {
+            DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
+        }
+
+//        db = DictionaryDataHelper(this, "dictionary.sqlite")
+        db.writableDatabase.enableWriteAheadLogging()//db.readableDatabase
+        db.writableDatabase.execSQL("PRAGMA synchronous = NORMAL")
+        super.onWindowShown()
+    }
+
+    override fun onWindowHidden() {
+        db.close()
+        super.onWindowHidden()
     }
 
     override fun onUpdateSelection(
@@ -282,11 +328,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         }
 
     }
-
-    //ViewModelStore Methods
-    private val store = ViewModelStore()
-
-    override fun getViewModelStore(): ViewModelStore = store
 
     @RequiresApi(Build.VERSION_CODES.S)
     fun setBackgroundColorId() {
@@ -592,4 +633,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         val WORDS_REGEX = WORDS_REGEX_STRING.toRegex()
         val WORDS_SPACE_REGEX = WORDS_SPACE_REGEX_STRING.toRegex()
     }
+
+
 }

@@ -10,14 +10,19 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.armandodarienzo.k9board.*
 import com.armandodarienzo.k9board.model.Word
 import com.armandodarienzo.k9board.shared.ASSET_PACKS_BASE_NAME
+import com.armandodarienzo.k9board.shared.BuildConfig
 import com.armandodarienzo.k9board.shared.LANGUAGE_TAG_ENGLISH_AMERICAN
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
 import com.armandodarienzo.k9board.shared.USER_WORDS_FLAG
+import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
+import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepositoryLocal
+import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.google.android.play.core.assetpacks.AssetPackManagerFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -100,20 +105,25 @@ class DictionaryDataHelper(val context: Context, private val dbName: String): SQ
 
     private fun installIfNecessary() {
 
-        //TODO: change with PreferenceDataStore
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        val setLanguage = prefs.getString(SHARED_PREFS_SET_LANGUAGE, LANGUAGE_TAG_ENGLISH_AMERICAN)
+        val userPreferencesRepository = UserPreferencesRepositoryLocal(context.dataStore)
+        val languageSet = runBlocking{
+            var value = ""
+            userPreferencesRepository.getLanguage().map {
+                value = it
+            }
+            value
+        }
         val languageRelativePath = "$ASSETS_PATH/$dbName"
 
         if(!dbInstalled()){
 
             val inputStream: InputStream
-            if (setLanguage == LANGUAGE_TAG_ENGLISH_AMERICAN)
+            if (BuildConfig.DEBUG || languageSet == SupportedLanguageTag.AMERICAN.value)
                 inputStream = context.assets.open(languageRelativePath)
             else
             {
                 val assetPackManager = AssetPackManagerFactory.getInstance(context)
-                val assetPackPath = assetPackManager.getPackLocation("${ASSET_PACKS_BASE_NAME}_${setLanguage?.replace("-", "_")}")
+                val assetPackPath = assetPackManager.getPackLocation("${ASSET_PACKS_BASE_NAME}_${languageSet.replace("-", "_")}")
 
                 val assetsFolderPath = assetPackPath?.assetsPath()
                 val assetPath = "$assetsFolderPath/$languageRelativePath"

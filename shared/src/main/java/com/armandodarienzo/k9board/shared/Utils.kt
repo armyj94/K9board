@@ -15,6 +15,10 @@ fun codifyChars(text: String): MutableList<Int>{
 
 }
 
+fun packName(tag: String) : String {
+    return "${ASSET_PACKS_BASE_NAME}_${tag.replace("-", "_")}"
+}
+
 fun String.substringAfterLastNotMatching(regex: Regex): String {
     var index = 0
     for (i in indices) {

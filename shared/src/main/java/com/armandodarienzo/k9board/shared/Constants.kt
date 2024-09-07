@@ -98,6 +98,8 @@ const val THEME_MATERIAL_YOU = "material_you"
 
 /***** Database *****/
 
+const val DATABASE_NAME = "dictionary"
+
 const val ASSET_PACKS_BASE_NAME = "language"
 const val LANGUAGE_TAG_ENGLISH_AMERICAN = "en-US"
 
