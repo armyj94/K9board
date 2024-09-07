@@ -19,19 +19,25 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
 import com.armandodarienzo.k9board.shared.packName
 import com.armandodarienzo.k9board.shared.viewmodel.LanguageViewModel
+import com.armandodarienzo.k9board.ui.elements.AppBarIcon
+import com.armandodarienzo.k9board.ui.elements.K9BoardTopAppBar
 import com.google.android.play.core.assetpacks.AssetPackManager
 import com.google.android.play.core.assetpacks.AssetPackManagerFactory
 import com.google.android.play.core.assetpacks.AssetPackState
@@ -44,6 +50,9 @@ fun LanguageSelectionScreen(
     navController: NavController,
     viewModel: LanguageViewModel = hiltViewModel()
 ) {
+    val onBackIconClicked : () -> Unit = {
+        navController.popBackStack()
+    }
 
     val context = LocalContext.current
 
@@ -52,6 +61,7 @@ fun LanguageSelectionScreen(
     val assetPackManager = remember{ AssetPackManagerFactory.getInstance(context) }
 
     LanguagesScreenContent(
+        onBackIconClicked = onBackIconClicked,
         selectedOption = selectedOption,
         assetPackStates = assetPackStates,
         assetPackManager = assetPackManager,
@@ -78,8 +88,10 @@ fun LanguageListPreview() {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanguagesScreenContent(
+    onBackIconClicked: () -> Unit = {},
     selectedOption: String,
     assetPackStates: Map<String, AssetPackState>,
     assetPackManager: AssetPackManager? = null,
@@ -93,48 +105,63 @@ fun LanguagesScreenContent(
 
     val languageTags = remember{ SupportedLanguageTag.entries.map{ it.value } }
 
-    LazyColumn(){
-        items(languageTags) { tag ->
-            val packName = packName(tag)
-            val assetPackState = assetPackStates[packName]
-            val assetPackStatus = assetPackState?.status() ?: AssetPackStatus.UNKNOWN
-            val assetPackLocation = assetPackManager?.getPackLocation(packName)?.path()
+    Scaffold(
+        topBar = {
+            K9BoardTopAppBar(
+                title = stringResource(id = R.string.main_activity_languages),
+                icon = AppBarIcon(
+                    imageVector = Icons.Default.ArrowBack,
+                ) {
+                    onBackIconClicked()
+                }
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            Modifier.padding(paddingValues)
+        ) {
+            items(languageTags) { tag ->
+                val packName = packName(tag)
+                val assetPackState = assetPackStates[packName]
+                val assetPackStatus = assetPackState?.status() ?: AssetPackStatus.UNKNOWN
+                val assetPackLocation = assetPackManager?.getPackLocation(packName)?.path()
 
 
-            var downloadProgress by remember {
-                mutableFloatStateOf (
-                    getDownloadProgress(tag)
-                )
-            }
-
-            LaunchedEffect(getDownloadProgress(tag)) {
-                downloadProgress = getDownloadProgress(tag)
-            }
-
-            Row(
-                Modifier
-                    .height(100.dp)
-                    .fillMaxWidth()
-                    .selectable(
-                        enabled = (assetPackLocation != null),
-                        selected = (tag == selectedOption),
-                        onClick = {
-                            //onOptionSelected(tag)
-                        }
+                var downloadProgress by remember {
+                    mutableFloatStateOf(
+                        getDownloadProgress(tag)
                     )
-                    .padding(horizontal = 16.dp)
-            ) {
-                LanguageRow(
-                    assetPackLocation = assetPackLocation,
-                    tag = tag,
-                    selectedOption = selectedOption,
-                    assetPackStatus = assetPackStatus,
-                    downloadProgress = downloadProgress,
-                    onDownload = onDownload,
-                    onSelected = onSelected,
-                    onCancel = onCancel,
-                    onRemove = onRemove
-                )
+                }
+
+                LaunchedEffect(getDownloadProgress(tag)) {
+                    downloadProgress = getDownloadProgress(tag)
+                }
+
+                Row(
+                    Modifier
+                        .height(100.dp)
+                        .fillMaxWidth()
+                        .selectable(
+                            enabled = (assetPackLocation != null),
+                            selected = (tag == selectedOption),
+                            onClick = {
+                                //onOptionSelected(tag)
+                            }
+                        )
+                        .padding(horizontal = 16.dp)
+                ) {
+                    LanguageRow(
+                        assetPackLocation = assetPackLocation,
+                        tag = tag,
+                        selectedOption = selectedOption,
+                        assetPackStatus = assetPackStatus,
+                        downloadProgress = downloadProgress,
+                        onDownload = onDownload,
+                        onSelected = onSelected,
+                        onCancel = onCancel,
+                        onRemove = onRemove
+                    )
+                }
             }
         }
     }

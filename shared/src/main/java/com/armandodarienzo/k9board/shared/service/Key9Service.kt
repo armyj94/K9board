@@ -37,7 +37,6 @@ import com.armandodarienzo.k9board.shared.substringAfterLastNotMatching
 import com.armandodarienzo.k9board.shared.substringBeforeFirstNotMatching
 import com.armandodarienzo.k9board.shared.BuildConfig
 import com.armandodarienzo.k9board.shared.DATABASE_NAME
-import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepositoryLocal
 import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper
 import dagger.hilt.android.AndroidEntryPoint
