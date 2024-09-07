@@ -1,7 +1,7 @@
 package com.armandodarienzo.k9board.ui.keyboard
 
 import android.os.Build
-import android.util.Log
+import android.view.inputmethod.EditorInfo
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import com.armandodarienzo.k9board.model.KeyPopupProperties
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.wear.utility.KeyOboard.ui.components.KeyboardKey
 import com.armandodarienzo.wear.utility.KeyOboard.ui.components.KeyboardRepeatableKey
@@ -21,7 +22,6 @@ import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.KeyboardCurrentView
 import com.armandodarienzo.k9board.shared.service.Key9Service
 import com.armandodarienzo.k9board.shared.*
-import com.armandodarienzo.k9board.shared.model.KeyboardSize
 import com.armandodarienzo.k9board.ui.ReverseArrangement
 
 @RequiresApi(Build.VERSION_CODES.S)
@@ -31,7 +31,7 @@ fun CustomKeyboardPreview() {
     CustomKeyboard(
         backGroundColorId = android.R.color.system_accent1_50,
         languageSet = "us-US",
-        keyboardSize = KeyboardSize.MEDIUM,
+        keyboardSize = 280,
         hapticFeedback = false)
 }
 
@@ -41,11 +41,12 @@ fun CustomKeyboardPreview() {
 fun CustomKeyboardPreviewRU() {
     CustomKeyboard(backGroundColorId = android.R.color.system_accent1_50,
         languageSet = "ru-RU",
-        keyboardSize = KeyboardSize.MEDIUM,
+        keyboardSize = 280,
         hapticFeedback = false)
 }
 
 
+@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CustomKeyboard(
@@ -53,7 +54,7 @@ fun CustomKeyboard(
     service: Key9Service? = null,
     backGroundColorId: Int,
     languageSet: String,
-    keyboardSize: KeyboardSize,
+    keyboardSize: Int,
     hapticFeedback: Boolean,
 ) {
     val TAG = object {}::class.java.enclosingMethod?.name
@@ -63,6 +64,37 @@ fun CustomKeyboard(
     val collapsed by remember { mutableStateOf(false) }
     var keyboardView by remember { mutableStateOf(KeyboardCurrentView.TEXT_VIEW) }
 
+    val actionId = service?.currentInputEditorInfo?.imeOptions?.and(EditorInfo.IME_MASK_ACTION)
+    val actionIconId =
+        when (actionId) {
+            EditorInfo.IME_ACTION_SEND -> {
+                R.drawable.ic_baseline_send_18
+            }
+            EditorInfo.IME_ACTION_SEARCH -> {
+                R.drawable.ic_baseline_search_18
+            }
+            EditorInfo.IME_ACTION_NEXT -> {
+                R.drawable.rounded_keyboard_double_arrow_right_24
+            }
+            EditorInfo.IME_ACTION_GO -> {
+                R.drawable.outline_arrow_right_alt_24
+            }
+            else -> {
+               R.drawable.rounded_subdirectory_arrow_left_24
+            }
+        }
+    val imeAction =
+        when (actionId) {
+            EditorInfo.IME_ACTION_SEND,
+            EditorInfo.IME_ACTION_SEARCH,
+            EditorInfo.IME_ACTION_NEXT,
+            EditorInfo.IME_ACTION_GO -> {
+                { service.currentInputConnection?.performEditorAction(actionId) }
+            }
+            else -> {
+                { service?.newLine() }
+            }
+        }
 
     val caps = service?.isCaps
     val isManual = service?.isManual
@@ -108,12 +140,13 @@ fun CustomKeyboard(
         else -> KEY9_TEXT_LATIN
     }
 
-
+//    val visibleBox = remember { mutableStateOf(false) }
 
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .height(keyboardSize.dp)
             .then(modifier),
         color = backgroundColor
     ){
@@ -121,7 +154,7 @@ fun CustomKeyboard(
         Row(
             Modifier
                 .padding(top = 4.dp, bottom = 4.dp)
-                .height(keyboardSize.value.dp),
+                .fillMaxHeight(),
             horizontalArrangement =
                 if(reverseLayout){
                     ReverseArrangement
@@ -155,7 +188,9 @@ fun CustomKeyboard(
                 if (keyboardView == KeyboardCurrentView.TEXT_VIEW) {
                     /*First row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                        modifier = Modifier
+                            .padding(start = 2.dp, end = 2.dp)
+                            .weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
 
@@ -165,7 +200,8 @@ fun CustomKeyboard(
                             id = KEY1_ID,
                             text = KEY1_TEXT,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_1
+                            numberASCIIcode = ASCII_CODE_1,
+                            keyboardHeight = keyboardSize
                         )
                         KeyboardTextKey(
                             id = KEY2_ID,
@@ -174,8 +210,16 @@ fun CustomKeyboard(
                             text = key2text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_2
+                            numberASCIIcode = ASCII_CODE_2,
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key2SpecialChars.VALUES,
+                                    Alignment.BottomCenter,
+                                    onIdSelected = { service?.writeSpecificChar(it) }
+                                )
                         )
+
                         KeyboardTextKey(
                             modifier = Modifier
                                 .weight(1f),
@@ -183,13 +227,22 @@ fun CustomKeyboard(
                             text = key3text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_3
+                            numberASCIIcode = ASCII_CODE_3,
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key3SpecialChars.VALUES,
+                                    Alignment.BottomStart,
+                                    onIdSelected = { service?.writeSpecificChar(it) }
+                                )
                         )
                     }
 
                     /*Second row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                        modifier = Modifier
+                            .padding(start = 2.dp, end = 2.dp)
+                            .weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         KeyboardTextKey(
@@ -199,7 +252,14 @@ fun CustomKeyboard(
                             text = key4text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_4
+                            numberASCIIcode = ASCII_CODE_4,
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key4SpecialChars.VALUES,
+                                    Alignment.CenterEnd,
+                                    onIdSelected = { service?.writeSpecificChar(it) }
+                                )
                         )
                         KeyboardTextKey(
                             modifier = Modifier
@@ -208,7 +268,14 @@ fun CustomKeyboard(
                             text = key5text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_5
+                            numberASCIIcode = ASCII_CODE_5,
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key5SpecialChars.VALUES,
+                                    Alignment.Center,
+                                    onIdSelected = { service?.writeSpecificChar(it) }
+                                )
                         )
                         KeyboardTextKey(
                             modifier = Modifier
@@ -217,14 +284,23 @@ fun CustomKeyboard(
                             text = key6text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_6
+                            numberASCIIcode = ASCII_CODE_6,
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key6SpecialChars.VALUES,
+                                    Alignment.CenterStart,
+                                    onIdSelected = { service?.writeSpecificChar(it) }
+                                )
                         )
 
                     }
 
                     /*Third row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                        modifier = Modifier
+                            .padding(start = 2.dp, end = 2.dp)
+                            .weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         KeyboardTextKey(
@@ -234,7 +310,14 @@ fun CustomKeyboard(
                             text = key7text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_7
+                            numberASCIIcode = ASCII_CODE_7,
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key7SpecialChars.VALUES,
+                                    Alignment.TopEnd,
+                                    onIdSelected = { service?.writeSpecificChar(it) }
+                                )
                         )
                         KeyboardTextKey(
                             modifier = Modifier
@@ -243,7 +326,14 @@ fun CustomKeyboard(
                             text = key8text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_8
+                            numberASCIIcode = ASCII_CODE_8,
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key8SpecialChars.VALUES,
+                                    Alignment.TopCenter,
+                                    onIdSelected = { service?.writeSpecificChar(it) }
+                                )
                         )
                         KeyboardTextKey(
                             modifier = Modifier
@@ -252,27 +342,41 @@ fun CustomKeyboard(
                             text = key9text,
                             capsStatus = caps?.value,
                             service = service,
-                            numberASCIIcode = ASCII_CODE_9
+                            numberASCIIcode = ASCII_CODE_9,
+                            keyboardHeight = keyboardSize,
+                            keyPopupProperties =
+                                KeyPopupProperties(
+                                    Key9SpecialChars.VALUES,
+                                    Alignment.TopStart,
+                                    onIdSelected = { service?.writeSpecificChar(it) }
+                                )
                         )
 
                     }
 
                     /*4th row*/
                     Row(
-                        modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                        modifier = Modifier
+                            .padding(start = 2.dp, end = 2.dp)
+                            .weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         KeyboardKey(
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable {
-                                    service?.swapClick()
-                                    Log.d(
-                                        object {}::class.java.enclosingMethod?.name,
-                                        "isManual = $isManual"
-                                    )
-                                },
-                            id = 107,
+                                .combinedClickable(
+                                    onClick = {
+                                        if (isManual?.value == true) {
+                                            service.exitManualMode()
+                                        } else {
+                                            service?.swapClick()
+                                        }
+                                    },
+                                    onLongClick = {
+                                        service?.enterManualMode()
+                                    }
+                                ),
+                            id = KEYSWAP_ID,
                             text = "sync",
                             iconID = if (isManual?.value == true) R.drawable.ic_baseline_edit_note_24 else R.drawable.ic_sync_white_12dp,
                             color = MaterialTheme.colorScheme.secondaryContainer,
@@ -285,7 +389,7 @@ fun CustomKeyboard(
                                         service?.spaceClick()
                                     }
                                 ),
-                            id = 3000,
+                            id = KEYSPACE_ID,
                             text = "⎵",
                             ratio = 3.3f
                         )
@@ -293,14 +397,6 @@ fun CustomKeyboard(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable {
-                                    Log.d(
-                                        object {}::class.java.enclosingMethod?.name,
-                                        "shiftKeyTimer(START) = $shiftKeyTimer"
-                                    )
-                                    Log.d(
-                                        object {}::class.java.enclosingMethod?.name,
-                                        "caps(START) = $caps"
-                                    )
 
                                     if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
                                         shiftKeyTimer = System.currentTimeMillis()
@@ -309,7 +405,13 @@ fun CustomKeyboard(
                                     val nowInMillis = System.currentTimeMillis()
 
                                     caps?.value =
-                                        if (nowInMillis - shiftKeyTimer < 500L && caps?.value == KeyboardCapsStatus.UPPER_CASE) {
+                                        if (
+                                            (nowInMillis - shiftKeyTimer < 500L
+                                                    && caps?.value == KeyboardCapsStatus.UPPER_CASE)
+                                            || (isManual?.value == true
+                                                    && caps?.value == KeyboardCapsStatus.LOWER_CASE)
+                                            )
+                                        {
                                             KeyboardCapsStatus.CAPS_LOCK
                                         } else if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
                                             KeyboardCapsStatus.UPPER_CASE
@@ -317,23 +419,18 @@ fun CustomKeyboard(
                                             KeyboardCapsStatus.LOWER_CASE
                                         }
 
-                                    Log.d(
-                                        object {}::class.java.enclosingMethod?.name,
-                                        "shiftKeyTimer(END) = $shiftKeyTimer"
-                                    )
-                                    Log.d(
-                                        object {}::class.java.enclosingMethod?.name,
-                                        "caps(END) = $caps"
-                                    )
                                 },
-                            id = 106,
+                            id = KEYSHIFT_ID,
                             text = "shift",
                             iconID =
-                            when (caps?.value) {
-                                KeyboardCapsStatus.UPPER_CASE -> R.drawable.ic_system_filled_shift_24px
-                                KeyboardCapsStatus.CAPS_LOCK -> R.drawable.ic_system_filled_permanent_shift_24px
-                                else -> R.drawable.ic_keyboard_capslock_white_18dp
-                            },
+                                when (caps?.value) {
+                                    KeyboardCapsStatus.UPPER_CASE ->
+                                        R.drawable.ic_system_filled_shift_24px
+                                    KeyboardCapsStatus.CAPS_LOCK ->
+                                        R.drawable.ic_system_filled_permanent_shift_24px
+                                    else ->
+                                        R.drawable.ic_keyboard_capslock_white_18dp
+                                },
                             color = MaterialTheme.colorScheme.secondaryContainer,
                         )
 
@@ -367,31 +464,38 @@ fun CustomKeyboard(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                    modifier = Modifier
+                        .padding(start = 2.dp, end = 2.dp)
+                        .weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
                         modifier = Modifier
-                            .weight(1f),
-                        id = 103,
+                            .weight(1f)
+                            .clickable {
+                                imeAction()
+                            },
+                        id = KEYACTION_ID,
                         text = "IMEAction",
-                        iconID = R.drawable.ic_baseline_send_18,
+                        iconID = actionIconId,
                         color =
-                        if(!isSystemInDarkTheme())
-                            MaterialTheme.colorScheme.inversePrimary
-                        else
-                            MaterialTheme.colorScheme.primary,
+                            if(!isSystemInDarkTheme())
+                                MaterialTheme.colorScheme.inversePrimary
+                            else
+                                MaterialTheme.colorScheme.primary,
                         symbolsColor =
-                        if(!isSystemInDarkTheme())
-                            MaterialTheme.colorScheme.onSurface
-                        else
-                            MaterialTheme.colorScheme.inverseOnSurface,
+                            if(!isSystemInDarkTheme())
+                                MaterialTheme.colorScheme.onSurface
+                            else
+                                MaterialTheme.colorScheme.inverseOnSurface,
 
-                        )
+                            )
 
                 }
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                    modifier = Modifier
+                        .padding(start = 2.dp, end = 2.dp)
+                        .weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardRepeatableKey(
@@ -406,7 +510,7 @@ fun CustomKeyboard(
 //                                }
 //                            ),
                              ,
-                        id = 105,
+                        id = KEYDELETE_ID,
                         text = "canc",
                         iconID = R.drawable.ic_backspace_white_18dp,
                         color = MaterialTheme.colorScheme.secondaryContainer,
@@ -414,7 +518,9 @@ fun CustomKeyboard(
                     )
                 }
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                    modifier = Modifier
+                        .padding(start = 2.dp, end = 2.dp)
+                        .weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
@@ -426,11 +532,13 @@ fun CustomKeyboard(
                     )
                 }
                 Row(
-                    modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
+                    modifier = Modifier
+                        .padding(start = 2.dp, end = 2.dp)
+                        .weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
-                        id = 104,
+                        id = KEYEMOJI_ID,
                         text = "emojis",
                         iconID = R.drawable.ic_insert_emoticon_white_18dp,
                         color = MaterialTheme.colorScheme.secondaryContainer,

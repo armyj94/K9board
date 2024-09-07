@@ -1,7 +1,11 @@
 package com.armandodarienzo.k9board.ui.keyboard
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.AbstractComposeView
+import androidx.compose.ui.platform.LocalConfiguration
+import com.armandodarienzo.k9board.shared.KEYBOARD_MIN_SIZE
 import com.armandodarienzo.k9board.shared.service.Key9Service
 
 import com.armandodarienzo.k9board.shared.model.KeyboardSize
@@ -15,6 +19,7 @@ class ComposeKeyboardView(
     private var backgroundColorId: Int,
 ) : AbstractComposeView(service) {
 
+    @RequiresApi(Build.VERSION_CODES.S)
     @Composable
     override fun Content() {
 
@@ -39,7 +44,7 @@ class ComposeKeyboardView(
             value
         }
 
-        val keyboardSize = runBlocking{
+        val keyboardSizeFactor = runBlocking{
             var value = KeyboardSize.MEDIUM
             userPreferencesRepository.getKeyboardSize().map {
                 value = it
@@ -55,6 +60,13 @@ class ComposeKeyboardView(
             }
             value
         }
+
+        val screenHeight = LocalConfiguration.current.screenHeightDp
+        val keyboardSize =
+            maxOf(
+                KEYBOARD_MIN_SIZE,
+                (screenHeight * keyboardSizeFactor.factor).toInt()
+            )
 
         T9KeyboardTheme(themePreference = themeSet) {
             CustomKeyboard(
