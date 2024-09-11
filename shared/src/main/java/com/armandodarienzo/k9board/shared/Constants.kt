@@ -13,6 +13,7 @@ const val KEY6_ID: Int = 6
 const val KEY7_ID: Int = 7
 const val KEY8_ID: Int = 8
 const val KEY9_ID: Int = 9
+const val KEY10_ID: Int = 10
 const val KEYACTION_ID: Int = 103
 const val KEYEMOJI_ID: Int = 104
 const val KEYDELETE_ID: Int = 105
@@ -41,6 +42,7 @@ const val KEY6_TEXT_LATIN = "mno"
 const val KEY7_TEXT_LATIN = "pqrs"
 const val KEY8_TEXT_LATIN = "tuv"
 const val KEY9_TEXT_LATIN = "wxyz"
+
 
 object Key2SpecialChars {
     val VALUES = listOf(
@@ -87,6 +89,12 @@ object Key8SpecialChars {
 object Key9SpecialChars {
     val VALUES = listOf(
         "ý", "ÿ", "ź", "ż", "ž"
+    )
+}
+
+object NumpadKey10SpecialChars {
+    val VALUES = listOf(
+        "+", "-", "*", "/", "=", "#"
     )
 }
 
