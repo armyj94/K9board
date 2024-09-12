@@ -524,7 +524,12 @@ fun CustomKeyboard(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
-                        text = "123",
+                        text =
+                        if (keyboardView == KeyboardCurrentView.NUMPAD_VIEW) {
+                            KEY2_TEXT_LATIN
+                        } else {
+                            "123"
+                        },
                         color = MaterialTheme.colorScheme.secondaryContainer,
                         modifier = Modifier
                             .weight(1f)
