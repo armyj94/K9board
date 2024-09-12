@@ -23,6 +23,7 @@ import com.armandodarienzo.k9board.model.KeyboardCurrentView
 import com.armandodarienzo.k9board.shared.service.Key9Service
 import com.armandodarienzo.k9board.shared.*
 import com.armandodarienzo.k9board.ui.ReverseArrangement
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Preview
@@ -172,7 +173,6 @@ fun CustomKeyboard(
                         modifier = Modifier.clickable{
                             reverseLayout = !reverseLayout
                         },
-                        id = 101,
                         text = "Reverse layout",
                         iconID =
                             if(reverseLayout) R.drawable.ic_baseline_chevron_left_24
@@ -376,7 +376,6 @@ fun CustomKeyboard(
                                         service?.enterManualMode()
                                     }
                                 ),
-                            id = KEYSWAP_ID,
                             text = "sync",
                             iconID = if (isManual?.value == true) R.drawable.ic_baseline_edit_note_24 else R.drawable.ic_sync_white_12dp,
                             color = MaterialTheme.colorScheme.secondaryContainer,
@@ -389,9 +388,7 @@ fun CustomKeyboard(
                                         service?.spaceClick()
                                     }
                                 ),
-                            id = KEYSPACE_ID,
                             text = "⎵",
-                            ratio = 3.3f
                         )
                         KeyboardKey(
                             modifier = Modifier
@@ -420,7 +417,6 @@ fun CustomKeyboard(
                                         }
 
                                 },
-                            id = KEYSHIFT_ID,
                             text = "shift",
                             iconID =
                                 when (caps?.value) {
@@ -454,8 +450,13 @@ fun CustomKeyboard(
 
                     }
 
+                } else if (keyboardView == KeyboardCurrentView.NUMPAD_VIEW) {
+                    Numpad(
+                        this,
+                        service = service,
+                        keyboardSize = keyboardSize,
+                    )
                 }
-
 
             }
 
@@ -475,7 +476,6 @@ fun CustomKeyboard(
                             .clickable {
                                 imeAction()
                             },
-                        id = KEYACTION_ID,
                         text = "IMEAction",
                         iconID = actionIconId,
                         color =
@@ -524,11 +524,24 @@ fun CustomKeyboard(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
-                        id = 102,
-                        text = "123",
+                        text =
+                        if (keyboardView == KeyboardCurrentView.NUMPAD_VIEW) {
+                            KEY2_TEXT_LATIN
+                        } else {
+                            "123"
+                        },
                         color = MaterialTheme.colorScheme.secondaryContainer,
                         modifier = Modifier
                             .weight(1f)
+                            .clickable {
+                                if (keyboardView == KeyboardCurrentView.NUMPAD_VIEW) {
+                                    service?.exitManualMode()
+                                    keyboardView = KeyboardCurrentView.TEXT_VIEW
+                                } else {
+                                    keyboardView = KeyboardCurrentView.NUMPAD_VIEW
+                                    service?.enterManualMode()
+                                }
+                            }
                     )
                 }
                 Row(
@@ -538,7 +551,6 @@ fun CustomKeyboard(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     KeyboardKey(
-                        id = KEYEMOJI_ID,
                         text = "emojis",
                         iconID = R.drawable.ic_insert_emoticon_white_18dp,
                         color = MaterialTheme.colorScheme.secondaryContainer,
@@ -560,5 +572,3 @@ fun CustomKeyboard(
     }
 
 }
-
-

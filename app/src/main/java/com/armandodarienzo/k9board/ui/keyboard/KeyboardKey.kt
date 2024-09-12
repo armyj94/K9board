@@ -47,26 +47,23 @@ import kotlin.math.roundToInt
 @Preview
 @Composable
 fun KeyboardKeyPreview(){
-    KeyboardKey(id = 0, text = "abc")
+    KeyboardKey(text = "abc")
 }
 
 @Preview
 @Composable
 fun KeyboardIconKeyPreview(){
-    KeyboardKey(id = 0, text = "check", iconID = com.google.android.material.R.drawable.mtrl_ic_check_mark)
+    KeyboardKey(text = "check", iconID = com.google.android.material.R.drawable.mtrl_ic_check_mark)
 }
-
 
 @Composable
 fun KeyboardKey(
     modifier: Modifier = Modifier,
-    id: Int,
     text: String,
     iconID: Int? = null,
     iconAngle: Float = 0f,
     capsStatus: KeyboardCapsStatus? = KeyboardCapsStatus.LOWER_CASE,
     textStyle: TextStyle = TextStyle(),
-    ratio: Float = 1f,
     color: Color =
         if(!isSystemInDarkTheme()) Color.White
         else MaterialTheme.colorScheme.inverseOnSurface,
@@ -157,13 +154,11 @@ fun KeyboardRepeatableKey(
 
                     true
                 },
-        id = id,
         text = text,
         iconID = iconID,
         iconAngle = iconAngle,
         capsStatus = capsStatus,
         textStyle = textStyle,
-        ratio = ratio,
         color = color,
         symbolsColor = symbolsColor)
 }
@@ -176,19 +171,16 @@ fun KeyboardTextKey(
     modifier: Modifier = Modifier,
     id: Int,
     text: String,
-    iconID: Int? = null,
-    iconAngle: Float = 0f,
     capsStatus: KeyboardCapsStatus? = KeyboardCapsStatus.LOWER_CASE,
     textStyle: TextStyle = TextStyle(),
-    ratio: Float = 1f,
     color: Color =
         if(!isSystemInDarkTheme()) Color.White
         else MaterialTheme.colorScheme.inverseOnSurface,
     symbolsColor: Color = MaterialTheme.colorScheme.onSurface,
     service: Key9Service?,
-    numberASCIIcode: Int,
+    numberASCIIcode: Int? = null,
     keyboardHeight: Int,
-    keyPopupProperties: KeyPopupProperties? = null
+    keyPopupProperties: KeyPopupProperties? = null,
 ){
 
     val charList = remember { mutableStateOf(mutableListOf<String>()) }
@@ -296,17 +288,27 @@ fun KeyboardTextKey(
                                     if (capsStatus == KeyboardCapsStatus.LOWER_CASE) text
                                     else text.uppercase(Locale.ROOT)
                                 )
-                                .also { it.add(numberASCIIcode) }
+                                .also {
+                                    numberASCIIcode?.let { numberASCIIcode ->
+                                        it.add(numberASCIIcode)
+                                    }
+                                }
                                 .toIntArray(),
-                                numberASCIIcode)
+                                id
+                            )
                         } else {
                             service?.keyClick(
                                 codifyChars(
                                     if (capsStatus == KeyboardCapsStatus.LOWER_CASE) text
                                     else text.uppercase(Locale.ROOT)
                                 )
-                                    .also { it.add(numberASCIIcode) }
-                                    .toIntArray())
+                                .also {
+                                    numberASCIIcode?.let { numberASCIIcode ->
+                                        it.add(numberASCIIcode)
+                                    }
+                                }
+                                .toIntArray()
+                            )
                         }
 
 
@@ -327,13 +329,9 @@ fun KeyboardTextKey(
                         )
                     }
                 ),
-            id = id,
             text = text,
-            iconID = iconID,
-            iconAngle = iconAngle,
             capsStatus = capsStatus,
             textStyle = textStyle,
-            ratio = ratio,
             color = color,
             symbolsColor = symbolsColor)
 
@@ -356,6 +354,8 @@ fun KeyboardTextKey(
 
 
     }
+
+
 
 
 
