@@ -1,0 +1,69 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.armandodarienzo.k9board'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.armandodarienzo.k9board"
+        minSdk 30
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+        vectorDrawables {
+            useSupportLibrary true
+        }
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.5.15'
+    }
+    packaging {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+
+    assetPacks = [":language_it_IT", ":language_fr_FR", ":language_es_ES", ":language_pt_PT",
+                  ":language_en_GB", ":language_pt_BR", ":language_de_DE", ":language_nl_NL",
+                  ":language_cs_CZ", ":language_da_DK", ":language_fi_FI", ":language_sv_SE",
+                  ":language_en_US"]
+}
+
+dependencies {
+
+    implementation 'com.google.android.gms:play-services-wearable:18.2.0'
+    implementation platform('androidx.compose:compose-bom:2024.09.01')
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    implementation 'androidx.wear.compose:compose-material:1.4.0'
+    implementation 'androidx.wear.compose:compose-foundation:1.4.0'
+    implementation 'androidx.activity:activity-compose:1.9.2'
+    implementation 'androidx.core:core-splashscreen:1.0.1'
+    implementation 'androidx.wear:wear-tooling-preview:1.0.0'
+    implementation project(':shared')
+    androidTestImplementation platform('androidx.compose:compose-bom:2024.09.01')
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
+}

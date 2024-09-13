@@ -29,3 +29,4 @@ include ':language_fi_FI'
 include ':language_sv_SE'
 include ':language_en_US'
 
+include ':wear'

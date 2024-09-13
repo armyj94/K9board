@@ -29,7 +29,7 @@
         </activity>
 
         <service
-            android:name=".service.Key9ServiceMobile"
+            android:name=".shared.service.Key9Service"
             android:exported="true"
             android:label="Key9Service"
             android:permission="android.permission.BIND_INPUT_METHOD"

@@ -1,4 +1,4 @@
-package com.armandodarienzo.k9board.ui.keyboard
+package com.armandodarienzo.k9board.shared.ui.keyboard
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -11,12 +11,14 @@ import com.armandodarienzo.k9board.shared.service.Key9Service
 import com.armandodarienzo.k9board.shared.model.KeyboardSize
 import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepositoryLocal
 import com.armandodarienzo.k9board.shared.repository.dataStore
-import com.armandodarienzo.k9board.ui.theme.T9KeyboardTheme
+import com.armandodarienzo.k9board.shared.ui.KeyboardProvider
+import com.armandodarienzo.k9board.shared.ui.theme.T9KeyboardTheme
 import kotlinx.coroutines.runBlocking
 
 class ComposeKeyboardView(
     var service: Key9Service,
-    private var backgroundColorId: Int,
+    var backgroundColorId: Int,
+    var keyboardProvider: KeyboardProvider
 ) : AbstractComposeView(service) {
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -69,12 +71,15 @@ class ComposeKeyboardView(
             )
 
         T9KeyboardTheme(themePreference = themeSet) {
-            CustomKeyboard(
-                backGroundColorId = backgroundColorId,
+
+            keyboardProvider.provideKeyboard(
                 service = service,
+                backgroundColorId = backgroundColorId,
                 languageSet = languageSet,
                 keyboardSize = keyboardSize,
-                hapticFeedback = hapticFeedback)
+                hapticFeedback = hapticFeedback
+            )
+
         }
 
     }

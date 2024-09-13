@@ -1,4 +1,4 @@
-package com.armandodarienzo.k9board.ui.theme
+package com.armandodarienzo.k9board.shared.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

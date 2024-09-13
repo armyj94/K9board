@@ -38,18 +38,24 @@ import com.armandodarienzo.k9board.shared.substringBeforeFirstNotMatching
 import com.armandodarienzo.k9board.shared.BuildConfig
 import com.armandodarienzo.k9board.shared.DATABASE_NAME
 import com.armandodarienzo.k9board.shared.repository.dataStore
+import com.armandodarienzo.k9board.shared.ui.KeyboardProvider
+import com.armandodarienzo.k9board.shared.ui.keyboard.ComposeKeyboardView
 import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 import kotlin.system.measureTimeMillis
 
 
 @AndroidEntryPoint
 open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwner,
     SavedStateRegistryOwner {
+
+    @Inject
+    lateinit var keyboardProvider: KeyboardProvider
 
     var backgroundColorId: Int = 0
     lateinit var view: View
@@ -99,6 +105,11 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     private lateinit var userPreferencesRepository : UserPreferencesRepositoryLocal
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+                /* This is needed because otherwise recomposition wont be triggered
+        *  when user preferences are changed. Won't be needed anymore when
+        * and if AbstractComposeView can work with HiltViewModel */
+        (view as ComposeKeyboardView).disposeComposition()
+
         super.onStartInputView(info, restarting)
 
         info?.let {
@@ -138,9 +149,12 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreateInputView(): View {
 
         Log.d(TAG, "onCreateInputView")
+        setBackgroundColorId()
+        view = ComposeKeyboardView(this, backgroundColorId, keyboardProvider)
 
         window!!.window!!.decorView.let { decorView ->
             decorView.setViewTreeLifecycleOwner(this)
