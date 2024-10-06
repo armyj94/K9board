@@ -41,7 +41,6 @@ import com.armandodarienzo.k9board.shared.R
 //import com.armandodarienzo.wear.utility.KeyOboard.ui.components.KeyboardTextKey
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.KeyboardCurrentView
-import com.armandodarienzo.k9board.presentation.TextInput
 import com.armandodarienzo.k9board.shared.service.Key9Service
 import com.armandodarienzo.k9board.shared.*
 import com.armandodarienzo.k9board.shared.model.KeyPopupProperties
