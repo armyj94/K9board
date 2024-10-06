@@ -14,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,7 +28,9 @@ import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.armandodarienzo.k9board.R
 import com.armandodarienzo.k9board.presentation.theme.K9boardTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -59,12 +62,17 @@ fun WearApp(greetingName: String) {
 
 @Composable
 fun Greeting(greetingName: String) {
-    Text(
+    BasicTextField(
         modifier = Modifier.fillMaxWidth(),
-        textAlign = TextAlign.Center,
-        color = MaterialTheme.colors.primary,
-        text = stringResource(R.string.hello_world, greetingName)
+        value = "",
+        onValueChange = {}
     )
+//    Text(
+//        modifier = Modifier.fillMaxWidth(),
+//        textAlign = TextAlign.Center,
+//        color = MaterialTheme.colors.primary,
+//        text = stringResource(R.string.hello_world, greetingName)
+//    )
 }
 
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)

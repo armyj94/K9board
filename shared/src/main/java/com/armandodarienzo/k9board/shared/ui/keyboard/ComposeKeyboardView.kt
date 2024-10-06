@@ -1,11 +1,13 @@
 package com.armandodarienzo.k9board.shared.ui.keyboard
 
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.platform.LocalConfiguration
 import com.armandodarienzo.k9board.shared.KEYBOARD_MIN_SIZE
+import com.armandodarienzo.k9board.shared.KEYBOARD_SIZE_FACTOR_WATCH
 import com.armandodarienzo.k9board.shared.service.Key9Service
 
 import com.armandodarienzo.k9board.shared.model.KeyboardSize
@@ -28,6 +30,7 @@ class ComposeKeyboardView(
         /*We access directly the repository because it is not possible to
         * inject a hiltViewModel in an AbstractComposeView at the moment*/
         val userPreferencesRepository = UserPreferencesRepositoryLocal(context.dataStore)
+        val packageManager = context.packageManager
 
         val languageSet = runBlocking{
             var value = ""
@@ -46,12 +49,16 @@ class ComposeKeyboardView(
             value
         }
 
-        val keyboardSizeFactor = runBlocking{
-            var value = KeyboardSize.MEDIUM
-            userPreferencesRepository.getKeyboardSize().map {
-                value = it
+        val keyboardSizeFactor = if(packageManager.hasSystemFeature(PackageManager.FEATURE_WATCH)) {
+            KEYBOARD_SIZE_FACTOR_WATCH
+        } else {
+            runBlocking{
+                var value = KeyboardSize.MEDIUM.factor
+                userPreferencesRepository.getKeyboardSize().map {
+                    value = it.factor
+                }
+                value
             }
-            value
         }
 
 
@@ -67,7 +74,7 @@ class ComposeKeyboardView(
         val keyboardSize =
             maxOf(
                 KEYBOARD_MIN_SIZE,
-                (screenHeight * keyboardSizeFactor.factor).toInt()
+                (screenHeight * keyboardSizeFactor).toInt()
             )
 
         T9KeyboardTheme(themePreference = themeSet) {

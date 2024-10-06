@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
-import com.armandodarienzo.k9board.model.KeyPopupProperties
+import com.armandodarienzo.k9board.shared.model.KeyPopupProperties
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.wear.utility.KeyOboard.ui.components.KeyboardKey
 import com.armandodarienzo.wear.utility.KeyOboard.ui.components.KeyboardRepeatableKey
@@ -22,8 +22,7 @@ import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.KeyboardCurrentView
 import com.armandodarienzo.k9board.shared.service.Key9Service
 import com.armandodarienzo.k9board.shared.*
-import com.armandodarienzo.k9board.ui.ReverseArrangement
-import java.util.Locale
+import com.armandodarienzo.k9board.shared.extensions.ReverseArrangement
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Preview

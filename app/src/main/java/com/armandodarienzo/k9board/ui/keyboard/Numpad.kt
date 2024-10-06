@@ -2,13 +2,11 @@ package com.armandodarienzo.k9board.ui.keyboard
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -16,9 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastJoinToString
-import com.armandodarienzo.k9board.model.KeyPopupProperties
+import com.armandodarienzo.k9board.shared.model.KeyPopupProperties
 import com.armandodarienzo.k9board.shared.KEY10_ID
-import com.armandodarienzo.k9board.shared.Key2SpecialChars
 import com.armandodarienzo.k9board.shared.NumpadKey10SpecialChars
 import com.armandodarienzo.k9board.shared.service.Key9Service
 import com.armandodarienzo.wear.utility.KeyOboard.ui.components.KeyboardKey
