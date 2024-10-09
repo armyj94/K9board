@@ -1,6 +1,8 @@
 package com.armandodarienzo.k9board.presentation.keyboard
 
+import android.os.Build
 import android.view.MotionEvent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -101,6 +103,7 @@ fun KeyboardKey(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun KeyboardTextKey(
@@ -178,13 +181,13 @@ fun KeyboardTextKey(
             .onGloballyPositioned {
                 keySize = it.size
 
-                val offsetX =
+                val offsetX = 
                     when (keyPopupProperties?.alignment) {
                         Alignment.TopStart, Alignment.CenterStart, Alignment.BottomStart,
                         Alignment.Start ->
-                            - popupWidthPx.roundToInt() + (keySize.width / 2f).roundToInt()
+                            - popupWidthPx.roundToInt() + keySize.width
                         Alignment.TopEnd, Alignment.CenterEnd, Alignment.BottomEnd, Alignment.End ->
-                            (keySize.width / 2f).roundToInt()
+                            0
                         Alignment.BottomCenter, Alignment.TopCenter, Alignment.Center -> {
                             - (popupWidthPx / 2f).roundToInt() + (keySize.width / 2f).roundToInt()
                         }
@@ -196,10 +199,10 @@ fun KeyboardTextKey(
                     when (keyPopupProperties?.alignment) {
                         Alignment.TopStart, Alignment.TopCenter,
                         Alignment.TopEnd, Alignment.Top ->
-                            - popupHeightPx.roundToInt() + (keySize.height / 2f).roundToInt()
+                            - popupHeightPx.roundToInt() + keySize.height
                         Alignment.BottomStart, Alignment.BottomCenter,
                         Alignment.BottomEnd, Alignment.Bottom ->
-                            (keySize.height / 2f).roundToInt()
+                            0
                         Alignment.End, Alignment.Start, Alignment.Center,
                         Alignment.CenterStart, Alignment.CenterEnd->
                             - (popupHeightPx / 2f).roundToInt() + (keySize.height / 2f).roundToInt()
@@ -273,17 +276,16 @@ fun KeyboardTextKey(
 
         keyPopupProperties?.let {
 
-//            PopupBox(
-//                characters = charList.value,
-//                popupWidth = popupWidth,
-//                popupHeight = popupHeight,
-//                showPopup = visibleBox.value,
-//                onClickOutside = { visibleBox.value = false },
-//                color = color,
-//                boxOffset = boxOffset,
-//                gridState = gridState,
-//                selectedId = selectedId,
-//            )
+            PopupBox(
+                characters = charList.value,
+                popupWidth = popupWidth,
+                popupHeight = popupHeight,
+                showPopup = visibleBox.value,
+                onClickOutside = { visibleBox.value = false },
+                boxOffset = boxOffset,
+                gridState = gridState,
+                selectedId = selectedId,
+            )
         }
 
 

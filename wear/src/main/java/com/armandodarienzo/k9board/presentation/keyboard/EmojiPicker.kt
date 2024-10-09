@@ -1,4 +1,4 @@
-package com.armandodarienzo.k9board.ui.keyboard
+package com.armandodarienzo.k9board.presentation.keyboard
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

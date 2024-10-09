@@ -2,7 +2,7 @@ package com.armandodarienzo.k9board.shared
 
 /***** Keyboard UI Constant values *****/
 const val KEYBOARD_MIN_SIZE = 180
-const val KEYBOARD_SIZE_FACTOR_WATCH = 0.65
+const val KEYBOARD_SIZE_FACTOR_WATCH = 0.8
 const val KEYBOARD_POPUP_MAX_COLUMNS = 5
 
 const val KEY1_ID: Int = 1

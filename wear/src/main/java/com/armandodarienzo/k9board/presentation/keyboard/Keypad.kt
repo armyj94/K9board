@@ -1,5 +1,7 @@
 package com.armandodarienzo.k9board.presentation.keyboard
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,11 +40,19 @@ import com.armandodarienzo.k9board.shared.KEY8_ID
 import com.armandodarienzo.k9board.shared.KEY8_TEXT_LATIN
 import com.armandodarienzo.k9board.shared.KEY9_ID
 import com.armandodarienzo.k9board.shared.KEY9_TEXT_LATIN
+import com.armandodarienzo.k9board.shared.Key2SpecialChars
+import com.armandodarienzo.k9board.shared.Key3SpecialChars
+import com.armandodarienzo.k9board.shared.Key4SpecialChars
 import com.armandodarienzo.k9board.shared.Key5SpecialChars
+import com.armandodarienzo.k9board.shared.Key6SpecialChars
+import com.armandodarienzo.k9board.shared.Key7SpecialChars
+import com.armandodarienzo.k9board.shared.Key8SpecialChars
+import com.armandodarienzo.k9board.shared.Key9SpecialChars
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.model.KeyPopupProperties
 import com.armandodarienzo.k9board.shared.service.Key9Service
 
+@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Keypad(
@@ -122,12 +132,12 @@ fun Keypad(
                 service = service,
                 numberASCIIcode = ASCII_CODE_2,
                 keyboardHeight = keyboardSize,
-//                            keyPopupProperties =
-//                                KeyPopupProperties(
-//                                    Key2SpecialChars.VALUES,
-//                                    Alignment.BottomCenter,
-//                                    onIdSelected = { service?.writeSpecificChar(it) }
-//                                )
+                keyPopupProperties =
+                    KeyPopupProperties(
+                        Key2SpecialChars.VALUES,
+                        Alignment.BottomCenter,
+                        onIdSelected = { service?.writeSpecificChar(it) }
+                    )
             )
 
             KeyboardTextKey(
@@ -139,12 +149,12 @@ fun Keypad(
                 service = service,
                 numberASCIIcode = ASCII_CODE_3,
                 keyboardHeight = keyboardSize,
-//                            keyPopupProperties =
-//                                KeyPopupProperties(
-//                                    Key3SpecialChars.VALUES,
-//                                    Alignment.BottomStart,
-//                                    onIdSelected = { service?.writeSpecificChar(it) }
-//                                )
+                keyPopupProperties =
+                    KeyPopupProperties(
+                        Key3SpecialChars.VALUES,
+                        Alignment.BottomStart,
+                        onIdSelected = { service?.writeSpecificChar(it) }
+                    )
             )
         }
 
@@ -164,12 +174,12 @@ fun Keypad(
                 service = service,
                 numberASCIIcode = ASCII_CODE_4,
                 keyboardHeight = keyboardSize,
-//                            keyPopupProperties =
-//                                KeyPopupProperties(
-//                                    Key4SpecialChars.VALUES,
-//                                    Alignment.CenterEnd,
-//                                    onIdSelected = { service?.writeSpecificChar(it) }
-//                                )
+                keyPopupProperties =
+                    KeyPopupProperties(
+                        Key4SpecialChars.VALUES,
+                        Alignment.CenterEnd,
+                        onIdSelected = { service?.writeSpecificChar(it) }
+                    )
             )
             KeyboardTextKey(
                 modifier = Modifier
@@ -196,12 +206,12 @@ fun Keypad(
                 service = service,
                 numberASCIIcode = ASCII_CODE_6,
                 keyboardHeight = keyboardSize,
-//                            keyPopupProperties =
-//                                KeyPopupProperties(
-//                                    Key6SpecialChars.VALUES,
-//                                    Alignment.CenterStart,
-//                                    onIdSelected = { service?.writeSpecificChar(it) }
-//                                )
+                keyPopupProperties =
+                    KeyPopupProperties(
+                        Key6SpecialChars.VALUES,
+                        Alignment.CenterStart,
+                        onIdSelected = { service?.writeSpecificChar(it) }
+                    )
             )
 
         }
@@ -222,12 +232,12 @@ fun Keypad(
                 service = service,
                 numberASCIIcode = ASCII_CODE_7,
                 keyboardHeight = keyboardSize,
-//                            keyPopupProperties =
-//                                KeyPopupProperties(
-//                                    Key7SpecialChars.VALUES,
-//                                    Alignment.TopEnd,
-//                                    onIdSelected = { service?.writeSpecificChar(it) }
-//                                )
+                keyPopupProperties =
+                    KeyPopupProperties(
+                        Key7SpecialChars.VALUES,
+                        Alignment.TopEnd,
+                        onIdSelected = { service?.writeSpecificChar(it) }
+                    )
             )
             KeyboardTextKey(
                 modifier = Modifier
@@ -238,12 +248,12 @@ fun Keypad(
                 service = service,
                 numberASCIIcode = ASCII_CODE_8,
                 keyboardHeight = keyboardSize,
-//                            keyPopupProperties =
-//                                KeyPopupProperties(
-//                                    Key8SpecialChars.VALUES,
-//                                    Alignment.TopCenter,
-//                                    onIdSelected = { service?.writeSpecificChar(it) }
-//                                )
+                keyPopupProperties =
+                    KeyPopupProperties(
+                        Key8SpecialChars.VALUES,
+                        Alignment.TopCenter,
+                        onIdSelected = { service?.writeSpecificChar(it) }
+                    )
             )
             KeyboardTextKey(
                 modifier = Modifier
@@ -254,12 +264,12 @@ fun Keypad(
                 service = service,
                 numberASCIIcode = ASCII_CODE_9,
                 keyboardHeight = keyboardSize,
-//                            keyPopupProperties =
-//                                KeyPopupProperties(
-//                                    Key9SpecialChars.VALUES,
-//                                    Alignment.TopStart,
-//                                    onIdSelected = { service?.writeSpecificChar(it) }
-//                                )
+                keyPopupProperties =
+                    KeyPopupProperties(
+                        Key9SpecialChars.VALUES,
+                        Alignment.TopStart,
+                        onIdSelected = { service?.writeSpecificChar(it) }
+                    )
             )
 
         }

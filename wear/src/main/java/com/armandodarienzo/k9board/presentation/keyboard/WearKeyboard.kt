@@ -241,44 +241,63 @@ fun CustomKeyboard(
                             .weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        KeyboardKey(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable {
+                        if(keyboardView == KeyboardCurrentView.TEXT_VIEW) {
 
-                                    if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
-                                        shiftKeyTimer = System.currentTimeMillis()
-                                    }
+                            KeyboardKey(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable {
 
-                                    val nowInMillis = System.currentTimeMillis()
-
-                                    caps?.value =
-                                        if (
-                                            (nowInMillis - shiftKeyTimer < 500L
-                                                    && caps?.value == KeyboardCapsStatus.UPPER_CASE)
-                                            || (isManual?.value == true
-                                                    && caps?.value == KeyboardCapsStatus.LOWER_CASE)
-                                        ) {
-                                            KeyboardCapsStatus.CAPS_LOCK
-                                        } else if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
-                                            KeyboardCapsStatus.UPPER_CASE
-                                        } else {
-                                            KeyboardCapsStatus.LOWER_CASE
+                                        if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
+                                            shiftKeyTimer = System.currentTimeMillis()
                                         }
 
+                                        val nowInMillis = System.currentTimeMillis()
+
+                                        caps?.value =
+                                            if (
+                                                (nowInMillis - shiftKeyTimer < 500L
+                                                        && caps?.value == KeyboardCapsStatus.UPPER_CASE)
+                                                || (isManual?.value == true
+                                                        && caps?.value == KeyboardCapsStatus.LOWER_CASE)
+                                            ) {
+                                                KeyboardCapsStatus.CAPS_LOCK
+                                            } else if (caps?.value == KeyboardCapsStatus.LOWER_CASE) {
+                                                KeyboardCapsStatus.UPPER_CASE
+                                            } else {
+                                                KeyboardCapsStatus.LOWER_CASE
+                                            }
+
+                                    },
+                                text = "shift",
+                                iconID =
+                                when (caps?.value) {
+                                    KeyboardCapsStatus.UPPER_CASE ->
+                                        R.drawable.ic_system_filled_shift_24px
+                                    KeyboardCapsStatus.CAPS_LOCK ->
+                                        R.drawable.ic_system_filled_permanent_shift_24px
+                                    else ->
+                                        R.drawable.ic_keyboard_capslock_white_18dp
                                 },
-                            text = "shift",
-                            iconID =
-                            when (caps?.value) {
-                                KeyboardCapsStatus.UPPER_CASE ->
-                                    R.drawable.ic_system_filled_shift_24px
-                                KeyboardCapsStatus.CAPS_LOCK ->
-                                    R.drawable.ic_system_filled_permanent_shift_24px
-                                else ->
-                                    R.drawable.ic_keyboard_capslock_white_18dp
-                            },
 //                            color = MaterialTheme.colorScheme.secondaryContainer,
-                        )
+                            )
+
+                        } else {
+
+                            KeyboardKey(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .combinedClickable(
+                                        onClick = {
+                                            service?.spaceClick()
+                                        }
+                                    ),
+                                text = "⎵",
+                            )
+
+                        }
+
+
                     }
                     Row(
                         modifier = Modifier
@@ -316,19 +335,18 @@ fun CustomKeyboard(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .fillMaxHeight()
-                                    .then(modifier)
                             ){
-//                            EmojiPicker(service)
+                                EmojiPicker(service)
                             }
 
                         }
 
                     } else if (keyboardView == KeyboardCurrentView.NUMPAD_VIEW) {
-//                    Numpad(
-//                        this,
-//                        service = service,
-//                        keyboardSize = keyboardSize,
-//                    )
+                        Numpad(
+                            this,
+                            service = service,
+                            keyboardSize = keyboardSize,
+                        )
                     }
 
                 }

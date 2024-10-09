@@ -72,10 +72,15 @@ class ComposeKeyboardView(
 
         val screenHeight = LocalConfiguration.current.screenHeightDp
         val keyboardSize =
-            maxOf(
-                KEYBOARD_MIN_SIZE,
+            if(packageManager.hasSystemFeature(PackageManager.FEATURE_WATCH)) {
                 (screenHeight * keyboardSizeFactor).toInt()
-            )
+            } else {
+                maxOf(
+                    KEYBOARD_MIN_SIZE,
+                    (screenHeight * keyboardSizeFactor).toInt()
+                )
+            }
+
 
         T9KeyboardTheme(themePreference = themeSet) {
 
