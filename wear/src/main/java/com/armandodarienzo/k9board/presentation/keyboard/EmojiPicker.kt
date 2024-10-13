@@ -25,7 +25,8 @@ fun EmojiPicker(service: Key9Service?) {
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT,
                 )
-                emojiGridRows = 4.3f
+                emojiGridColumns = 5
+                //emojiGridRows = 4.3f
 
             }
 
