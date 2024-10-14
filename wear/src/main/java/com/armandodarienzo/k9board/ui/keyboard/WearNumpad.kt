@@ -1,4 +1,4 @@
-package com.armandodarienzo.k9board.presentation.keyboard
+package com.armandodarienzo.k9board.ui.keyboard
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable

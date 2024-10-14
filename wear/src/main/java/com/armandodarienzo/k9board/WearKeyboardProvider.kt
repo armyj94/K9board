@@ -3,7 +3,7 @@ package com.armandodarienzo.k9board
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import com.armandodarienzo.k9board.presentation.keyboard.CustomKeyboard
+import com.armandodarienzo.k9board.ui.keyboard.CustomKeyboard
 import com.armandodarienzo.k9board.shared.service.Key9Service
 import com.armandodarienzo.k9board.shared.ui.KeyboardProvider
 

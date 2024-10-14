@@ -1,4 +1,4 @@
-package com.armandodarienzo.k9board.presentation.theme
+package com.armandodarienzo.k9board.ui.theme
 
 import androidx.compose.runtime.Composable
 import androidx.wear.compose.material.MaterialTheme

@@ -1,4 +1,4 @@
-package com.armandodarienzo.k9board.ui.navigation
+package com.armandodarienzo.k9board.shared.ui.navigation
 
 enum class Screens {
     HomeScreen,

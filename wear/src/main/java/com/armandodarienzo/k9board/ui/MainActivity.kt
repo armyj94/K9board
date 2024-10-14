@@ -4,7 +4,7 @@
  * changes to the libraries and their usages.
  */
 
-package com.armandodarienzo.k9board.presentation
+package com.armandodarienzo.k9board.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -18,16 +18,13 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.tooling.preview.devices.WearDevices
-import com.armandodarienzo.k9board.R
-import com.armandodarienzo.k9board.presentation.theme.K9boardTheme
+import com.armandodarienzo.k9board.ui.navigation.Navigation
+import com.armandodarienzo.k9board.ui.screens.HomeScreen
+import com.armandodarienzo.k9board.ui.theme.K9boardTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -40,7 +37,8 @@ class MainActivity : ComponentActivity() {
         setTheme(android.R.style.Theme_DeviceDefault)
 
         setContent {
-            WearApp("Android")
+//            WearApp("Android")
+            Navigation()
         }
     }
 }
@@ -55,7 +53,8 @@ fun WearApp(greetingName: String) {
             contentAlignment = Alignment.Center
         ) {
             TimeText()
-            Greeting(greetingName = greetingName)
+//            Greeting(greetingName = greetingName)
+
         }
     }
 }

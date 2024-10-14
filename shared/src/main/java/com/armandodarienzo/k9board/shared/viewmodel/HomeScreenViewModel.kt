@@ -1,4 +1,4 @@
-package com.armandodarienzo.k9board.viewmodel
+package com.armandodarienzo.k9board.shared.viewmodel
 
 import android.content.Context
 import android.content.Intent

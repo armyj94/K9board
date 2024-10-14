@@ -1,26 +1,46 @@
 package com.armandodarienzo.k9board.ui.screens
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipColors
+import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material.ExperimentalWearMaterialApi
+import androidx.wear.compose.material.Icon
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PositionIndicator
+import androidx.wear.compose.material.Scaffold
+
+import androidx.wear.compose.material.Text
+import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.material.Vignette
+import androidx.wear.compose.material.VignettePosition
+import androidx.wear.compose.material.items
+import androidx.wear.tooling.preview.devices.WearDevices
+import com.armandodarienzo.k9board.model.MainMenuItem
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
-
-import com.armandodarienzo.k9board.model.MainMenuItem
-import com.armandodarienzo.k9board.ui.elements.K9BoardTopAppBar
 import com.armandodarienzo.k9board.shared.ui.navigation.Screens
 import com.armandodarienzo.k9board.shared.viewmodel.HomeScreenViewModel
 
-
-@Preview
+@Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
 fun ContentPreview() {
     val menuItems = listOf(
@@ -64,20 +84,7 @@ fun ContentPreview() {
 //    menuItems.add(MainMenuAdapter.MenuItem(R.drawable.ic_edit_white_18dp, this.getString(R.string.main_activity_test)))
     )
 
-    HomeScreenContent(menuItems = menuItems)
-}
-
-@Preview
-@Composable
-fun OptionsListElementPreview() {
-    OptionsListElement(
-        modifier = Modifier.height(80.dp),
-        menuItem =
-        MainMenuItem(
-            name = "Lingua",
-            optionKeyString = "Italiano",
-            iconID = R.drawable.ic_language_white_18dp,
-            onClick = {}))
+    HomeScreenContentWear(menuItems = menuItems)
 }
 
 @Composable
@@ -129,96 +136,70 @@ fun HomeScreen(
             }
 //            navigationRoute = Screens.PreferencesScreen.name
         ),
-        //@TODO: enable this again after wearOS change
-//        MainMenuItem(
-//            name = stringResource(id = R.string.main_activity_sync),
-//            optionKeyString = null,
-//            iconID = R.drawable.ic_sync_white_12dp
-//        )
-//    menuItems.add(MainMenuAdapter.MenuItem(R.drawable.ic_edit_white_18dp, this.getString(R.string.main_activity_test)))
     )
 
-    HomeScreenContent(menuItems = menuItems)
+    HomeScreenContentWear(menuItems = menuItems)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreenContent(
+fun HomeScreenContentWear(
     menuItems: List<MainMenuItem>
 ) {
+    val screenHeight = LocalConfiguration.current.screenHeightDp
+
+    val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
+
     Scaffold(
-        topBar = {
-            K9BoardTopAppBar(
-                title = stringResource(id = R.string.app_name),
-                icon = null,
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            Modifier.padding(paddingValues)
+        modifier = Modifier
+            .background(Color.Black),
+        timeText = { TimeText() }, // Display current time
+        vignette = { Vignette(vignettePosition = VignettePosition.TopAndBottom) }, // Add vignette effect
+        positionIndicator = {
+            PositionIndicator(
+                scalingLazyListState = listState)
+        } // Show position indicator
+    ) {
+        ScalingLazyColumn(
+            contentPadding = PaddingValues(
+                top = (screenHeight * 0.21).dp,
+                bottom = (screenHeight * 0.36).dp,
+                start = (screenHeight * 0.05).dp,
+                end = (screenHeight * 0.05).dp),
+            state = listState
         ) {
-            menuItems.forEach{ menuItem ->
-                OptionsListElement(modifier = Modifier.height(80.dp), menuItem = menuItem)
+            items(menuItems) { menuItem ->
+                OptionsListElementWear(modifier = Modifier.height(80.dp), menuItem = menuItem) // Custom list element for Wear OS
             }
         }
     }
 }
 
-
-
 @Composable
-fun OptionsListElement(
+fun OptionsListElementWear(
     modifier: Modifier = Modifier,
-    menuItem: MainMenuItem) {
-
-    Row(
+    menuItem: MainMenuItem
+) {
+    // Use a Chip for a more compact and visually appealing list item on Wear OS
+    Chip(
+        onClick = { menuItem.onClick() }, // Trigger the menuItem's onClick action
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 10.dp)
-            .clickable {
-                menuItem.onClick()
-            },
-    ) {
-        Column(
-            modifier = Modifier.fillMaxHeight(),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                modifier = modifier.size(40.dp),
-                painter = painterResource(menuItem.iconID),
-                contentDescription = menuItem.name,
-                tint = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(start = 20.dp),
-            verticalArrangement = Arrangement.Center
-        ) {
+            .padding(horizontal = 8.dp, vertical = 4.dp), // Adjust padding for Wear OS
+        label = {
             Text(
                 text = menuItem.name,
-                style = MaterialTheme.typography.headlineSmall,
-
-                )
-
-            //TODO: recover data correctly once Language selection is implemented
-//            if (menuItem.optionKeyString != null) {
-//                val optionKey = stringPreferencesKey(menuItem.optionKeyString!!)
-//                var languageSetState = flow{
-//                    context.dataStore.data.map {
-//                        it[optionKey]
-//                    }.collect(collector = {
-//                        if (it!=null){
-//                            this.emit(it)
-//                        }
-//                    })
-//                }.collectAsState(initial = "us-US")
-//                Text(
-//                    text = languageSetState.value,
-//                    style = MaterialTheme.typography.bodyMedium,
-//                )
-//            }
-        }
-    }
+                style = MaterialTheme.typography.body1, // Use a suitable text style for Wear OS
+                color = MaterialTheme.colors.onSurface
+            )
+        },
+        icon = {
+            Icon(
+                painter = painterResource(menuItem.iconID),
+                contentDescription = menuItem.name,
+                modifier = Modifier.size(24.dp), // Adjust icon size for Wear OS
+                tint = MaterialTheme.colors.onSurface
+            )
+        },
+        colors = ChipDefaults.secondaryChipColors()
+    )
 }
