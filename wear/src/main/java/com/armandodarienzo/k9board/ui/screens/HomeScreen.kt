@@ -1,6 +1,7 @@
 package com.armandodarienzo.k9board.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -152,23 +153,24 @@ fun HomeScreenContentWear(
     Scaffold(
         modifier = Modifier
             .background(Color.Black),
-        timeText = { TimeText() }, // Display current time
+        timeText = { TimeText() },
         vignette = { Vignette(vignettePosition = VignettePosition.TopAndBottom) }, // Add vignette effect
         positionIndicator = {
             PositionIndicator(
                 scalingLazyListState = listState)
-        } // Show position indicator
+        }
     ) {
         ScalingLazyColumn(
+            //https://developer.android.com/design/ui/wear/guides/components/lists?hl=it
             contentPadding = PaddingValues(
                 top = (screenHeight * 0.21).dp,
                 bottom = (screenHeight * 0.36).dp,
                 start = (screenHeight * 0.05).dp,
                 end = (screenHeight * 0.05).dp),
-            state = listState
+            state = listState,
         ) {
             items(menuItems) { menuItem ->
-                OptionsListElementWear(modifier = Modifier.height(80.dp), menuItem = menuItem) // Custom list element for Wear OS
+                OptionsListElementWear(modifier = Modifier.height(50.dp), menuItem = menuItem)
             }
         }
     }
@@ -179,16 +181,14 @@ fun OptionsListElementWear(
     modifier: Modifier = Modifier,
     menuItem: MainMenuItem
 ) {
-    // Use a Chip for a more compact and visually appealing list item on Wear OS
     Chip(
-        onClick = { menuItem.onClick() }, // Trigger the menuItem's onClick action
+        onClick = { menuItem.onClick() },
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp), // Adjust padding for Wear OS
+            .fillMaxWidth(),
         label = {
             Text(
                 text = menuItem.name,
-                style = MaterialTheme.typography.body1, // Use a suitable text style for Wear OS
+                style = MaterialTheme.typography.body1,
                 color = MaterialTheme.colors.onSurface
             )
         },
@@ -196,7 +196,7 @@ fun OptionsListElementWear(
             Icon(
                 painter = painterResource(menuItem.iconID),
                 contentDescription = menuItem.name,
-                modifier = Modifier.size(24.dp), // Adjust icon size for Wear OS
+                modifier = Modifier.size(24.dp),
                 tint = MaterialTheme.colors.onSurface
             )
         },

@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.armandodarienzo.k9board.shared.ui.navigation.Screens
 import com.armandodarienzo.k9board.ui.screens.HomeScreen
+import com.armandodarienzo.k9board.ui.screens.LanguageSelectionScreen
 
 @Composable
 fun Navigation() {
@@ -18,10 +19,10 @@ fun Navigation() {
         composable(Screens.HomeScreen.name) {
             HomeScreen(navController = navController)
         }
-//
-//        composable(Screens.LanguageSelectionScreen.name) {
-//            LanguageSelectionScreen(navController = navController)
-//        }
+
+        composable(Screens.LanguageSelectionScreen.name) {
+            LanguageSelectionScreen(navController = navController)
+        }
 //
 //        composable(Screens.PreferencesScreen.name) {
 //            PreferencesScreen(navController = navController)
