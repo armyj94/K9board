@@ -1,6 +1,5 @@
 package com.armandodarienzo.k9board.ui.screens
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -23,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,17 +31,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.armandodarienzo.k9board.shared.R
+import com.armandodarienzo.k9board.shared.model.CoroutineDownloadWorker
 import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
 import com.armandodarienzo.k9board.shared.packName
 import com.armandodarienzo.k9board.shared.viewmodel.LanguageViewModel
 import com.armandodarienzo.k9board.ui.elements.AppBarIcon
 import com.armandodarienzo.k9board.ui.elements.K9BoardTopAppBar
-import com.google.android.play.core.assetpacks.AssetPackManager
-import com.google.android.play.core.assetpacks.AssetPackManagerFactory
 import com.google.android.play.core.assetpacks.AssetPackState
-import com.google.android.play.core.assetpacks.model.AssetPackStatus
 import com.armandodarienzo.k9board.shared.R.drawable as K9BOARD_DRAWABLES
 import java.util.Locale
 
@@ -57,14 +59,18 @@ fun LanguageSelectionScreen(
     val context = LocalContext.current
 
     val selectedOption by viewModel.languageState
-    val assetPackStates by viewModel.assetPackStatesMapState
-    val assetPackManager = remember{ AssetPackManagerFactory.getInstance(context) }
+//    val assetPackStates by viewModel.assetPackStatesMapState
+//    val assetPackManager = remember{ AssetPackManagerFactory.getInstance(context) }
+
+    val workManager = WorkManager.getInstance(context)
 
     LanguagesScreenContent(
+        workManager = workManager,
         onBackIconClicked = onBackIconClicked,
         selectedOption = selectedOption,
-        assetPackStates = assetPackStates,
-        assetPackManager = assetPackManager,
+//        assetPackStates = assetPackStates,
+//        assetPackManager = assetPackManager,
+        getLanguagesPackState = { viewModel.getDownloadWorkInfoLiveData(it) },
         getDownloadProgress = { viewModel.getDownloadProgress(it) },
         onSelected = { viewModel.setLanguage(it) },
         onDownload = { viewModel.downloadLanguagePack(it) },
@@ -80,7 +86,7 @@ fun LanguageListPreview() {
 
     LanguagesScreenContent(
         selectedOption = "us-US",
-        assetPackStates = assetPackStates,
+//        assetPackStates = assetPackStates,
         onSelected = {},
         onDownload = {},
         onCancel = {},
@@ -92,9 +98,11 @@ fun LanguageListPreview() {
 @Composable
 fun LanguagesScreenContent(
     onBackIconClicked: () -> Unit = {},
+    workManager: WorkManager? = null,
     selectedOption: String,
-    assetPackStates: Map<String, AssetPackState>,
-    assetPackManager: AssetPackManager? = null,
+//    assetPackStates: Map<String, AssetPackState>,
+//    assetPackManager: AssetPackManager? = null,
+    getLanguagesPackState: (String) -> LiveData<List<WorkInfo>> = { MutableLiveData(emptyList()) },
     getDownloadProgress: (String) -> Float = { 0F },
     onSelected: (String) -> Unit,
     onDownload: (String) -> Unit,
@@ -122,27 +130,35 @@ fun LanguagesScreenContent(
         ) {
             items(languageTags) { tag ->
                 val packName = packName(tag)
-                val assetPackState = assetPackStates[packName]
-                val assetPackStatus = assetPackState?.status() ?: AssetPackStatus.UNKNOWN
-                val assetPackLocation = assetPackManager?.getPackLocation(packName)?.path()
 
 
-                var downloadProgress by remember {
-                    mutableFloatStateOf(
-                        getDownloadProgress(tag)
-                    )
+                val workInfos = getLanguagesPackState(tag).observeAsState().value
+
+                val downloadInfo = remember (key1 = workInfos) {
+                    workInfos?.firstOrNull()
                 }
 
-                LaunchedEffect(getDownloadProgress(tag)) {
-                    downloadProgress = getDownloadProgress(tag)
+                Log.d(TAG, "downloadInfo = $downloadInfo")
+//                val workInfo = viewModel?.workInfoMap?.get(tag)?.collectAsState() ?: remember { mutableStateOf<WorkInfo?>(null) }
+//                val assetPackState = assetPackStates[packName]
+//                val assetPackStatus = assetPackState?.status() ?: AssetPackStatus.UNKNOWN
+//                val assetPackLocation = assetPackManager?.getPackLocation(packName)?.path()
+
+
+                var downloadProgress = remember (key1 = workInfos) {
+                    downloadInfo?.progress?.getFloat(CoroutineDownloadWorker.Progress, 0F) ?: 0F
                 }
+
+//                LaunchedEffect(getDownloadProgress(tag)) {
+//                    downloadProgress = getDownloadProgress(tag)
+//                }
 
                 Row(
                     Modifier
                         .height(100.dp)
                         .fillMaxWidth()
                         .selectable(
-                            enabled = (assetPackLocation != null),
+//                            enabled = (assetPackLocation != null),
                             selected = (tag == selectedOption),
                             onClick = {
                                 //onOptionSelected(tag)
@@ -151,11 +167,12 @@ fun LanguagesScreenContent(
                         .padding(horizontal = 16.dp)
                 ) {
                     LanguageRow(
-                        assetPackLocation = assetPackLocation,
+//                        assetPackLocation = assetPackLocation,
                         tag = tag,
                         selectedOption = selectedOption,
-                        assetPackStatus = assetPackStatus,
-                        downloadProgress = downloadProgress,
+                        workInfo = downloadInfo,
+//                        assetPackStatus = assetPackStatus,
+                        downloadProgress = downloadProgress.toFloat(),
                         onDownload = onDownload,
                         onSelected = onSelected,
                         onCancel = onCancel,
@@ -174,10 +191,11 @@ fun LanguageRowPreview() {
         modifier = Modifier.height(100.dp)
     ) {
         LanguageRow(
-            assetPackLocation = "null",
+//            assetPackLocation = "null",
             tag = SupportedLanguageTag.AMERICAN.value,
             selectedOption = SupportedLanguageTag.AMERICAN.value,
-            assetPackStatus = AssetPackStatus.DOWNLOADING,
+            workInfo = null,
+//            assetPackStatus = AssetPackStatus.DOWNLOADING,
             downloadProgress = 60F,
             onSelected = {},
             onDownload = {},
@@ -189,10 +207,11 @@ fun LanguageRowPreview() {
 
 @Composable
 fun LanguageRow(
-    assetPackLocation: String?,
+//    assetPackLocation: String?,
     tag: String,
     selectedOption: String,
-    assetPackStatus: Int,
+    workInfo: WorkInfo?,
+//    assetPackStatus: Int,
     downloadProgress: Float = 0F,
     onSelected: (String) -> Unit?,
     onDownload: (String) -> Unit,
@@ -200,6 +219,8 @@ fun LanguageRow(
     onRemove: (String) -> Unit
 ){
     val locale = Locale.forLanguageTag(tag)
+
+    Log.d("LanguageRow", "workInfo?.state = ${workInfo?.state}")
 
     Card(
         modifier = Modifier
@@ -227,7 +248,7 @@ fun LanguageRow(
                 ) {
                     RadioButton(
                         modifier = Modifier.fillMaxSize(),
-                        enabled = (assetPackLocation != null),
+//                        enabled = (assetPackLocation != null),
                         selected = (tag == selectedOption),
                         onClick = {
                             onSelected(tag)
@@ -251,8 +272,7 @@ fun LanguageRow(
                         .fillMaxHeight()
                         .weight(1f)
                 ) {
-                    if (assetPackStatus == AssetPackStatus.DOWNLOADING
-                        || assetPackStatus == AssetPackStatus.TRANSFERRING) {
+                    if (workInfo?.state == WorkInfo.State.RUNNING) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize(),
@@ -279,8 +299,7 @@ fun LanguageRow(
                                 )
                             }
                         }
-                    } else if (assetPackStatus == AssetPackStatus.COMPLETED
-                        || assetPackLocation != null) {
+                    } else if (workInfo?.state == WorkInfo.State.SUCCEEDED) {
                         IconButton(
                             onClick = {
                                 onRemove(tag)

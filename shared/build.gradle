@@ -7,11 +7,11 @@ plugins {
 
 android {
     namespace 'com.armandodarienzo.k9board.shared'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         minSdk 29
-        targetSdk 34
+        targetSdk 35
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -33,6 +33,7 @@ android {
 }
 
 dependencies {
+    def work_version = "2.10.0"
 
     implementation 'androidx.core:core-ktx:1.13.1'
     implementation 'androidx.appcompat:appcompat:1.7.0'
@@ -89,6 +90,10 @@ dependencies {
 
     /***** Kotlin coroutines *****/
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+
+    /***** Workmanager *****/
+    implementation "androidx.work:work-runtime-ktx:$work_version"
+    implementation 'com.google.guava:guava:31.1-android'
 }
 
 // Allow references to generated code
