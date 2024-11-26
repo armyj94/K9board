@@ -5,7 +5,6 @@ class DatabaseStatus (
     var state: Statuses = Statuses.NOT_DOWNLOADED,
     var progress: Float = 0F
 ) {
-
     companion object {
         enum class Statuses{
             DOWNLOADING,

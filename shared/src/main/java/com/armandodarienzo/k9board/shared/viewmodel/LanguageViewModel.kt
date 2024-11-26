@@ -2,9 +2,11 @@ package com.armandodarienzo.k9board.shared.viewmodel
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.Data
@@ -19,19 +21,11 @@ import com.armandodarienzo.k9board.shared.model.DatabaseStatus
 import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
 import com.armandodarienzo.k9board.shared.packName
 import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepository
-import com.google.android.play.core.assetpacks.AssetPackManagerFactory
-import com.google.android.play.core.assetpacks.AssetPackState
-import com.google.android.play.core.ktx.packStates
-import com.google.android.play.core.ktx.requestFetch
-import com.google.android.play.core.ktx.requestPackStates
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.io.File
-import java.io.FileOutputStream
-import java.net.HttpURLConnection
-import java.net.URL
+import javax.annotation.meta.When
 import javax.inject.Inject
 
 
@@ -54,24 +48,46 @@ class LanguageViewModel@Inject constructor(
 //
     private val _languageState = mutableStateOf(SupportedLanguageTag.AMERICAN.value)
     val languageState : State<String> = _languageState
-//
-//    private var _assetPackStatesMapState = mutableStateOf<Map<String, AssetPackState>>(emptyMap())
-//    val assetPackStatesMapState : State<Map<String, AssetPackState>> = _assetPackStatesMapState
 
-    private var _databaseStatusesState = mutableStateOf<Map<String, DatabaseStatus>>(emptyMap())
-    val databaseStatusesState : State<Map<String, DatabaseStatus>> = _databaseStatusesState
+    private var workInfosLiveData : MutableMap<String, LiveData<List<WorkInfo>>> = mutableMapOf() // = WorkManager.getInstance(mContext).getWorkInfosForUniqueWorkLiveData(tag)
+
+    private var workInfos : MutableMap<String, WorkInfo?> = mutableMapOf()
+    private var workInfoObserver : MutableMap<String, Observer<List<WorkInfo>>> = mutableMapOf()
+
+    private val _databaseStatuses: MutableMap<String, MutableState<DatabaseStatus>> = mutableMapOf()
+    val databaseStatus: Map<String, State<DatabaseStatus>> = _databaseStatuses
+
 
 
 
     init {
+        val workManager = WorkManager.getInstance(mContext)
+
         viewModelScope.launch {
 
             _languageState.value = userPreferencesRepository.getLanguage().getOrNull()!!
 
-            val databaseStatuses = mutableMapOf<String, DatabaseStatus>()
+
             SupportedLanguageTag.entries.forEach { entry ->
 
-//
+                val dbName = "${DATABASE_NAME}_${entry.value}.sqlite"
+//                val link = "${WEBSITE_URL}dictionaries/$dbName"
+                val path = mContext.getDatabasePath(dbName).path
+
+                _databaseStatuses[entry.value] = mutableStateOf(
+                    DatabaseStatus(
+                        tag = entry.value,
+                        state =
+                            if (File(path).exists())
+                                {DatabaseStatus.Companion.Statuses.DOWNLOADED}
+                            else
+                                {DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED}
+                    )
+                )
+
+                workInfosLiveData[entry.value] = workManager.getWorkInfosForUniqueWorkLiveData(entry.value)
+                workInfoObserver[entry.value] = createWorkInfoObserver(entry.value)
+                workInfosLiveData[entry.value]?.observeForever(workInfoObserver[entry.value]!!)
             }
 
 
@@ -89,6 +105,13 @@ class LanguageViewModel@Inject constructor(
 //            }
 
         }
+    }
+
+    override fun onCleared() {
+        SupportedLanguageTag.entries.forEach { entry ->
+            workInfosLiveData[entry.value]?.removeObserver { workInfoObserver[entry.value] }
+        }
+        super.onCleared()
     }
 
     fun setLanguage(tag: String) {
@@ -145,10 +168,40 @@ class LanguageViewModel@Inject constructor(
 //        }
     }
 
-    fun getDownloadWorkInfoLiveData(tag: String): LiveData<List<WorkInfo>> {
-        val workInfos = WorkManager.getInstance(mContext).getWorkInfosForUniqueWorkLiveData(tag)
+    private fun createWorkInfoObserver(entryValue: String): Observer<List<WorkInfo>> {
+        return Observer { workInfoList ->
+            workInfos[entryValue] = workInfoList.firstOrNull()
+            val workInfo = workInfoList.firstOrNull()
+            workInfo?.let {
+                Log.d(TAG, "workInfo.state = ${it.state}")
 
-        return workInfos
+                var newState: DatabaseStatus
+
+                when (it.state) {
+                    WorkInfo.State.SUCCEEDED ->
+                        newState = DatabaseStatus(entryValue, DatabaseStatus.Companion.Statuses.DOWNLOADED)
+                    WorkInfo.State.FAILED ->
+                        newState = DatabaseStatus(entryValue, DatabaseStatus.Companion.Statuses.ERROR)
+                    WorkInfo.State.ENQUEUED ->
+                        newState = DatabaseStatus(entryValue, DatabaseStatus.Companion.Statuses.DOWNLOADING)
+                    WorkInfo.State.RUNNING -> {
+                        newState = DatabaseStatus(entryValue, DatabaseStatus.Companion.Statuses.DOWNLOADING, it.progress.getFloat(CoroutineDownloadWorker.Progress, 0F))
+                    }
+                    WorkInfo.State.BLOCKED ->
+                        newState = DatabaseStatus(entryValue, DatabaseStatus.Companion.Statuses.ERROR)
+                    WorkInfo.State.CANCELLED -> {
+                        newState = DatabaseStatus(entryValue, DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED)
+                        //TODO deleteFile
+                    }
+                }
+
+                _databaseStatuses[entryValue]?.value = newState
+            }
+        }
+    }
+
+    fun getDownloadWorkInfoLiveData(tag: String): State<DatabaseStatus>? {
+        return databaseStatus[tag]
     }
 
 }

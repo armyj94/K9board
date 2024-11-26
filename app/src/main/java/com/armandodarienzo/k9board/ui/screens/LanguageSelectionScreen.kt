@@ -22,7 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,13 +30,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavController
-import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.armandodarienzo.k9board.shared.R
-import com.armandodarienzo.k9board.shared.model.CoroutineDownloadWorker
+import com.armandodarienzo.k9board.shared.model.DatabaseStatus
 import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
 import com.armandodarienzo.k9board.shared.packName
 import com.armandodarienzo.k9board.shared.viewmodel.LanguageViewModel
@@ -59,6 +55,7 @@ fun LanguageSelectionScreen(
     val context = LocalContext.current
 
     val selectedOption by viewModel.languageState
+
 //    val assetPackStates by viewModel.assetPackStatesMapState
 //    val assetPackManager = remember{ AssetPackManagerFactory.getInstance(context) }
 
@@ -102,7 +99,7 @@ fun LanguagesScreenContent(
     selectedOption: String,
 //    assetPackStates: Map<String, AssetPackState>,
 //    assetPackManager: AssetPackManager? = null,
-    getLanguagesPackState: (String) -> LiveData<List<WorkInfo>> = { MutableLiveData(emptyList()) },
+    getLanguagesPackState: (String) -> State<DatabaseStatus>? = { null },
     getDownloadProgress: (String) -> Float = { 0F },
     onSelected: (String) -> Unit,
     onDownload: (String) -> Unit,
@@ -132,26 +129,43 @@ fun LanguagesScreenContent(
                 val packName = packName(tag)
 
 
-                val workInfos = getLanguagesPackState(tag).observeAsState().value
+                //val workInfos = getLanguagesPackState(tag).observeAsState().value
 
-                val downloadInfo = remember (key1 = workInfos) {
-                    workInfos?.firstOrNull()
+                val databaseStatusState = getLanguagesPackState(tag)
+
+                val downloadState by remember(databaseStatusState) {
+                    derivedStateOf { databaseStatusState?.value?.state }
                 }
 
-                Log.d(TAG, "downloadInfo = $downloadInfo")
+                val progress by remember(databaseStatusState) {
+                    derivedStateOf { databaseStatusState?.value?.progress }
+                }
+
+                Log.d("testProgress", "recomposition")
+
+
+
+//                val downloadInfo = remember (key1 = workInfos) {
+//                    workInfos?.firstOrNull()
+//                }
+
+//                Log.d(TAG, "downloadInfo = $downloadInfo")
 //                val workInfo = viewModel?.workInfoMap?.get(tag)?.collectAsState() ?: remember { mutableStateOf<WorkInfo?>(null) }
 //                val assetPackState = assetPackStates[packName]
 //                val assetPackStatus = assetPackState?.status() ?: AssetPackStatus.UNKNOWN
 //                val assetPackLocation = assetPackManager?.getPackLocation(packName)?.path()
 
-
-                var downloadProgress = remember (key1 = workInfos) {
-                    downloadInfo?.progress?.getFloat(CoroutineDownloadWorker.Progress, 0F) ?: 0F
-                }
-
-//                LaunchedEffect(getDownloadProgress(tag)) {
-//                    downloadProgress = getDownloadProgress(tag)
+//                LaunchedEffect(databaseStatusState) {
+//                    downloadState = databaseStatusState?.value?.state
+//                    progress = databaseStatusState?.value?.progress
 //                }
+
+
+//                var downloadProgress = remember (key1 = workInfos) {
+//                    downloadInfo?.progress?.getFloat(CoroutineDownloadWorker.Progress, 0F) ?: 0F
+//                }
+
+
 
                 Row(
                     Modifier
@@ -170,9 +184,9 @@ fun LanguagesScreenContent(
 //                        assetPackLocation = assetPackLocation,
                         tag = tag,
                         selectedOption = selectedOption,
-                        workInfo = downloadInfo,
+                        workInfo = downloadState ?: DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
 //                        assetPackStatus = assetPackStatus,
-                        downloadProgress = downloadProgress.toFloat(),
+                        downloadProgress = progress ?: 0F,
                         onDownload = onDownload,
                         onSelected = onSelected,
                         onCancel = onCancel,
@@ -194,7 +208,6 @@ fun LanguageRowPreview() {
 //            assetPackLocation = "null",
             tag = SupportedLanguageTag.AMERICAN.value,
             selectedOption = SupportedLanguageTag.AMERICAN.value,
-            workInfo = null,
 //            assetPackStatus = AssetPackStatus.DOWNLOADING,
             downloadProgress = 60F,
             onSelected = {},
@@ -210,7 +223,7 @@ fun LanguageRow(
 //    assetPackLocation: String?,
     tag: String,
     selectedOption: String,
-    workInfo: WorkInfo?,
+    workInfo: DatabaseStatus.Companion.Statuses = DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
 //    assetPackStatus: Int,
     downloadProgress: Float = 0F,
     onSelected: (String) -> Unit?,
@@ -220,7 +233,7 @@ fun LanguageRow(
 ){
     val locale = Locale.forLanguageTag(tag)
 
-    Log.d("LanguageRow", "workInfo?.state = ${workInfo?.state}")
+    Log.d("LanguageRow", "workInfo?.state = ${workInfo.name}")
 
     Card(
         modifier = Modifier
@@ -272,7 +285,7 @@ fun LanguageRow(
                         .fillMaxHeight()
                         .weight(1f)
                 ) {
-                    if (workInfo?.state == WorkInfo.State.RUNNING) {
+                    if (workInfo == DatabaseStatus.Companion.Statuses.DOWNLOADING) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize(),
@@ -299,7 +312,7 @@ fun LanguageRow(
                                 )
                             }
                         }
-                    } else if (workInfo?.state == WorkInfo.State.SUCCEEDED) {
+                    } else if (workInfo == DatabaseStatus.Companion.Statuses.DOWNLOADED) {
                         IconButton(
                             onClick = {
                                 onRemove(tag)
