@@ -22,16 +22,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.work.WorkManager
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.model.DatabaseStatus
 import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
@@ -40,6 +39,7 @@ import com.armandodarienzo.k9board.shared.viewmodel.LanguageViewModel
 import com.armandodarienzo.k9board.ui.elements.AppBarIcon
 import com.armandodarienzo.k9board.ui.elements.K9BoardTopAppBar
 import com.google.android.play.core.assetpacks.AssetPackState
+import kotlinx.coroutines.flow.StateFlow
 import com.armandodarienzo.k9board.shared.R.drawable as K9BOARD_DRAWABLES
 import java.util.Locale
 
@@ -52,38 +52,25 @@ fun LanguageSelectionScreen(
         navController.popBackStack()
     }
 
-    val context = LocalContext.current
-
     val selectedOption by viewModel.languageState
 
-//    val assetPackStates by viewModel.assetPackStatesMapState
-//    val assetPackManager = remember{ AssetPackManagerFactory.getInstance(context) }
-
-    val workManager = WorkManager.getInstance(context)
-
     LanguagesScreenContent(
-        workManager = workManager,
         onBackIconClicked = onBackIconClicked,
         selectedOption = selectedOption,
-//        assetPackStates = assetPackStates,
-//        assetPackManager = assetPackManager,
-        getLanguagesPackState = { viewModel.getDownloadWorkInfoLiveData(it) },
-        getDownloadProgress = { viewModel.getDownloadProgress(it) },
+        databaseStatuses = viewModel.databaseStatus,
         onSelected = { viewModel.setLanguage(it) },
         onDownload = { viewModel.downloadLanguagePack(it) },
         onCancel = { viewModel.cancelDownload(it) },
-        onRemove = { viewModel.removePack(it) },
+        onRemove = { viewModel.cancelDownload(it) },
     )
 }
 
 @Composable
 @Preview
 fun LanguageListPreview() {
-    val assetPackStates = emptyMap<String, AssetPackState>().toMutableMap()
 
     LanguagesScreenContent(
         selectedOption = "us-US",
-//        assetPackStates = assetPackStates,
         onSelected = {},
         onDownload = {},
         onCancel = {},
@@ -95,12 +82,8 @@ fun LanguageListPreview() {
 @Composable
 fun LanguagesScreenContent(
     onBackIconClicked: () -> Unit = {},
-    workManager: WorkManager? = null,
     selectedOption: String,
-//    assetPackStates: Map<String, AssetPackState>,
-//    assetPackManager: AssetPackManager? = null,
-    getLanguagesPackState: (String) -> State<DatabaseStatus>? = { null },
-    getDownloadProgress: (String) -> Float = { 0F },
+    databaseStatuses: Map<String, StateFlow<DatabaseStatus?>> = emptyMap(),
     onSelected: (String) -> Unit,
     onDownload: (String) -> Unit,
     onCancel: (String) -> Unit,
@@ -129,50 +112,20 @@ fun LanguagesScreenContent(
                 val packName = packName(tag)
 
 
-                //val workInfos = getLanguagesPackState(tag).observeAsState().value
-
-                val databaseStatusState = getLanguagesPackState(tag)
-
+                val databaseStatusStateFlow = databaseStatuses[tag]
+                val databaseStatusState by databaseStatusStateFlow?.collectAsState() ?: remember { mutableStateOf(null) }
                 val downloadState by remember(databaseStatusState) {
-                    derivedStateOf { databaseStatusState?.value?.state }
+                    derivedStateOf { databaseStatusState?.state }
                 }
-
                 val progress by remember(databaseStatusState) {
-                    derivedStateOf { databaseStatusState?.value?.progress }
+                    derivedStateOf { databaseStatusState?.progress}
                 }
-
-                Log.d("testProgress", "recomposition")
-
-
-
-//                val downloadInfo = remember (key1 = workInfos) {
-//                    workInfos?.firstOrNull()
-//                }
-
-//                Log.d(TAG, "downloadInfo = $downloadInfo")
-//                val workInfo = viewModel?.workInfoMap?.get(tag)?.collectAsState() ?: remember { mutableStateOf<WorkInfo?>(null) }
-//                val assetPackState = assetPackStates[packName]
-//                val assetPackStatus = assetPackState?.status() ?: AssetPackStatus.UNKNOWN
-//                val assetPackLocation = assetPackManager?.getPackLocation(packName)?.path()
-
-//                LaunchedEffect(databaseStatusState) {
-//                    downloadState = databaseStatusState?.value?.state
-//                    progress = databaseStatusState?.value?.progress
-//                }
-
-
-//                var downloadProgress = remember (key1 = workInfos) {
-//                    downloadInfo?.progress?.getFloat(CoroutineDownloadWorker.Progress, 0F) ?: 0F
-//                }
-
-
 
                 Row(
                     Modifier
                         .height(100.dp)
                         .fillMaxWidth()
                         .selectable(
-//                            enabled = (assetPackLocation != null),
                             selected = (tag == selectedOption),
                             onClick = {
                                 //onOptionSelected(tag)
@@ -181,11 +134,9 @@ fun LanguagesScreenContent(
                         .padding(horizontal = 16.dp)
                 ) {
                     LanguageRow(
-//                        assetPackLocation = assetPackLocation,
                         tag = tag,
                         selectedOption = selectedOption,
-                        workInfo = downloadState ?: DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
-//                        assetPackStatus = assetPackStatus,
+                        databaseStatus = downloadState ?: DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
                         downloadProgress = progress ?: 0F,
                         onDownload = onDownload,
                         onSelected = onSelected,
@@ -205,10 +156,8 @@ fun LanguageRowPreview() {
         modifier = Modifier.height(100.dp)
     ) {
         LanguageRow(
-//            assetPackLocation = "null",
             tag = SupportedLanguageTag.AMERICAN.value,
             selectedOption = SupportedLanguageTag.AMERICAN.value,
-//            assetPackStatus = AssetPackStatus.DOWNLOADING,
             downloadProgress = 60F,
             onSelected = {},
             onDownload = {},
@@ -220,11 +169,9 @@ fun LanguageRowPreview() {
 
 @Composable
 fun LanguageRow(
-//    assetPackLocation: String?,
     tag: String,
     selectedOption: String,
-    workInfo: DatabaseStatus.Companion.Statuses = DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
-//    assetPackStatus: Int,
+    databaseStatus: DatabaseStatus.Companion.Statuses = DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
     downloadProgress: Float = 0F,
     onSelected: (String) -> Unit?,
     onDownload: (String) -> Unit,
@@ -233,7 +180,7 @@ fun LanguageRow(
 ){
     val locale = Locale.forLanguageTag(tag)
 
-    Log.d("LanguageRow", "workInfo?.state = ${workInfo.name}")
+    Log.d("LanguageRow", "databaseStatus for $tag = ${databaseStatus.name}")
 
     Card(
         modifier = Modifier
@@ -261,7 +208,7 @@ fun LanguageRow(
                 ) {
                     RadioButton(
                         modifier = Modifier.fillMaxSize(),
-//                        enabled = (assetPackLocation != null),
+                        enabled = (databaseStatus == DatabaseStatus.Companion.Statuses.DOWNLOADED),
                         selected = (tag == selectedOption),
                         onClick = {
                             onSelected(tag)
@@ -285,7 +232,7 @@ fun LanguageRow(
                         .fillMaxHeight()
                         .weight(1f)
                 ) {
-                    if (workInfo == DatabaseStatus.Companion.Statuses.DOWNLOADING) {
+                    if (databaseStatus == DatabaseStatus.Companion.Statuses.DOWNLOADING) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize(),
@@ -312,7 +259,7 @@ fun LanguageRow(
                                 )
                             }
                         }
-                    } else if (workInfo == DatabaseStatus.Companion.Statuses.DOWNLOADED) {
+                    } else if (databaseStatus == DatabaseStatus.Companion.Statuses.DOWNLOADED) {
                         IconButton(
                             onClick = {
                                 onRemove(tag)
