@@ -89,7 +89,16 @@ class LanguageViewModel@Inject constructor(
 
                             when (it.state) {
                                 WorkInfo.State.SUCCEEDED ->
-                                    newState = DatabaseStatus(entry.value, DatabaseStatus.Companion.Statuses.DOWNLOADED)
+                                    /* The code above is because once the state becomes SUCCEEDED
+                                     * it is not possible to change its state to another until
+                                     * another work with the same name start (if the policy is
+                                     * REPLACE as in our case). This resulting in a wrong
+                                     * DatabaseStatus after deleting the database*/
+                                    newState = if (File(path).exists()) {
+                                        DatabaseStatus(entry.value, DatabaseStatus.Companion.Statuses.DOWNLOADED)
+                                    } else {
+                                        DatabaseStatus(entry.value, DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED)
+                                    }
                                 WorkInfo.State.FAILED ->
                                     newState = DatabaseStatus(entry.value, DatabaseStatus.Companion.Statuses.ERROR)
                                 WorkInfo.State.ENQUEUED ->
