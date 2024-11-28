@@ -141,7 +141,9 @@ class LanguageViewModel@Inject constructor(
     }
 
     fun cancelDownload(tag: String) {
-        Log.d(TAG, "cancelDownload of $tag")
+        if (languageState.value == tag) {
+            setLanguage(SupportedLanguageTag.AMERICAN.value)
+        }
         WorkManager.getInstance(mContext).cancelUniqueWork(tag)
         _databaseStatuses[tag]?.value = DatabaseStatus(tag, DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED)
         mContext.deleteDatabase(getDatabaseName(tag))

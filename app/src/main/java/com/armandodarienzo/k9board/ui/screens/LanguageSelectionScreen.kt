@@ -232,63 +232,66 @@ fun LanguageRow(
                         .fillMaxHeight()
                         .weight(1f)
                 ) {
-                    if (databaseStatus == DatabaseStatus.Companion.Statuses.DOWNLOADING) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            contentAlignment = Alignment.Center,
-                        ){
-                            CircularProgressIndicator(
-                                modifier = Modifier.fillMaxWidth().aspectRatio(1f),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                strokeWidth = 4.dp,
-                                progress = downloadProgress
-                            )
+                    if (tag != SupportedLanguageTag.AMERICAN.value) {
+                        if (databaseStatus == DatabaseStatus.Companion.Statuses.DOWNLOADING) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ){
+                                CircularProgressIndicator(
+                                    modifier = Modifier.fillMaxWidth().aspectRatio(1f),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    strokeWidth = 4.dp,
+                                    progress = downloadProgress
+                                )
+                                IconButton(
+                                    onClick = {
+                                        onCancel(tag)
+                                    }
+                                ) {
+                                    Icon(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(6.dp),
+                                        painter = painterResource(K9BOARD_DRAWABLES.round_cancel_24),
+                                        contentDescription = "Download",
+                                        tint = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                }
+                            }
+                        } else if (databaseStatus == DatabaseStatus.Companion.Statuses.DOWNLOADED) {
                             IconButton(
                                 onClick = {
-                                    onCancel(tag)
+                                    onRemove(tag)
                                 }
                             ) {
                                 Icon(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(6.dp),
-                                    painter = painterResource(K9BOARD_DRAWABLES.round_cancel_24),
+                                    modifier = Modifier.size(40.dp),
+                                    painter = painterResource(
+                                        K9BOARD_DRAWABLES.rounded_delete_forever_24
+                                    ),
+                                    contentDescription = "Download",
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
+                        } else {
+                            IconButton(
+                                modifier = Modifier.weight(1f),
+                                onClick = {
+                                    onDownload(tag)
+                                }
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(40.dp),
+                                    painter = painterResource(K9BOARD_DRAWABLES.round_download_24),
                                     contentDescription = "Download",
                                     tint = MaterialTheme.colorScheme.onSurface,
                                 )
                             }
                         }
-                    } else if (databaseStatus == DatabaseStatus.Companion.Statuses.DOWNLOADED) {
-                        IconButton(
-                            onClick = {
-                                onRemove(tag)
-                            }
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(40.dp),
-                                painter = painterResource(
-                                    K9BOARD_DRAWABLES.rounded_delete_forever_24
-                                ),
-                                contentDescription = "Download",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                    } else {
-                        IconButton(
-                            modifier = Modifier.weight(1f),
-                            onClick = {
-                                onDownload(tag)
-                            }
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(40.dp),
-                                painter = painterResource(K9BOARD_DRAWABLES.round_download_24),
-                                contentDescription = "Download",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
                     }
+
                 }
             }
         }

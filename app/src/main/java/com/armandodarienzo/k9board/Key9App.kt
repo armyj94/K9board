@@ -10,9 +10,14 @@ import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.armandodarienzo.k9board.shared.USER_PREFERENCES_NAME
+import com.armandodarienzo.k9board.shared.getDatabaseName
+import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
+import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper.Companion.ASSETS_PATH
 
 import com.google.android.material.color.DynamicColors
 import dagger.hilt.android.HiltAndroidApp
+import java.io.File
+import java.io.FileOutputStream
 
 @HiltAndroidApp
 class Key9App: Application() {
@@ -24,6 +29,23 @@ class Key9App: Application() {
             "Language pack download",
             NotificationManager.IMPORTANCE_HIGH
         )
+
+        val defaultDBName = getDatabaseName(SupportedLanguageTag.AMERICAN.value)
+        val languageRelativePath = "$ASSETS_PATH/$defaultDBName"
+        val inputStream = this.assets.open(languageRelativePath)
+
+        try {
+            val outputFile = File(this.getDatabasePath(defaultDBName).path)
+            val outputStream = FileOutputStream(outputFile)
+
+            inputStream.copyTo(outputStream)
+            inputStream.close()
+
+            outputStream.flush()
+            outputStream.close()
+        } catch (exception: Throwable) {
+            throw RuntimeException("The default database couldn't be moved in the default folder.", exception)
+        }
 
         val notificationManager = getSystemService(NotificationManager::class.java)
         notificationManager.createNotificationChannel(channel)
