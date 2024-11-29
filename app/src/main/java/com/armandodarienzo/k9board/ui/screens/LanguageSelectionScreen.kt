@@ -156,8 +156,8 @@ fun LanguageRowPreview() {
         modifier = Modifier.height(100.dp)
     ) {
         LanguageRow(
-            tag = SupportedLanguageTag.AMERICAN.value,
-            selectedOption = SupportedLanguageTag.AMERICAN.value,
+            tag = SupportedLanguageTag.ITALIAN.value,
+            selectedOption = SupportedLanguageTag.ITALIAN.value,
             downloadProgress = 60F,
             onSelected = {},
             onDownload = {},
@@ -180,7 +180,6 @@ fun LanguageRow(
 ){
     val locale = Locale.forLanguageTag(tag)
 
-    Log.d("LanguageRow", "databaseStatus for $tag = ${databaseStatus.name}")
 
     Card(
         modifier = Modifier
