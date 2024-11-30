@@ -1,9 +1,11 @@
 package com.armandodarienzo.k9board.shared.model
 
 import android.content.Context
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
+import androidx.work.ListenableWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.armandodarienzo.k9board.shared.DATABASE_NAME
@@ -15,15 +17,19 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.net.ConnectException
 import java.net.HttpURLConnection
+import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.net.URL
 import kotlin.random.Random
 
 class CoroutineDownloadWorker(
     private val context: Context,
-    private val params: WorkerParameters) : CoroutineWorker(context, params) {
+    private val params: WorkerParameters
+) : CoroutineWorker(context, params) {
 
-    override suspend fun doWork(): Result{
+    private var retryCount = 0
+
+    override suspend fun doWork(): Result {
 
         val languageTag = inputData.getString("languageTag")
         val dbName = "${DATABASE_NAME}_${languageTag}.sqlite"
@@ -35,9 +41,10 @@ class CoroutineDownloadWorker(
 
 //        startForegorundService()
         setProgress(firstUpdate)
-        withContext(Dispatchers.IO){
 
-            try{
+        val result = withContext(Dispatchers.IO) {
+
+            try {
                 val url = URL(link)
                 (url.openConnection() as HttpURLConnection).also {
                     it.connectTimeout = 10000
@@ -48,7 +55,7 @@ class CoroutineDownloadWorker(
                     it.inputStream.use { input ->
                         FileOutputStream(File(path)).use { output ->
                             val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                            if(it.responseCode == 200){
+                            if (it.responseCode == 200) {
                                 var bytesRead = input.read(buffer)
                                 var bytesCopied = 0L
                                 while (bytesRead > 0) {
@@ -56,7 +63,8 @@ class CoroutineDownloadWorker(
                                     output.write(buffer, 0, bytesRead)
                                     bytesCopied += bytesRead
 
-                                    val update = workDataOf(Pair(Progress, (bytesCopied.toFloat()/length)))
+                                    val update =
+                                        workDataOf(Pair(Progress, (bytesCopied.toFloat() / length)))
                                     setProgress(update)
 
                                     bytesRead = input.read(buffer)
@@ -69,26 +77,32 @@ class CoroutineDownloadWorker(
 
                     }
 
+                    return@withContext Result.success()
+
                 }
 
-            } catch (e: IOException){
-                e.printStackTrace()
+            } catch (e: SocketException) {
+                Log.e("CoroutineDownloadWorker", e.stackTraceToString())
+                return@withContext Result.retry()
+            } catch (e: IOException) {
+                Log.e("CoroutineDownloadWorker", e.stackTraceToString())
                 return@withContext Result.failure()
-            } catch (e: SocketTimeoutException){
-                e.printStackTrace()
+            } catch (e: SocketTimeoutException) {
+                Log.e("CoroutineDownloadWorker", e.stackTraceToString())
                 return@withContext Result.failure()
-            } catch (e: ConnectException){
-                e.printStackTrace()
+            } catch (e: ConnectException) {
+                Log.e("CoroutineDownloadWorker", e.stackTraceToString())
                 return@withContext Result.failure()
-            } catch (e: Exception){
-                e.printStackTrace()
+            } catch (e: Exception) {
+                Log.e("CoroutineDownloadWorker", e.stackTraceToString())
                 return@withContext Result.failure()
             }
 
 
         }
 
-        return Result.success()
+        Log.d("CoroutineDownloadWorker", "result is $result")
+        return result as Result
     }
 
     private suspend fun startForegorundService() {
@@ -103,7 +117,6 @@ class CoroutineDownloadWorker(
             )
         )
     }
-
 
 
     companion object {

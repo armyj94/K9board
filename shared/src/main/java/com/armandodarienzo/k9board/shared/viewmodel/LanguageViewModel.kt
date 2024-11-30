@@ -10,6 +10,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
@@ -33,25 +34,25 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.io.File
+import java.util.concurrent.TimeUnit
 import javax.annotation.meta.When
 import javax.inject.Inject
 
 
 @HiltViewModel
-class LanguageViewModel@Inject constructor(
+class LanguageViewModel @Inject constructor(
     @ApplicationContext private val mContext: Context,
     private val userPreferencesRepository: UserPreferencesRepository
-) : ViewModel()  {
+) : ViewModel() {
 
     private val TAG = "LanguageViewModel"
 
     private val _languageState = mutableStateOf(SupportedLanguageTag.AMERICAN.value)
-    val languageState : State<String> = _languageState
+    val languageState: State<String> = _languageState
 
-    private val _databaseStatuses: MutableMap<String, MutableStateFlow<DatabaseStatus>> = mutableMapOf()
+    private val _databaseStatuses: MutableMap<String, MutableStateFlow<DatabaseStatus>> =
+        mutableMapOf()
     val databaseStatus: Map<String, StateFlow<DatabaseStatus>> = _databaseStatuses
-
-
 
 
     init {
@@ -95,23 +96,54 @@ class LanguageViewModel@Inject constructor(
                                      * it is not possible to change its state to another until
                                      * another work with the same name start (if the policy is
                                      * REPLACE as in our case). This resulting in a wrong
-                                     * DatabaseStatus after deleting the database*/
+                                     * DatabaseStatus after deleting the database */
                                     newState = if (File(path).exists()) {
-                                        DatabaseStatus(entry.value, DatabaseStatus.Companion.Statuses.DOWNLOADED)
+                                        DatabaseStatus(
+                                            entry.value,
+                                            DatabaseStatus.Companion.Statuses.DOWNLOADED
+                                        )
                                     } else {
-                                        DatabaseStatus(entry.value, DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED)
+                                        DatabaseStatus(
+                                            entry.value,
+                                            DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED
+                                        )
                                     }
+
                                 WorkInfo.State.FAILED ->
-                                    newState = DatabaseStatus(entry.value, DatabaseStatus.Companion.Statuses.ERROR)
+                                    newState = DatabaseStatus(
+                                        entry.value,
+                                        DatabaseStatus.Companion.Statuses.ERROR
+                                    )
+
                                 WorkInfo.State.ENQUEUED ->
-                                    newState = DatabaseStatus(entry.value, DatabaseStatus.Companion.Statuses.DOWNLOADING)
+                                    newState = DatabaseStatus(
+                                        entry.value,
+                                        DatabaseStatus.Companion.Statuses.DOWNLOADING
+                                    )
+
                                 WorkInfo.State.RUNNING -> {
-                                    newState = DatabaseStatus(entry.value, DatabaseStatus.Companion.Statuses.DOWNLOADING, it.progress.getFloat(CoroutineDownloadWorker.Progress, 0F))
+                                    newState =
+                                        DatabaseStatus(
+                                            entry.value,
+                                            DatabaseStatus.Companion.Statuses.DOWNLOADING,
+                                            it.progress.getFloat(
+                                                CoroutineDownloadWorker.Progress,
+                                                0F
+                                            )
+                                        )
                                 }
+
                                 WorkInfo.State.BLOCKED ->
-                                    newState = DatabaseStatus(entry.value, DatabaseStatus.Companion.Statuses.ERROR)
+                                    newState = DatabaseStatus(
+                                        entry.value,
+                                        DatabaseStatus.Companion.Statuses.ERROR
+                                    )
+
                                 WorkInfo.State.CANCELLED -> {
-                                    newState = DatabaseStatus(entry.value, DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED)
+                                    newState = DatabaseStatus(
+                                        entry.value,
+                                        DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED
+                                    )
                                 }
                             }
 
@@ -138,12 +170,20 @@ class LanguageViewModel@Inject constructor(
             setInputData(data.build())
             setConstraints(
                 Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED) // Requires an active network connection
-                .build())
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                3000,
+                TimeUnit.MILLISECONDS
+            )
+            setInitialDelay(1000, TimeUnit.MILLISECONDS)
             addTag(tag)
         }.build()
 
-        WorkManager.getInstance(mContext).beginUniqueWork(tag, ExistingWorkPolicy.REPLACE, downloadWorkRequest).enqueue()
+        WorkManager.getInstance(mContext)
+            .beginUniqueWork(tag, ExistingWorkPolicy.REPLACE, downloadWorkRequest).enqueue()
     }
 
     fun cancelDownload(tag: String) {
@@ -151,7 +191,8 @@ class LanguageViewModel@Inject constructor(
             setLanguage(SupportedLanguageTag.AMERICAN.value)
         }
         WorkManager.getInstance(mContext).cancelUniqueWork(tag)
-        _databaseStatuses[tag]?.value = DatabaseStatus(tag, DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED)
+        _databaseStatuses[tag]?.value =
+            DatabaseStatus(tag, DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED)
         mContext.deleteDatabase(getDatabaseName(tag))
     }
 
