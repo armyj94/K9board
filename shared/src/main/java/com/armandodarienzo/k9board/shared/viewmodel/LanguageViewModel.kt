@@ -10,8 +10,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -134,6 +136,10 @@ class LanguageViewModel@Inject constructor(
         data.putString("languageTag", tag)
         val downloadWorkRequest = OneTimeWorkRequestBuilder<CoroutineDownloadWorker>().apply {
             setInputData(data.build())
+            setConstraints(
+                Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED) // Requires an active network connection
+                .build())
             addTag(tag)
         }.build()
 
