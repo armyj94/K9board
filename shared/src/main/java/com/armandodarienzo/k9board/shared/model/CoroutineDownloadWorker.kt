@@ -25,6 +25,7 @@ import java.net.HttpURLConnection
 import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.net.URL
+import java.util.Locale
 import kotlin.random.Random
 
 
@@ -40,13 +41,12 @@ class CoroutineDownloadWorker(
         val link = "${WEBSITE_URL}dictionaries/$dbName"
         val path = applicationContext.getDatabasePath(dbName).path
 
-        val notificationId = Random.nextInt()
 
+        val notificationId = Random.nextInt()
 
         val firstUpdate = workDataOf(Pair(Progress, 0F))
 
-//        startForegroundService()
-        setForeground(createForegroundInfo(notificationId, "0"))
+        setForeground(createForegroundInfo(notificationId, languageTag!!, 0))
         setProgress(firstUpdate)
 
         val result = withContext(Dispatchers.IO) {
@@ -65,15 +65,31 @@ class CoroutineDownloadWorker(
                             if (it.responseCode == 200) {
                                 var bytesRead = input.read(buffer)
                                 var bytesCopied = 0L
+                                var lastProgress = 0
                                 while (bytesRead > 0) {
 
                                     output.write(buffer, 0, bytesRead)
                                     bytesCopied += bytesRead
 
+                                    val progress = (bytesCopied.toFloat() / length)
+                                    val normalizedProgress = (progress * 100).toInt()
+
                                     val update =
-                                        workDataOf(Pair(Progress, (bytesCopied.toFloat() / length)))
+                                        workDataOf(Pair(Progress, progress))
                                     setProgress(update)
-                                    setForeground(createForegroundInfo(notificationId, (bytesCopied.toFloat() / length).toInt().toString()))
+
+                                    if (normalizedProgress % 5 == 0
+                                        && normalizedProgress != lastProgress
+                                    ) {
+                                        setForegroundAsync(
+                                            createForegroundInfo(
+                                                notificationId,
+                                                languageTag,
+                                                normalizedProgress
+                                            )
+                                        )
+                                        lastProgress = normalizedProgress
+                                    }
 
                                     bytesRead = input.read(buffer)
 
@@ -90,65 +106,76 @@ class CoroutineDownloadWorker(
                 }
 
             } catch (e: SocketException) {
-                Log.e("CoroutineDownloadWorker", e.stackTraceToString())
+
                 return@withContext Result.retry()
             } catch (e: SocketTimeoutException) {
-                Log.e("CoroutineDownloadWorker", e.stackTraceToString())
+
                 return@withContext Result.retry()
             } catch (e: IOException) {
-                Log.e("CoroutineDownloadWorker", e.stackTraceToString())
+
                 return@withContext Result.failure()
             } catch (e: ConnectException) {
-                Log.e("CoroutineDownloadWorker", e.stackTraceToString())
+
                 return@withContext Result.failure()
             } catch (e: Exception) {
-                Log.e("CoroutineDownloadWorker", e.stackTraceToString())
+
                 return@withContext Result.failure()
             }
 
 
         }
 
-        Log.d("CoroutineDownloadWorker", "result is $result")
         return result as Result
     }
 
-//    private suspend fun startForegroundService() {
-//        setForeground(
-//            ForegroundInfo(
-//                Random.nextInt(),
-//                NotificationCompat.Builder(context, "download_channel")
-//                    .setSmallIcon(R.drawable.ic_launcher_foreground)
-//                    .setContentText("Downloading language pack")
-//                    .setContentTitle("Download in progress")
-//                    .setTicker("Download in progress")
-//                    .setOngoing(true)
-//                    .addAction(android.R.drawable.ic_delete, "cancel", intent)
-//                    .build(),
-//                FOREGROUND_SERVICE_TYPE_DATA_SYNC
-//            )
-//        )
-//    }
-
     @NonNull
-    private fun createForegroundInfo(notificationId: Int, progress: String): ForegroundInfo {
-        // Build a notification using bytesRead and contentLength
+    private fun createForegroundInfo(
+        notificationId: Int,
+        languageTag: String,
+        progress: Int
+    ): ForegroundInfo {
+
+        val languageName =
+            Locale.forLanguageTag(languageTag).displayName.replaceFirstChar { it.uppercase() }
 
         val context = applicationContext
-        // This PendingIntent can be used to cancel the worker
-        val intent = WorkManager.getInstance(context)
-            .createCancelPendingIntent(id)
 
-        val notification: Notification = NotificationCompat.Builder(context, "download_channel")
-            .setSmallIcon(com.armandodarienzo.k9board.shared.R.drawable.ic_launcher_foreground)
-            .setContentText("Downloading language pack")
-            .setContentTitle("Download in progress")
-            .setTicker("Download in progress")
-            .setOngoing(true)
-            .addAction(android.R.drawable.ic_delete, "cancel", intent)
-            .build()
+        val intent = WorkManager.getInstance(context).createCancelPendingIntent(id)
+
+        val notification: Notification =
+            NotificationCompat.Builder(context, "download_channel")
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentTitle("Downloading $languageName")
+                .setTicker("Download in progress")
+                .setSilent(true)
+                .setOngoing(true)
+                .addAction(android.R.drawable.ic_delete, "cancel", intent)
+                .setProgress(100, progress, false)
+                .build()
 
         return ForegroundInfo(notificationId, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+
+    }
+
+    @NonNull
+    private fun createForegroundInfoFailed(
+        notificationId: Int,
+        languageTag: String
+    ): ForegroundInfo {
+
+        val languageName =
+            Locale.forLanguageTag(languageTag).displayName.replaceFirstChar { it.uppercase() }
+
+        val context = applicationContext
+
+        val notification: Notification =
+            NotificationCompat.Builder(context, "download_channel")
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentTitle("Failed to download $languageName")
+                .build()
+
+        return ForegroundInfo(notificationId, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+
     }
 
 
