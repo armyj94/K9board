@@ -1,11 +1,16 @@
 package com.armandodarienzo.k9board.shared.model
 
+
+import android.app.Notification
 import android.content.Context
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+import android.os.Build
 import android.util.Log
+import androidx.annotation.NonNull
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
-import androidx.work.ListenableWorker
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.armandodarienzo.k9board.shared.DATABASE_NAME
@@ -22,6 +27,7 @@ import java.net.SocketTimeoutException
 import java.net.URL
 import kotlin.random.Random
 
+
 class CoroutineDownloadWorker(
     private val context: Context,
     private val params: WorkerParameters
@@ -34,10 +40,13 @@ class CoroutineDownloadWorker(
         val link = "${WEBSITE_URL}dictionaries/$dbName"
         val path = applicationContext.getDatabasePath(dbName).path
 
+        val notificationId = Random.nextInt()
+
 
         val firstUpdate = workDataOf(Pair(Progress, 0F))
 
-//        startForegorundService()
+//        startForegroundService()
+        setForeground(createForegroundInfo(notificationId, "0"))
         setProgress(firstUpdate)
 
         val result = withContext(Dispatchers.IO) {
@@ -64,6 +73,7 @@ class CoroutineDownloadWorker(
                                     val update =
                                         workDataOf(Pair(Progress, (bytesCopied.toFloat() / length)))
                                     setProgress(update)
+                                    setForeground(createForegroundInfo(notificationId, (bytesCopied.toFloat() / length).toInt().toString()))
 
                                     bytesRead = input.read(buffer)
 
@@ -103,17 +113,42 @@ class CoroutineDownloadWorker(
         return result as Result
     }
 
-    private suspend fun startForegorundService() {
-        setForeground(
-            ForegroundInfo(
-                Random.nextInt(),
-                NotificationCompat.Builder(context, "download_channel")
-                    .setSmallIcon(R.drawable.ic_launcher_foreground)
-                    .setContentText("Downloading language pack")
-                    .setContentTitle("Download in progress")
-                    .build()
-            )
-        )
+//    private suspend fun startForegroundService() {
+//        setForeground(
+//            ForegroundInfo(
+//                Random.nextInt(),
+//                NotificationCompat.Builder(context, "download_channel")
+//                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+//                    .setContentText("Downloading language pack")
+//                    .setContentTitle("Download in progress")
+//                    .setTicker("Download in progress")
+//                    .setOngoing(true)
+//                    .addAction(android.R.drawable.ic_delete, "cancel", intent)
+//                    .build(),
+//                FOREGROUND_SERVICE_TYPE_DATA_SYNC
+//            )
+//        )
+//    }
+
+    @NonNull
+    private fun createForegroundInfo(notificationId: Int, progress: String): ForegroundInfo {
+        // Build a notification using bytesRead and contentLength
+
+        val context = applicationContext
+        // This PendingIntent can be used to cancel the worker
+        val intent = WorkManager.getInstance(context)
+            .createCancelPendingIntent(id)
+
+        val notification: Notification = NotificationCompat.Builder(context, "download_channel")
+            .setSmallIcon(com.armandodarienzo.k9board.shared.R.drawable.ic_launcher_foreground)
+            .setContentText("Downloading language pack")
+            .setContentTitle("Download in progress")
+            .setTicker("Download in progress")
+            .setOngoing(true)
+            .addAction(android.R.drawable.ic_delete, "cancel", intent)
+            .build()
+
+        return ForegroundInfo(notificationId, notification, FOREGROUND_SERVICE_TYPE_DATA_SYNC)
     }
 
 
