@@ -27,8 +27,6 @@ class CoroutineDownloadWorker(
     private val params: WorkerParameters
 ) : CoroutineWorker(context, params) {
 
-    private var retryCount = 0
-
     override suspend fun doWork(): Result {
 
         val languageTag = inputData.getString("languageTag")
@@ -84,10 +82,10 @@ class CoroutineDownloadWorker(
             } catch (e: SocketException) {
                 Log.e("CoroutineDownloadWorker", e.stackTraceToString())
                 return@withContext Result.retry()
-            } catch (e: IOException) {
-                Log.e("CoroutineDownloadWorker", e.stackTraceToString())
-                return@withContext Result.failure()
             } catch (e: SocketTimeoutException) {
+                Log.e("CoroutineDownloadWorker", e.stackTraceToString())
+                return@withContext Result.retry()
+            } catch (e: IOException) {
                 Log.e("CoroutineDownloadWorker", e.stackTraceToString())
                 return@withContext Result.failure()
             } catch (e: ConnectException) {
