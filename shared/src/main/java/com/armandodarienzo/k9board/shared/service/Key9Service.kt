@@ -175,11 +175,14 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
             value
         }
 
-        db = if (BuildConfig.DEBUG) {
-            DictionaryDataHelper(this, "dictionary.sqlite")
-        } else {
-            DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
-        }
+//        db = if (BuildConfig.DEBUG) {
+//            DictionaryDataHelper(this, "dictionary.sqlite")
+//        } else {
+//            DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
+//        }
+
+        Log.d(TAG, "database name ${DATABASE_NAME}_${languageSet}.sqlite")
+        db = DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
 
 //        db = DictionaryDataHelper(this, "dictionary.sqlite")
         db.writableDatabase.enableWriteAheadLogging()//db.readableDatabase
@@ -274,11 +277,13 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
             value
         }
 
-        db = if (BuildConfig.DEBUG) {
-            DictionaryDataHelper(this, "dictionary.sqlite")
-        } else {
-            DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
-        }
+//        db = if (BuildConfig.DEBUG) {
+//            DictionaryDataHelper(this, "dictionary.sqlite")
+//        } else {
+//            DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
+//        }
+
+        db = DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
 
 //        db = DictionaryDataHelper(this, "dictionary.sqlite")
         db.writableDatabase.enableWriteAheadLogging()//db.readableDatabase

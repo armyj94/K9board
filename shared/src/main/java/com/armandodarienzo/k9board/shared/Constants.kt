@@ -98,7 +98,7 @@ object NumpadKey10SpecialChars {
     )
 }
 
-
+const val WEBSITE_URL = "https://www.k9board.com/"
 
 /***** Keyboard Colors Constant values *****/
 const val THEME_DYNAMIC = "dynamic"
