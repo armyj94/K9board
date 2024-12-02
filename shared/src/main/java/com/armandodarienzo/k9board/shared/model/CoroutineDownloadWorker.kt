@@ -4,8 +4,6 @@ package com.armandodarienzo.k9board.shared.model
 import android.app.Notification
 import android.content.Context
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-import android.os.Build
-import android.util.Log
 import androidx.annotation.NonNull
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
@@ -44,7 +42,7 @@ class CoroutineDownloadWorker(
 
         val notificationId = Random.nextInt()
 
-        val firstUpdate = workDataOf(Pair(Progress, 0F))
+        val firstUpdate = workDataOf(Pair(PROGRESS, 0F))
 
         setForeground(createForegroundInfo(notificationId, languageTag!!, 0))
         setProgress(firstUpdate)
@@ -75,7 +73,7 @@ class CoroutineDownloadWorker(
                                     val normalizedProgress = (progress * 100).toInt()
 
                                     val update =
-                                        workDataOf(Pair(Progress, progress))
+                                        workDataOf(Pair(PROGRESS, progress))
                                     setProgress(update)
 
                                     if (normalizedProgress % 5 == 0
@@ -145,11 +143,10 @@ class CoroutineDownloadWorker(
         val notification: Notification =
             NotificationCompat.Builder(context, "download_channel")
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("Downloading $languageName")
-                .setTicker("Download in progress")
+                .setContentTitle("${context.getString(R.string.downloading)} $languageName")
                 .setSilent(true)
                 .setOngoing(true)
-                .addAction(android.R.drawable.ic_delete, "cancel", intent)
+                .addAction(android.R.drawable.ic_delete, context.getString(R.string.cancel_text), intent)
                 .setProgress(100, progress, false)
                 .build()
 
@@ -180,6 +177,6 @@ class CoroutineDownloadWorker(
 
 
     companion object {
-        const val Progress = "Progress"
+        const val PROGRESS = "Progress"
     }
 }

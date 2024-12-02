@@ -2,11 +2,8 @@ package com.armandodarienzo.k9board.shared.viewmodel
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
@@ -18,13 +15,10 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.armandodarienzo.k9board.shared.DATABASE_NAME
-import com.armandodarienzo.k9board.shared.WEBSITE_URL
 import com.armandodarienzo.k9board.shared.getDatabaseName
 import com.armandodarienzo.k9board.shared.model.CoroutineDownloadWorker
 import com.armandodarienzo.k9board.shared.model.DatabaseStatus
 import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
-import com.armandodarienzo.k9board.shared.packName
 import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -35,7 +29,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.TimeUnit
-import javax.annotation.meta.When
 import javax.inject.Inject
 
 
@@ -127,7 +120,7 @@ class LanguageViewModel @Inject constructor(
                                             entry.value,
                                             DatabaseStatus.Companion.Statuses.DOWNLOADING,
                                             it.progress.getFloat(
-                                                CoroutineDownloadWorker.Progress,
+                                                CoroutineDownloadWorker.PROGRESS,
                                                 0F
                                             )
                                         )

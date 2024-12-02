@@ -38,7 +38,6 @@ import com.armandodarienzo.k9board.shared.packName
 import com.armandodarienzo.k9board.shared.viewmodel.LanguageViewModel
 import com.armandodarienzo.k9board.ui.elements.AppBarIcon
 import com.armandodarienzo.k9board.ui.elements.K9BoardTopAppBar
-import com.google.android.play.core.assetpacks.AssetPackState
 import kotlinx.coroutines.flow.StateFlow
 import com.armandodarienzo.k9board.shared.R.drawable as K9BOARD_DRAWABLES
 import java.util.Locale
