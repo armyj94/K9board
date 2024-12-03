@@ -1,6 +1,7 @@
 package com.armandodarienzo.k9board.ui.screens
 
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,13 +40,11 @@ import androidx.wear.compose.material.RadioButton
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
+import com.armandodarienzo.k9board.shared.model.DatabaseStatus
 import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
 import com.armandodarienzo.k9board.shared.packName
 import com.armandodarienzo.k9board.shared.viewmodel.LanguageViewModel
-import com.google.android.play.core.assetpacks.AssetPackManager
-import com.google.android.play.core.assetpacks.AssetPackManagerFactory
-import com.google.android.play.core.assetpacks.AssetPackState
-import com.google.android.play.core.assetpacks.model.AssetPackStatus
+import kotlinx.coroutines.flow.StateFlow
 import com.armandodarienzo.k9board.shared.R.drawable as K9BOARD_DRAWABLES
 import java.util.Locale
 
@@ -54,40 +53,28 @@ fun LanguageSelectionScreen(
     navController: NavController,
     viewModel: LanguageViewModel = hiltViewModel()
 ) {
-    val onBackIconClicked : () -> Unit = {
-        navController.popBackStack()
-    }
-
-    val context = LocalContext.current
 
     val selectedOption by viewModel.languageState
-    val assetPackStates by viewModel.assetPackStatesMapState
-    val assetPackManager = remember{ AssetPackManagerFactory.getInstance(context) }
 
     LanguagesScreenContent(
-        onBackIconClicked = onBackIconClicked,
         selectedOption = selectedOption,
-        assetPackStates = assetPackStates,
-        assetPackManager = assetPackManager,
-        getDownloadProgress = { viewModel.getDownloadProgress(it) },
+        databaseStatuses = viewModel.databaseStatus,
         onSelected = { viewModel.setLanguage(it) },
         onDownload = { viewModel.downloadLanguagePack(it) },
         onCancel = { viewModel.cancelDownload(it) },
-        onRemove = { viewModel.removePack(it) },
+        onRemove = { viewModel.cancelDownload(it) },
     )
 }
 
 @Composable
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 fun LanguageListPreview() {
-    val assetPackStates = emptyMap<String, AssetPackState>().toMutableMap()
     Box(
         modifier = Modifier.fillMaxSize()
             .background(Color.Black),
     ) {
         LanguagesScreenContent(
             selectedOption = "us-US",
-            assetPackStates = assetPackStates,
             onSelected = {},
             onDownload = {},
             onCancel = {},
@@ -100,11 +87,8 @@ fun LanguageListPreview() {
 
 @Composable
 fun LanguagesScreenContent(
-    onBackIconClicked: () -> Unit = {},
     selectedOption: String,
-    assetPackStates: Map<String, AssetPackState>,
-    assetPackManager: AssetPackManager? = null,
-    getDownloadProgress: (String) -> Float = { 0F },
+    databaseStatuses: Map<String, StateFlow<DatabaseStatus?>> = emptyMap(),
     onSelected: (String) -> Unit,
     onDownload: (String) -> Unit,
     onCancel: (String) -> Unit,
@@ -128,27 +112,23 @@ fun LanguagesScreenContent(
         ) {
             items(languageTags) { tag ->
                 val packName = packName(tag)
-                val assetPackState = assetPackStates[packName]
-                val assetPackStatus = assetPackState?.status() ?: AssetPackStatus.UNKNOWN
-                val assetPackLocation = assetPackManager?.getPackLocation(packName)?.path()
 
-
-                var downloadProgress by remember {
-                    mutableFloatStateOf(
-                        getDownloadProgress(tag)
-                    )
+                val databaseStatusStateFlow = databaseStatuses[tag]
+                val databaseStatusState by databaseStatusStateFlow?.collectAsState() ?: remember { mutableStateOf(null) }
+                val downloadState by remember(databaseStatusState) {
+                    derivedStateOf { databaseStatusState?.state }
+                }
+                val progress by remember(databaseStatusState) {
+                    derivedStateOf { databaseStatusState?.progress}
                 }
 
-                LaunchedEffect(getDownloadProgress(tag)) {
-                    downloadProgress = getDownloadProgress(tag)
-                }
+                Log.d("LanguageSelectionScreen", "progress is $progress")
 
                 Row(
                     Modifier
                         .height(60.dp)
                         .fillMaxWidth()
                         .selectable(
-                            enabled = (assetPackLocation != null),
                             selected = (tag == selectedOption),
                             onClick = {
                                 //onOptionSelected(tag)
@@ -157,11 +137,10 @@ fun LanguagesScreenContent(
                         .padding(horizontal = 16.dp)
                 ) {
                     LanguageRow(
-                        assetPackLocation = assetPackLocation,
                         tag = tag,
                         selectedOption = selectedOption,
-                        assetPackStatus = assetPackStatus,
-                        downloadProgress = downloadProgress,
+                        databaseStatus = downloadState ?: DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
+                        downloadProgress = progress ?: 0F,
                         onDownload = onDownload,
                         onSelected = onSelected,
                         onCancel = onCancel,
@@ -181,10 +160,8 @@ fun LanguageRowPreview() {
             .height(100.dp)
     ) {
         LanguageRow(
-            assetPackLocation = "null",
-            tag = SupportedLanguageTag.AMERICAN.value,
-            selectedOption = SupportedLanguageTag.AMERICAN.value,
-            assetPackStatus = AssetPackStatus.DOWNLOADING,
+            tag = SupportedLanguageTag.ITALIAN.value,
+            selectedOption = SupportedLanguageTag.ITALIAN.value,
             downloadProgress = 60F,
             onSelected = {},
             onDownload = {},
@@ -196,10 +173,9 @@ fun LanguageRowPreview() {
 
 @Composable
 fun LanguageRow(
-    assetPackLocation: String?,
     tag: String,
     selectedOption: String,
-    assetPackStatus: Int,
+    databaseStatus: DatabaseStatus.Companion.Statuses = DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
     downloadProgress: Float = 0F,
     onSelected: (String) -> Unit?,
     onDownload: (String) -> Unit,
@@ -207,6 +183,8 @@ fun LanguageRow(
     onRemove: (String) -> Unit
 ){
     val locale = Locale.forLanguageTag(tag)
+
+    Log.d("LanguageSelectionScreen", "progress in LanguageRow is $downloadProgress")
 
     Card(
         onClick = {},
@@ -229,7 +207,7 @@ fun LanguageRow(
                 ) {
                     RadioButton(
                         modifier = Modifier.fillMaxSize(),
-                        enabled = (assetPackLocation != null),
+                        enabled = (databaseStatus == DatabaseStatus.Companion.Statuses.DOWNLOADED),
                         selected = (tag == selectedOption),
                         onClick = {
                             onSelected(tag)
@@ -257,57 +235,65 @@ fun LanguageRow(
                         .fillMaxHeight()
                         .weight(1f)
                 ) {
-                    if (assetPackStatus == AssetPackStatus.DOWNLOADING
-                        || assetPackStatus == AssetPackStatus.TRANSFERRING) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            contentAlignment = Alignment.Center,
-                        ){
-                            CircularProgressIndicator(
-                                modifier = Modifier.fillMaxWidth().aspectRatio(1f),
-                                indicatorColor = MaterialTheme.colors.primary,
-                                strokeWidth = 4.dp,
-                                progress = downloadProgress
-                            )
-                            Button(
-                                modifier = Modifier.fillMaxSize(),
-                                onClick = { onCancel(tag) },
-                                colors = ButtonDefaults.secondaryButtonColors(
-                                    contentColor = MaterialTheme.colors.onSurface
-                                )
-                            ) {
-                                Icon(
-                                    painter = painterResource(K9BOARD_DRAWABLES.round_cancel_24),
-                                    contentDescription = "Cancel"
-                                )
+                    if (tag != SupportedLanguageTag.AMERICAN.value) {
+                        when (databaseStatus) {
+                            DatabaseStatus.Companion.Statuses.DOWNLOADING -> {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize(),
+                                    contentAlignment = Alignment.Center,
+                                ){
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.fillMaxWidth().aspectRatio(1f),
+                                        indicatorColor = MaterialTheme.colors.primary,
+                                        strokeWidth = 4.dp,
+                                        progress = downloadProgress
+                                    )
+                                    Button(
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.7f)
+                                            .aspectRatio(1f),
+                                        onClick = { onCancel(tag) },
+                                        colors = ButtonDefaults.secondaryButtonColors(
+                                            backgroundColor = Color.Transparent, // Transparent background
+                                            contentColor = MaterialTheme.colors.onSurface
+                                        )
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(K9BOARD_DRAWABLES.round_cancel_24),
+                                            contentDescription = "Cancel"
+                                        )
+                                    }
+                                }
+                            }
+                            DatabaseStatus.Companion.Statuses.DOWNLOADED -> {
+                                Button(
+                                    modifier = Modifier.fillMaxSize(),
+                                    onClick = { onRemove(tag) },
+                                    colors = ButtonDefaults.secondaryButtonColors()
+
+                                ) {
+                                    Icon(
+                                        painter = painterResource(K9BOARD_DRAWABLES.rounded_delete_forever_24),
+                                        contentDescription = "Delete"
+                                    )
+                                }
+                            }
+                            else -> {
+                                Button(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { onDownload(tag) },
+                                    colors = ButtonDefaults.secondaryButtonColors()
+                                ) {
+                                    Icon(
+                                        painter = painterResource(K9BOARD_DRAWABLES.round_download_24),
+                                        contentDescription = "Download"
+                                    )
+                                }
                             }
                         }
-                    } else if (assetPackStatus == AssetPackStatus.COMPLETED
-                        || assetPackLocation != null) {
-                        Button(
-                            modifier = Modifier.fillMaxSize(),
-                            onClick = { onRemove(tag) },
-                            colors = ButtonDefaults.secondaryButtonColors()
-
-                        ) {
-                            Icon(
-                                painter = painterResource(K9BOARD_DRAWABLES.rounded_delete_forever_24),
-                                contentDescription = "Delete"
-                            )
-                        }
-                    } else {
-                        Button(
-                            modifier = Modifier.weight(1f),
-                            onClick = { onDownload(tag) },
-                            colors = ButtonDefaults.secondaryButtonColors()
-                        ) {
-                            Icon(
-                                painter = painterResource(K9BOARD_DRAWABLES.round_download_24),
-                                contentDescription = "Download"
-                            )
-                        }
                     }
+
                 }
             }
         }
