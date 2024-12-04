@@ -35,6 +35,7 @@ import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
 import androidx.wear.compose.material.items
+import androidx.wear.compose.material.scrollAway
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.armandodarienzo.k9board.model.MainMenuItem
 import com.armandodarienzo.k9board.shared.R
@@ -124,7 +125,7 @@ fun PreferenceScreenContentWear(
     Scaffold(
         modifier = Modifier
             .background(Color.Black),
-        timeText = { TimeText() }, // Display current time
+        timeText = { TimeText(Modifier.scrollAway(listState)) }, // Display current time
         vignette = { Vignette(vignettePosition = VignettePosition.TopAndBottom) }, // Add vignette effect
         positionIndicator = {
             PositionIndicator(
