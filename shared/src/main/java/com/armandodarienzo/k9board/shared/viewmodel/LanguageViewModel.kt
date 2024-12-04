@@ -5,59 +5,145 @@ import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import androidx.work.BackoffPolicy
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import com.armandodarienzo.k9board.shared.getDatabaseName
+import com.armandodarienzo.k9board.shared.model.CoroutineDownloadWorker
+import com.armandodarienzo.k9board.shared.model.DatabaseStatus
 import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
-import com.armandodarienzo.k9board.shared.packName
 import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepository
-import com.google.android.play.core.assetpacks.AssetPackManagerFactory
-import com.google.android.play.core.assetpacks.AssetPackState
-import com.google.android.play.core.ktx.packStates
-import com.google.android.play.core.ktx.requestFetch
-import com.google.android.play.core.ktx.requestPackStates
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.io.File
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 
 @HiltViewModel
-class LanguageViewModel@Inject constructor(
+class LanguageViewModel @Inject constructor(
     @ApplicationContext private val mContext: Context,
     private val userPreferencesRepository: UserPreferencesRepository
-) : ViewModel()  {
+) : ViewModel() {
 
     private val TAG = "LanguageViewModel"
 
-    private val assetPackManager = AssetPackManagerFactory.getInstance(mContext)
-
-    private val languagePackNames = SupportedLanguageTag.entries
-        .toMutableList()
-        .map { it.value }
-        .map { tag ->
-           packName(tag)
-        }
-
     private val _languageState = mutableStateOf(SupportedLanguageTag.AMERICAN.value)
-    val languageState : State<String> = _languageState
+    val languageState: State<String> = _languageState
 
-    private var _assetPackStatesMapState = mutableStateOf<Map<String, AssetPackState>>(emptyMap())
-    val assetPackStatesMapState : State<Map<String, AssetPackState>> = _assetPackStatesMapState
+    private val _databaseStatuses: MutableMap<String, MutableStateFlow<DatabaseStatus>> =
+        mutableMapOf()
+    val databaseStatus: Map<String, StateFlow<DatabaseStatus>> = _databaseStatuses
+
 
     init {
+        val workManager = WorkManager.getInstance(mContext)
+
         viewModelScope.launch {
 
             _languageState.value = userPreferencesRepository.getLanguage().getOrNull()!!
 
-            assetPackManager.requestPackStates(
-                languagePackNames.minus(packName(SupportedLanguageTag.AMERICAN.value))
-            ).runCatching {
-                _assetPackStatesMapState.value = this.packStates()
-                assetPackManager.registerListener { assetPackState ->
-                    val map = _assetPackStatesMapState.value.toMutableMap()
-                    map[assetPackState.name()] = assetPackState
-                    _assetPackStatesMapState.value = map
-                }
 
+            SupportedLanguageTag.entries.forEach { entry ->
+
+                val dbName = getDatabaseName(entry.value)
+                val path = mContext.getDatabasePath(dbName).path
+
+                _databaseStatuses[entry.value] = MutableStateFlow(
+                    DatabaseStatus(
+                        tag = entry.value,
+                        state = if (File(path).exists()) {
+                            Log.d(TAG, "initial state for ${entry.value} is DOWNLOADED")
+                            DatabaseStatus.Companion.Statuses.DOWNLOADED
+                        } else {
+                            Log.d(TAG, "initial state for ${entry.value} is NOT_DOWNLOADED")
+                            DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED
+                        }
+                    )
+                )
+
+                workManager.getWorkInfosForUniqueWorkLiveData(entry.value)
+                    .asFlow()
+                    .onEach { workInfoList ->
+                        val workInfo = workInfoList.firstOrNull()
+                        workInfo?.let {
+                            Log.d(TAG, "state for ${entry.value} is ${it.state}")
+
+                            val newState: DatabaseStatus
+
+                            when (it.state) {
+                                WorkInfo.State.SUCCEEDED ->
+                                    /* The code above is because once the state becomes SUCCEEDED
+                                     * it is not possible to change its state to another until
+                                     * another work with the same name start (if the policy is
+                                     * REPLACE as in our case). This resulting in a wrong
+                                     * DatabaseStatus after deleting the database */
+                                    newState = if (File(path).exists()) {
+                                        DatabaseStatus(
+                                            entry.value,
+                                            DatabaseStatus.Companion.Statuses.DOWNLOADED
+                                        )
+                                    } else {
+                                        DatabaseStatus(
+                                            entry.value,
+                                            DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED
+                                        )
+                                    }
+
+                                WorkInfo.State.FAILED ->
+                                    newState = DatabaseStatus(
+                                        entry.value,
+                                        DatabaseStatus.Companion.Statuses.ERROR
+                                    )
+
+                                WorkInfo.State.ENQUEUED ->
+                                    newState = DatabaseStatus(
+                                        entry.value,
+                                        DatabaseStatus.Companion.Statuses.DOWNLOADING
+                                    )
+
+                                WorkInfo.State.RUNNING -> {
+                                    newState =
+                                        DatabaseStatus(
+                                            entry.value,
+                                            DatabaseStatus.Companion.Statuses.DOWNLOADING,
+                                            it.progress.getFloat(
+                                                CoroutineDownloadWorker.PROGRESS,
+                                                0F
+                                            )
+                                        )
+                                }
+
+                                WorkInfo.State.BLOCKED ->
+                                    newState = DatabaseStatus(
+                                        entry.value,
+                                        DatabaseStatus.Companion.Statuses.ERROR
+                                    )
+
+                                WorkInfo.State.CANCELLED -> {
+                                    newState = DatabaseStatus(
+                                        entry.value,
+                                        DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED
+                                    )
+                                }
+                            }
+
+                            _databaseStatuses[entry.value]?.value = newState
+                        }
+                    }
+                    .launchIn(viewModelScope)
             }
 
         }
@@ -71,46 +157,36 @@ class LanguageViewModel@Inject constructor(
     }
 
     fun downloadLanguagePack(tag: String) {
-        val packName = packName(tag)
-        viewModelScope.launch {
-            assetPackManager.requestFetch(listOf(packName))
-        }
+        val data = Data.Builder()
+        data.putString("languageTag", tag)
+        val downloadWorkRequest = OneTimeWorkRequestBuilder<CoroutineDownloadWorker>().apply {
+            setInputData(data.build())
+            setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                3000,
+                TimeUnit.MILLISECONDS
+            )
+            setInitialDelay(1000, TimeUnit.MILLISECONDS)
+            addTag(tag)
+        }.build()
+
+        WorkManager.getInstance(mContext)
+            .beginUniqueWork(tag, ExistingWorkPolicy.REPLACE, downloadWorkRequest).enqueue()
     }
 
     fun cancelDownload(tag: String) {
-        val packName = packName(tag)
-        assetPackManager.cancel(listOf(packName)).packStates.values.forEach {
-            Log.d(TAG, "cancelDownload assetPackState.status = ${it.status()}")
-            val map = _assetPackStatesMapState.value.toMutableMap()
-            map[it.name()] = it
-            _assetPackStatesMapState.value = map
-        }
-        assetPackManager.removePack(packName)
-    }
-
-    fun removePack(tag: String) {
-        val packName = packName(tag)
         if (languageState.value == tag) {
             setLanguage(SupportedLanguageTag.AMERICAN.value)
         }
-
-        //TODO: remove copied database files
-
-        assetPackManager.removePack(packName)
-    }
-
-    fun getDownloadProgress(tag: String) : Float {
-        val map = _assetPackStatesMapState.value
-        val packName = packName(tag)
-
-        val downloaded = map[packName]?.bytesDownloaded() ?: 0
-        val totalSize = map[packName]?.totalBytesToDownload() ?: 0
-
-        try {
-            return (100L * downloaded / totalSize) / 100F
-        } catch (e: ArithmeticException) {
-            return 0F
-        }
+        WorkManager.getInstance(mContext).cancelUniqueWork(tag)
+        _databaseStatuses[tag]?.value =
+            DatabaseStatus(tag, DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED)
+        mContext.deleteDatabase(getDatabaseName(tag))
     }
 
 }

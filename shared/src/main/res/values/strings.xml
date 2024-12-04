@@ -1,7 +1,9 @@
 <resources>
-    <string name="app_name">K9Board</string>
+    <string name="app_name">9board</string>
 
+    <!-- Actions strings -->
     <string name="confirm_text">OK</string>
+    <string name="cancel_text">Cancel</string>
 
     <!-- Main Activity strings -->
     <string name="title_activity_main_compose">MainActivityCompose</string>
@@ -29,6 +31,10 @@
     <string name="double_space_comma">Comma</string>
 
     <string name="start_with_manual">Start with manual</string>
+
+    <!-- Languages strings -->
+    <string name="downloading">Downloading</string>
+
 
 
 

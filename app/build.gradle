@@ -7,14 +7,14 @@ plugins {
 
 android {
     namespace 'com.armandodarienzo.k9board'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.armandodarienzo.k9board"
         minSdk 29
-        targetSdk 34
-        versionCode 36
-        versionName "assetPackTest36"
+        targetSdk 35
+        versionCode 42
+        versionName "FirstClosedTest"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -46,6 +46,7 @@ android {
 }
 
 dependencies {
+    def work_version = "2.10.0"
 
     implementation project(path: ':shared')
     implementation 'androidx.core:core-ktx:1.13.1'
@@ -104,6 +105,12 @@ dependencies {
 
     /***** Play services *****/
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3"
+
+    /***** Workmanager *****/
+    implementation "androidx.work:work-runtime-ktx:$work_version"
+    implementation 'com.google.guava:guava:31.1-android'
+
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.5")
 
 }
 

@@ -1,6 +1,5 @@
 package com.armandodarienzo.k9board.ui.screens
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -23,9 +22,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,15 +32,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.armandodarienzo.k9board.shared.R
+import com.armandodarienzo.k9board.shared.model.DatabaseStatus
 import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
 import com.armandodarienzo.k9board.shared.packName
 import com.armandodarienzo.k9board.shared.viewmodel.LanguageViewModel
 import com.armandodarienzo.k9board.ui.elements.AppBarIcon
 import com.armandodarienzo.k9board.ui.elements.K9BoardTopAppBar
-import com.google.android.play.core.assetpacks.AssetPackManager
-import com.google.android.play.core.assetpacks.AssetPackManagerFactory
-import com.google.android.play.core.assetpacks.AssetPackState
-import com.google.android.play.core.assetpacks.model.AssetPackStatus
+import kotlinx.coroutines.flow.StateFlow
 import com.armandodarienzo.k9board.shared.R.drawable as K9BOARD_DRAWABLES
 import java.util.Locale
 
@@ -54,33 +51,25 @@ fun LanguageSelectionScreen(
         navController.popBackStack()
     }
 
-    val context = LocalContext.current
-
     val selectedOption by viewModel.languageState
-    val assetPackStates by viewModel.assetPackStatesMapState
-    val assetPackManager = remember{ AssetPackManagerFactory.getInstance(context) }
 
     LanguagesScreenContent(
         onBackIconClicked = onBackIconClicked,
         selectedOption = selectedOption,
-        assetPackStates = assetPackStates,
-        assetPackManager = assetPackManager,
-        getDownloadProgress = { viewModel.getDownloadProgress(it) },
+        databaseStatuses = viewModel.databaseStatus,
         onSelected = { viewModel.setLanguage(it) },
         onDownload = { viewModel.downloadLanguagePack(it) },
         onCancel = { viewModel.cancelDownload(it) },
-        onRemove = { viewModel.removePack(it) },
+        onRemove = { viewModel.cancelDownload(it) },
     )
 }
 
 @Composable
 @Preview
 fun LanguageListPreview() {
-    val assetPackStates = emptyMap<String, AssetPackState>().toMutableMap()
 
     LanguagesScreenContent(
         selectedOption = "us-US",
-        assetPackStates = assetPackStates,
         onSelected = {},
         onDownload = {},
         onCancel = {},
@@ -93,9 +82,7 @@ fun LanguageListPreview() {
 fun LanguagesScreenContent(
     onBackIconClicked: () -> Unit = {},
     selectedOption: String,
-    assetPackStates: Map<String, AssetPackState>,
-    assetPackManager: AssetPackManager? = null,
-    getDownloadProgress: (String) -> Float = { 0F },
+    databaseStatuses: Map<String, StateFlow<DatabaseStatus?>> = emptyMap(),
     onSelected: (String) -> Unit,
     onDownload: (String) -> Unit,
     onCancel: (String) -> Unit,
@@ -122,19 +109,15 @@ fun LanguagesScreenContent(
         ) {
             items(languageTags) { tag ->
                 val packName = packName(tag)
-                val assetPackState = assetPackStates[packName]
-                val assetPackStatus = assetPackState?.status() ?: AssetPackStatus.UNKNOWN
-                val assetPackLocation = assetPackManager?.getPackLocation(packName)?.path()
 
 
-                var downloadProgress by remember {
-                    mutableFloatStateOf(
-                        getDownloadProgress(tag)
-                    )
+                val databaseStatusStateFlow = databaseStatuses[tag]
+                val databaseStatusState by databaseStatusStateFlow?.collectAsState() ?: remember { mutableStateOf(null) }
+                val downloadState by remember(databaseStatusState) {
+                    derivedStateOf { databaseStatusState?.state }
                 }
-
-                LaunchedEffect(getDownloadProgress(tag)) {
-                    downloadProgress = getDownloadProgress(tag)
+                val progress by remember(databaseStatusState) {
+                    derivedStateOf { databaseStatusState?.progress}
                 }
 
                 Row(
@@ -142,7 +125,6 @@ fun LanguagesScreenContent(
                         .height(100.dp)
                         .fillMaxWidth()
                         .selectable(
-                            enabled = (assetPackLocation != null),
                             selected = (tag == selectedOption),
                             onClick = {
                                 //onOptionSelected(tag)
@@ -151,11 +133,10 @@ fun LanguagesScreenContent(
                         .padding(horizontal = 16.dp)
                 ) {
                     LanguageRow(
-                        assetPackLocation = assetPackLocation,
                         tag = tag,
                         selectedOption = selectedOption,
-                        assetPackStatus = assetPackStatus,
-                        downloadProgress = downloadProgress,
+                        databaseStatus = downloadState ?: DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
+                        downloadProgress = progress ?: 0F,
                         onDownload = onDownload,
                         onSelected = onSelected,
                         onCancel = onCancel,
@@ -174,10 +155,8 @@ fun LanguageRowPreview() {
         modifier = Modifier.height(100.dp)
     ) {
         LanguageRow(
-            assetPackLocation = "null",
-            tag = SupportedLanguageTag.AMERICAN.value,
-            selectedOption = SupportedLanguageTag.AMERICAN.value,
-            assetPackStatus = AssetPackStatus.DOWNLOADING,
+            tag = SupportedLanguageTag.ITALIAN.value,
+            selectedOption = SupportedLanguageTag.ITALIAN.value,
             downloadProgress = 60F,
             onSelected = {},
             onDownload = {},
@@ -189,10 +168,9 @@ fun LanguageRowPreview() {
 
 @Composable
 fun LanguageRow(
-    assetPackLocation: String?,
     tag: String,
     selectedOption: String,
-    assetPackStatus: Int,
+    databaseStatus: DatabaseStatus.Companion.Statuses = DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
     downloadProgress: Float = 0F,
     onSelected: (String) -> Unit?,
     onDownload: (String) -> Unit,
@@ -200,6 +178,7 @@ fun LanguageRow(
     onRemove: (String) -> Unit
 ){
     val locale = Locale.forLanguageTag(tag)
+
 
     Card(
         modifier = Modifier
@@ -227,7 +206,7 @@ fun LanguageRow(
                 ) {
                     RadioButton(
                         modifier = Modifier.fillMaxSize(),
-                        enabled = (assetPackLocation != null),
+                        enabled = (databaseStatus == DatabaseStatus.Companion.Statuses.DOWNLOADED),
                         selected = (tag == selectedOption),
                         onClick = {
                             onSelected(tag)
@@ -251,65 +230,66 @@ fun LanguageRow(
                         .fillMaxHeight()
                         .weight(1f)
                 ) {
-                    if (assetPackStatus == AssetPackStatus.DOWNLOADING
-                        || assetPackStatus == AssetPackStatus.TRANSFERRING) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            contentAlignment = Alignment.Center,
-                        ){
-                            CircularProgressIndicator(
-                                modifier = Modifier.fillMaxWidth().aspectRatio(1f),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                strokeWidth = 4.dp,
-                                progress = downloadProgress
-                            )
+                    if (tag != SupportedLanguageTag.AMERICAN.value) {
+                        if (databaseStatus == DatabaseStatus.Companion.Statuses.DOWNLOADING) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ){
+                                CircularProgressIndicator(
+                                    modifier = Modifier.fillMaxWidth().aspectRatio(1f),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    strokeWidth = 4.dp,
+                                    progress = downloadProgress
+                                )
+                                IconButton(
+                                    onClick = {
+                                        onCancel(tag)
+                                    }
+                                ) {
+                                    Icon(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(6.dp),
+                                        painter = painterResource(K9BOARD_DRAWABLES.round_cancel_24),
+                                        contentDescription = "Download",
+                                        tint = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                }
+                            }
+                        } else if (databaseStatus == DatabaseStatus.Companion.Statuses.DOWNLOADED) {
                             IconButton(
                                 onClick = {
-                                    onCancel(tag)
+                                    onRemove(tag)
                                 }
                             ) {
                                 Icon(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(6.dp),
-                                    painter = painterResource(K9BOARD_DRAWABLES.round_cancel_24),
+                                    modifier = Modifier.size(40.dp),
+                                    painter = painterResource(
+                                        K9BOARD_DRAWABLES.rounded_delete_forever_24
+                                    ),
+                                    contentDescription = "Download",
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
+                        } else {
+                            IconButton(
+                                modifier = Modifier.weight(1f),
+                                onClick = {
+                                    onDownload(tag)
+                                }
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(40.dp),
+                                    painter = painterResource(K9BOARD_DRAWABLES.round_download_24),
                                     contentDescription = "Download",
                                     tint = MaterialTheme.colorScheme.onSurface,
                                 )
                             }
                         }
-                    } else if (assetPackStatus == AssetPackStatus.COMPLETED
-                        || assetPackLocation != null) {
-                        IconButton(
-                            onClick = {
-                                onRemove(tag)
-                            }
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(40.dp),
-                                painter = painterResource(
-                                    K9BOARD_DRAWABLES.rounded_delete_forever_24
-                                ),
-                                contentDescription = "Download",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                    } else {
-                        IconButton(
-                            modifier = Modifier.weight(1f),
-                            onClick = {
-                                onDownload(tag)
-                            }
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(40.dp),
-                                painter = painterResource(K9BOARD_DRAWABLES.round_download_24),
-                                contentDescription = "Download",
-                                tint = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
                     }
+
                 }
             }
         }
