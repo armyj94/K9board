@@ -127,15 +127,14 @@ fun HomeScreen(
 //            optionKeyString = null,
 //            iconID = R.drawable.ic_help_outline_white_18dp,
 //        ),
-//        MainMenuItem(
-//            name = stringResource(id = R.string.main_activity_settings),
-//            optionKeyString = null,
-//            iconID = R.drawable.ic_baseline_settings_18,
-//            onClick = {
-//                navController.navigate(route = Screens.PreferencesScreen.name)
-//            }
-////            navigationRoute = Screens.PreferencesScreen.name
-//        ),
+        MainMenuItem(
+            name = stringResource(id = R.string.main_activity_settings),
+            optionKeyString = null,
+            iconID = R.drawable.ic_baseline_settings_18,
+            onClick = {
+                navController.navigate(route = Screens.PreferencesScreen.name)
+            }
+        ),
     )
 
     HomeScreenContentWear(menuItems = menuItems)

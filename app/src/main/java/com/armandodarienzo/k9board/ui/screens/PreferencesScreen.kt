@@ -37,7 +37,7 @@ import com.armandodarienzo.k9board.shared.viewmodel.PreferencesViewModel
 import com.armandodarienzo.k9board.ui.elements.AppBarIcon
 import com.armandodarienzo.k9board.ui.elements.K9BoardTopAppBar
 import com.armandodarienzo.k9board.ui.elements.RadioDialog
-import com.armandodarienzo.k9board.ui.elements.RadioOption
+import com.armandodarienzo.k9board.shared.model.RadioOption
 
 @Preview
 @Composable
