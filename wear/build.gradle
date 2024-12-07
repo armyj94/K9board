@@ -45,11 +45,6 @@ android {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
     }
-
-    assetPacks = [":language_it_IT", ":language_fr_FR", ":language_es_ES", ":language_pt_PT",
-                  ":language_en_GB", ":language_pt_BR", ":language_de_DE", ":language_nl_NL",
-                  ":language_cs_CZ", ":language_da_DK", ":language_fi_FI", ":language_sv_SE",
-                  ":language_en_US"]
 }
 
 dependencies {
@@ -75,9 +70,6 @@ dependencies {
 
     /***** Navigation *****/
     implementation "androidx.wear.compose:compose-navigation:1.4.0"
-
-    /***** Play asset delivery *****/
-    implementation "com.google.android.play:asset-delivery-ktx:2.2.2"
 
     /***** Hilt *****/
     implementation "com.google.dagger:hilt-android:2.49"
