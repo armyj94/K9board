@@ -49,8 +49,10 @@ import com.armandodarienzo.k9board.shared.Key7SpecialChars
 import com.armandodarienzo.k9board.shared.Key8SpecialChars
 import com.armandodarienzo.k9board.shared.Key9SpecialChars
 import com.armandodarienzo.k9board.shared.R
+import com.armandodarienzo.k9board.shared.codifyChars
 import com.armandodarienzo.k9board.shared.model.KeyPopupProperties
 import com.armandodarienzo.k9board.shared.service.Key9Service
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalFoundationApi::class)
@@ -114,14 +116,46 @@ fun Keypad(
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
 
-            KeyboardTextKey(
+            KeyboardKey(
                 modifier = Modifier
-                    .weight(1f),
-                id = KEY1_ID,
+                    .weight(1f)
+                    .combinedClickable(
+                        onClick = {
+                            if (service?.isManual?.value == true) {
+                                service.addCharToCurrentText(
+                                    codifyChars(
+                                        if (isCaps == KeyboardCapsStatus.LOWER_CASE) KEY1_TEXT
+                                        else KEY1_TEXT.uppercase(Locale.ROOT)
+                                    )
+                                        .also {
+                                            ASCII_CODE_1.let { numberASCIIcode ->
+                                                it.add(numberASCIIcode)
+                                            }
+                                        }
+                                        .toIntArray(),
+                                    KEY1_ID
+                                )
+                            } else {
+                                service?.keyClick(
+                                    codifyChars(
+                                        if (isCaps == KeyboardCapsStatus.LOWER_CASE) KEY1_TEXT
+                                        else KEY1_TEXT.uppercase(Locale.ROOT)
+                                    )
+                                        .also {
+                                            ASCII_CODE_1.let { numberASCIIcode ->
+                                                it.add(numberASCIIcode)
+                                            }
+                                        }
+                                        .toIntArray()
+                                )
+                            }
+                        }
+                    ),
+                //id = KEY1_ID,
                 text = KEY1_TEXT,
-                service = service,
-                numberASCIIcode = ASCII_CODE_1,
-                keyboardHeight = keyboardSize
+//                service = service,
+//                numberASCIIcode = ASCII_CODE_1,
+//                keyboardHeight = keyboardSize
             )
             KeyboardTextKey(
                 id = KEY2_ID,
@@ -129,6 +163,7 @@ fun Keypad(
                     .weight(1f),
                 text = key2text,
                 capsStatus = isCaps,
+                isManual = isManual?: false,
                 service = service,
                 numberASCIIcode = ASCII_CODE_2,
                 keyboardHeight = keyboardSize,
@@ -146,6 +181,7 @@ fun Keypad(
                 id = KEY3_ID,
                 text = key3text,
                 capsStatus = isCaps,
+                isManual = isManual?: false,
                 service = service,
                 numberASCIIcode = ASCII_CODE_3,
                 keyboardHeight = keyboardSize,
@@ -171,6 +207,7 @@ fun Keypad(
                 id = KEY4_ID,
                 text = key4text,
                 capsStatus = isCaps,
+                isManual = isManual?: false,
                 service = service,
                 numberASCIIcode = ASCII_CODE_4,
                 keyboardHeight = keyboardSize,
@@ -187,6 +224,7 @@ fun Keypad(
                 id = KEY5_ID,
                 text = key5text,
                 capsStatus = isCaps,
+                isManual = isManual?: false,
                 service = service,
                 numberASCIIcode = ASCII_CODE_5,
                 keyboardHeight = keyboardSize,
@@ -203,6 +241,7 @@ fun Keypad(
                 id = KEY6_ID,
                 text = key6text,
                 capsStatus = isCaps,
+                isManual = isManual?: false,
                 service = service,
                 numberASCIIcode = ASCII_CODE_6,
                 keyboardHeight = keyboardSize,
@@ -229,6 +268,7 @@ fun Keypad(
                 id = KEY7_ID,
                 text = key7text,
                 capsStatus = isCaps,
+                isManual = isManual?: false,
                 service = service,
                 numberASCIIcode = ASCII_CODE_7,
                 keyboardHeight = keyboardSize,
@@ -245,6 +285,7 @@ fun Keypad(
                 id = KEY8_ID,
                 text = key8text,
                 capsStatus = isCaps,
+                isManual = isManual?: false,
                 service = service,
                 numberASCIIcode = ASCII_CODE_8,
                 keyboardHeight = keyboardSize,
@@ -262,6 +303,7 @@ fun Keypad(
                 text = key9text,
                 capsStatus = isCaps,
                 service = service,
+                isManual = isManual?: false,
                 numberASCIIcode = ASCII_CODE_9,
                 keyboardHeight = keyboardSize,
                 keyPopupProperties =

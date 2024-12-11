@@ -111,6 +111,7 @@ fun KeyboardTextKey(
     id: Int,
     text: String,
     capsStatus: KeyboardCapsStatus? = KeyboardCapsStatus.LOWER_CASE,
+    isManual: Boolean,
     textStyle: TextStyle = TextStyle(),
     color: Color = Color.Black,
     symbolsColor: Color = Color.White,
@@ -219,22 +220,20 @@ fun KeyboardTextKey(
             Modifier
                 .combinedClickable(
                     onClick = {
-                        if (service?.isManual?.value == true) {
-                            if (service != null) {
-                                service.addCharToCurrentText(
-                                    codifyChars(
-                                        if (capsStatus == KeyboardCapsStatus.LOWER_CASE) text
-                                        else text.uppercase(Locale.ROOT)
-                                    )
-                                        .also {
-                                            numberASCIIcode?.let { numberASCIIcode ->
-                                                it.add(numberASCIIcode)
-                                            }
-                                        }
-                                        .toIntArray(),
-                                    id
+                        if (isManual) {
+                            service?.addCharToCurrentText(
+                                codifyChars(
+                                    if (capsStatus == KeyboardCapsStatus.LOWER_CASE) text
+                                    else text.uppercase(Locale.ROOT)
                                 )
-                            }
+                                    .also {
+                                        numberASCIIcode?.let { numberASCIIcode ->
+                                            it.add(numberASCIIcode)
+                                        }
+                                    }
+                                    .toIntArray(),
+                                id
+                            )
                         } else {
                             service?.keyClick(
                                 codifyChars(

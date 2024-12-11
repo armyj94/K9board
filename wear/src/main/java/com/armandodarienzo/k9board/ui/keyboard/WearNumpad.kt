@@ -158,6 +158,7 @@ fun Numpad(
                     .weight(1f),
                 id = KEY10_ID,
                 text = key10_text,
+                isManual = service?.isManual?.value ?: false,
                 keyboardHeight = keyboardSize,
                 service = service,
                 keyPopupProperties =
