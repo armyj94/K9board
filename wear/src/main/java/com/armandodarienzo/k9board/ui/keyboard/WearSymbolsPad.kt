@@ -18,7 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.armandodarienzo.k9board.model.KeyboardCurrentView
 import com.armandodarienzo.k9board.shared.KEY1_ID
-import com.armandodarienzo.k9board.shared.KEY1_TEXT
+import com.armandodarienzo.k9board.shared.KEY1_TEXT_SYMBOLS
 import com.armandodarienzo.k9board.shared.KEY2_ID
 import com.armandodarienzo.k9board.shared.KEY2_TEXT_SYMBOLS
 import com.armandodarienzo.k9board.shared.KEY3_ID
@@ -65,6 +65,7 @@ fun Symbolspad(
 
     Log.d("Timetest", "Recomposition")
 
+    val key1text = KEY1_TEXT_SYMBOLS
     val key2text = KEY2_TEXT_SYMBOLS
     val key3text = KEY3_TEXT_SYMBOLS
     val key4text = KEY4_TEXT_SYMBOLS
@@ -84,18 +85,19 @@ fun Symbolspad(
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
 
-            KeyboardKey(
+            KeyboardTextKey(
+                id = KEY1_ID,
                 modifier = Modifier
-                    .weight(1f)
-                    .combinedClickable(
-                        onClick = {
-                            service?.addCharToCurrentText(
-                                codifyChars(KEY1_TEXT).toIntArray(),
-                                KEY1_ID
-                            )
-                        }
-                    ),
-                text = KEY1_TEXT,
+                    .weight(1f),
+                text = key1text,
+                capsStatus = null,
+                service = service,
+                keyboardHeight = keyboardSize,
+                keyPopupProperties =
+                    KeyPopupProperties(
+                        alignment = Alignment.BottomEnd,
+                        onIdSelected = { service?.writeSpecificChar(it) }
+                    )
             )
             KeyboardTextKey(
                 id = KEY2_ID,
