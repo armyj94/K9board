@@ -1,7 +1,6 @@
 package com.armandodarienzo.k9board.ui.keyboard
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -171,7 +170,6 @@ fun Keypad(
                     .weight(1f),
                 text = key2text,
                 capsStatus = isCaps,
-                isManual = isManual?: false,
                 service = service,
                 numberASCIIcode = ASCII_CODE_2,
                 keyboardHeight = keyboardSize,
@@ -189,7 +187,6 @@ fun Keypad(
                 id = KEY3_ID,
                 text = key3text,
                 capsStatus = isCaps,
-                isManual = isManual?: false,
                 service = service,
                 numberASCIIcode = ASCII_CODE_3,
                 keyboardHeight = keyboardSize,
@@ -215,7 +212,6 @@ fun Keypad(
                 id = KEY4_ID,
                 text = key4text,
                 capsStatus = isCaps,
-                isManual = isManual?: false,
                 service = service,
                 numberASCIIcode = ASCII_CODE_4,
                 keyboardHeight = keyboardSize,
@@ -232,7 +228,6 @@ fun Keypad(
                 id = KEY5_ID,
                 text = key5text,
                 capsStatus = isCaps,
-                isManual = isManual?: false,
                 service = service,
                 numberASCIIcode = ASCII_CODE_5,
                 keyboardHeight = keyboardSize,
@@ -249,7 +244,6 @@ fun Keypad(
                 id = KEY6_ID,
                 text = key6text,
                 capsStatus = isCaps,
-                isManual = isManual?: false,
                 service = service,
                 numberASCIIcode = ASCII_CODE_6,
                 keyboardHeight = keyboardSize,
@@ -276,7 +270,6 @@ fun Keypad(
                 id = KEY7_ID,
                 text = key7text,
                 capsStatus = isCaps,
-                isManual = isManual?: false,
                 service = service,
                 numberASCIIcode = ASCII_CODE_7,
                 keyboardHeight = keyboardSize,
@@ -293,7 +286,6 @@ fun Keypad(
                 id = KEY8_ID,
                 text = key8text,
                 capsStatus = isCaps,
-                isManual = isManual?: false,
                 service = service,
                 numberASCIIcode = ASCII_CODE_8,
                 keyboardHeight = keyboardSize,
@@ -311,7 +303,6 @@ fun Keypad(
                 text = key9text,
                 capsStatus = isCaps,
                 service = service,
-                isManual = isManual?: false,
                 numberASCIIcode = ASCII_CODE_9,
                 keyboardHeight = keyboardSize,
                 keyPopupProperties =
