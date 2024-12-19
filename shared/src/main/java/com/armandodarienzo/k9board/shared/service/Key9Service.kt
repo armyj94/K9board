@@ -1,13 +1,23 @@
 package com.armandodarienzo.k9board.shared.service
 
+import android.content.Context
+import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.content.res.Resources
+import android.inputmethodservice.ExtractEditText
 import android.inputmethodservice.InputMethodService
 import android.os.Build
 import android.text.InputType
+import android.util.DisplayMetrics
 import android.util.Log
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
+import android.view.WindowManager
 import android.view.inputmethod.EditorInfo
+import android.widget.FrameLayout
+import android.widget.ImageButton
+import android.widget.LinearLayout
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.emoji2.emojipicker.EmojiViewItem
@@ -38,18 +48,25 @@ import com.armandodarienzo.k9board.shared.substringBeforeFirstNotMatching
 import com.armandodarienzo.k9board.shared.BuildConfig
 import com.armandodarienzo.k9board.shared.DATABASE_NAME
 import com.armandodarienzo.k9board.shared.repository.dataStore
+import com.armandodarienzo.k9board.shared.ui.KeyboardProvider
+import com.armandodarienzo.k9board.shared.ui.keyboard.ComposeKeyboardView
 import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
+import kotlin.math.sqrt
 import kotlin.system.measureTimeMillis
 
 
 @AndroidEntryPoint
 open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwner,
     SavedStateRegistryOwner {
+
+    @Inject
+    lateinit var keyboardProvider: KeyboardProvider
 
     var backgroundColorId: Int = 0
     lateinit var view: View
@@ -99,6 +116,11 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     private lateinit var userPreferencesRepository : UserPreferencesRepositoryLocal
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+                /* This is needed because otherwise recomposition wont be triggered
+        *  when user preferences are changed. Won't be needed anymore when
+        * and if AbstractComposeView can work with HiltViewModel */
+        (view as ComposeKeyboardView).disposeComposition()
+
         super.onStartInputView(info, restarting)
 
         info?.let {
@@ -138,9 +160,12 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreateInputView(): View {
 
         Log.d(TAG, "onCreateInputView")
+        setBackgroundColorId()
+        view = ComposeKeyboardView(this, backgroundColorId, keyboardProvider)
 
         window!!.window!!.decorView.let { decorView ->
             decorView.setViewTreeLifecycleOwner(this)
@@ -332,6 +357,55 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
         }
 
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    override fun onCreateExtractTextView(): View {
+
+        val inflater =
+            super.onCreateExtractTextView()// returns standard com.android.internal.R.layout.input_method_extract_view
+
+        val res: Resources = Resources.getSystem() // system resources
+
+        val id_inputExtractEditText =
+            res.getIdentifier("inputExtractEditText", "id", "android") // ExtractEditText
+        val id_inputExtractAccessories =
+            res.getIdentifier("inputExtractAccessories", "id", "android") // FrameLayout
+        val id_inputExtractAction =
+            res.getIdentifier("inputExtractAction", "id", "android") // ExtractButton
+
+        val inputExtractEditText = inflater.findViewById<ExtractEditText>(id_inputExtractEditText)
+        val inputExtractAccessories = inflater.findViewById<FrameLayout>(id_inputExtractAccessories)
+        val inputExtractAction: ImageButton = inflater.findViewById(id_inputExtractAction)
+
+        inputExtractAction.visibility = View.INVISIBLE
+        val displayMetrics = DisplayMetrics()
+        val window = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+
+        window.defaultDisplay.getMetrics(displayMetrics)
+        val padding =
+            (displayMetrics.widthPixels * (sqrt(2.0) - 1) / (2 * displayMetrics.density)).toInt() + 5
+
+        val layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.MATCH_PARENT
+        )
+        layoutParams.setMargins(padding, 0, 0, 0)
+
+        inputExtractEditText.layoutParams = layoutParams
+        inputExtractEditText.gravity = Gravity.BOTTOM
+        inputExtractEditText.setSingleLine()
+
+        return inflater
+
+
+    }
+
+    override fun onEvaluateFullscreenMode(): Boolean {
+        return if ( packageManager.hasSystemFeature(PackageManager.FEATURE_WATCH) )
+            true
+        else
+            super.onEvaluateFullscreenMode()
     }
 
     @RequiresApi(Build.VERSION_CODES.S)

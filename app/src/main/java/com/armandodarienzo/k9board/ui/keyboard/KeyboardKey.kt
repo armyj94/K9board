@@ -34,10 +34,11 @@ import androidx.compose.ui.unit.sp
 import com.armandodarienzo.k9board.shared.service.Key9Service
 import com.armandodarienzo.k9board.shared.codifyChars
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
-import com.armandodarienzo.k9board.model.KeyPopupProperties
+import com.armandodarienzo.k9board.shared.model.KeyPopupProperties
 import com.armandodarienzo.k9board.shared.KEYBOARD_POPUP_MAX_COLUMNS
+import com.armandodarienzo.k9board.shared.extensions.applyIf
+import com.armandodarienzo.k9board.shared.extensions.popupDragHandler
 import com.armandodarienzo.k9board.ui.keyboard.PopupBox
-import com.armandodarienzo.k9board.ui.keyboard.popupDragHandler
 import kotlinx.coroutines.delay
 import java.util.*
 import kotlin.math.ceil
@@ -359,15 +360,5 @@ fun KeyboardTextKey(
 
 
 
-}
-
-inline fun Modifier.applyIf(
-    condition: Boolean,
-    ifTrue: Modifier.() -> Modifier,
-    ifFalse: Modifier.() -> Modifier = { this },
-): Modifier = if (condition) {
-    then(ifTrue(Modifier))
-} else {
-    then(ifFalse(Modifier))
 }
 

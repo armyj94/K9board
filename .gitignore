@@ -47,3 +47,4 @@ out/
 
 # App Release Files
 app/release/*
+/wear/release/*

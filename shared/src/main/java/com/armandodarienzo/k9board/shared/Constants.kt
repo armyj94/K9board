@@ -2,6 +2,7 @@ package com.armandodarienzo.k9board.shared
 
 /***** Keyboard UI Constant values *****/
 const val KEYBOARD_MIN_SIZE = 180
+const val KEYBOARD_SIZE_FACTOR_WATCH = 0.8
 const val KEYBOARD_POPUP_MAX_COLUMNS = 5
 
 const val KEY1_ID: Int = 1
@@ -42,6 +43,17 @@ const val KEY6_TEXT_LATIN = "mno"
 const val KEY7_TEXT_LATIN = "pqrs"
 const val KEY8_TEXT_LATIN = "tuv"
 const val KEY9_TEXT_LATIN = "wxyz"
+
+
+const val KEY1_TEXT_SYMBOLS = ",.!?"
+const val KEY2_TEXT_SYMBOLS = ": ;"
+const val KEY3_TEXT_SYMBOLS = "@ # &"
+const val KEY4_TEXT_SYMBOLS = "+ - ("
+const val KEY5_TEXT_SYMBOLS = ") *"
+const val KEY6_TEXT_SYMBOLS = "\\ / '" // Escaped backslash
+const val KEY7_TEXT_SYMBOLS = "\" % <"
+const val KEY8_TEXT_SYMBOLS = "> ^ \""
+const val KEY9_TEXT_SYMBOLS = "_ ="
 
 
 object Key2SpecialChars {

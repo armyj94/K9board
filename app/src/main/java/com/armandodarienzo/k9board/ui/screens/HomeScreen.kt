@@ -16,8 +16,8 @@ import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
 
 import com.armandodarienzo.k9board.model.MainMenuItem
 import com.armandodarienzo.k9board.ui.elements.K9BoardTopAppBar
-import com.armandodarienzo.k9board.ui.navigation.Screens
-import com.armandodarienzo.k9board.viewmodel.HomeScreenViewModel
+import com.armandodarienzo.k9board.shared.ui.navigation.Screens
+import com.armandodarienzo.k9board.shared.viewmodel.HomeScreenViewModel
 
 
 @Preview

@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.model.KeyboardSize
+import com.armandodarienzo.k9board.shared.model.RadioOption
 
 val options = listOf(
     RadioOption(KeyboardSize.SMALL, true),

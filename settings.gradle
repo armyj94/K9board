@@ -15,6 +15,7 @@ dependencyResolutionManagement {
 rootProject.name = "K9board"
 include ':app'
 include ':shared'
+include ':wear'
 include ':language_it_IT'
 include ':language_fr_FR'
 include ':language_es_ES'
@@ -28,4 +29,3 @@ include ':language_da_DK'
 include ':language_fi_FI'
 include ':language_sv_SE'
 include ':language_en_US'
-
