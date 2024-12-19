@@ -103,7 +103,6 @@ fun Symbolspad(
                     .weight(1f),
                 text = key2text,
                 capsStatus = null,
-                isManual = true,
                 service = service,
                 keyboardHeight = keyboardSize,
                 keyPopupProperties =
@@ -118,7 +117,6 @@ fun Symbolspad(
                     .weight(1f),
                 id = KEY3_ID,
                 text = key3text,
-                isManual = true,
                 service = service,
                 keyboardHeight = keyboardSize,
                 keyPopupProperties =
@@ -141,7 +139,6 @@ fun Symbolspad(
                     .weight(1f),
                 id = KEY4_ID,
                 text = key4text,
-                isManual = true,
                 service = service,
                 keyboardHeight = keyboardSize,
                 keyPopupProperties =
@@ -155,7 +152,6 @@ fun Symbolspad(
                     .weight(1f),
                 id = KEY5_ID,
                 text = key5text,
-                isManual = true,
                 service = service,
                 keyboardHeight = keyboardSize,
                 keyPopupProperties =
@@ -169,7 +165,6 @@ fun Symbolspad(
                     .weight(1f),
                 id = KEY6_ID,
                 text = key6text,
-                isManual = true,
                 service = service,
                 keyboardHeight = keyboardSize,
                 keyPopupProperties =
@@ -193,7 +188,6 @@ fun Symbolspad(
                     .weight(1f),
                 id = KEY7_ID,
                 text = key7text,
-                isManual = true,
                 service = service,
                 keyboardHeight = keyboardSize,
                 keyPopupProperties =
@@ -207,7 +201,6 @@ fun Symbolspad(
                     .weight(1f),
                 id = KEY8_ID,
                 text = key8text,
-                isManual = true,
                 service = service,
                 keyboardHeight = keyboardSize,
                 keyPopupProperties =
@@ -222,7 +215,6 @@ fun Symbolspad(
                 id = KEY9_ID,
                 text = key9text,
                 service = service,
-                isManual = true,
                 keyboardHeight = keyboardSize,
                 keyPopupProperties =
                     KeyPopupProperties(
