@@ -45,6 +45,17 @@ const val KEY8_TEXT_LATIN = "tuv"
 const val KEY9_TEXT_LATIN = "wxyz"
 
 
+const val KEY1_TEXT_SYMBOLS = ", . '"
+const val KEY2_TEXT_SYMBOLS = ": ; \""
+const val KEY3_TEXT_SYMBOLS = "@#&"
+const val KEY4_TEXT_SYMBOLS = "+-("
+const val KEY5_TEXT_SYMBOLS = ")/"
+const val KEY6_TEXT_SYMBOLS = "\\?!" // Escaped backslash
+const val KEY7_TEXT_SYMBOLS = "/%<"
+const val KEY8_TEXT_SYMBOLS = ">^\""
+const val KEY9_TEXT_SYMBOLS = "_="
+
+
 object Key2SpecialChars {
     val VALUES = listOf(
         "á", "à", "â", "ä", "ã", "å", "ą", "æ", "ć", "č", "ç"

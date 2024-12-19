@@ -1,6 +1,7 @@
 package com.armandodarienzo.k9board.ui.keyboard
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -9,10 +10,12 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
+import com.armandodarienzo.k9board.model.KeyboardCurrentView
 import com.armandodarienzo.k9board.shared.ASCII_CODE_1
 import com.armandodarienzo.k9board.shared.ASCII_CODE_2
 import com.armandodarienzo.k9board.shared.ASCII_CODE_3
@@ -63,7 +66,8 @@ fun Keypad(
     keyboardSize: Int,
     languageSet: String,
     isCaps: KeyboardCapsStatus?,
-    isManual: Boolean?
+    isManual: Boolean?,
+    keyboardCurrentView: MutableState<KeyboardCurrentView>
 ) {
 
     val key2text = when(languageSet){
@@ -149,6 +153,10 @@ fun Keypad(
                                         .toIntArray()
                                 )
                             }
+                        },
+                        onLongClick = {
+                            keyboardCurrentView.value = KeyboardCurrentView.SYMBOLS_VIEW
+                            service?.enterManualMode()
                         }
                     ),
                 //id = KEY1_ID,
