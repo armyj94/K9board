@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
+import com.armandodarienzo.k9board.model.KeyboardCurrentView
 import com.armandodarienzo.k9board.shared.ASCII_CODE_1
 import com.armandodarienzo.k9board.shared.ASCII_CODE_2
 import com.armandodarienzo.k9board.shared.ASCII_CODE_3
@@ -49,8 +51,10 @@ import com.armandodarienzo.k9board.shared.Key7SpecialChars
 import com.armandodarienzo.k9board.shared.Key8SpecialChars
 import com.armandodarienzo.k9board.shared.Key9SpecialChars
 import com.armandodarienzo.k9board.shared.R
+import com.armandodarienzo.k9board.shared.codifyChars
 import com.armandodarienzo.k9board.shared.model.KeyPopupProperties
 import com.armandodarienzo.k9board.shared.service.Key9Service
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalFoundationApi::class)
@@ -61,7 +65,8 @@ fun Keypad(
     keyboardSize: Int,
     languageSet: String,
     isCaps: KeyboardCapsStatus?,
-    isManual: Boolean?
+    isManual: Boolean?,
+    keyboardCurrentView: MutableState<KeyboardCurrentView>
 ) {
 
     val key2text = when(languageSet){
@@ -114,14 +119,50 @@ fun Keypad(
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
 
-            KeyboardTextKey(
+            KeyboardKey(
                 modifier = Modifier
-                    .weight(1f),
-                id = KEY1_ID,
+                    .weight(1f)
+                    .combinedClickable(
+                        onClick = {
+                            if (service?.isManual?.value == true) {
+                                service.addCharToCurrentText(
+                                    codifyChars(
+                                        if (isCaps == KeyboardCapsStatus.LOWER_CASE) KEY1_TEXT
+                                        else KEY1_TEXT.uppercase(Locale.ROOT)
+                                    )
+                                        .also {
+                                            ASCII_CODE_1.let { numberASCIIcode ->
+                                                it.add(numberASCIIcode)
+                                            }
+                                        }
+                                        .toIntArray(),
+                                    KEY1_ID
+                                )
+                            } else {
+                                service?.keyClick(
+                                    codifyChars(
+                                        if (isCaps == KeyboardCapsStatus.LOWER_CASE) KEY1_TEXT
+                                        else KEY1_TEXT.uppercase(Locale.ROOT)
+                                    )
+                                        .also {
+                                            ASCII_CODE_1.let { numberASCIIcode ->
+                                                it.add(numberASCIIcode)
+                                            }
+                                        }
+                                        .toIntArray()
+                                )
+                            }
+                        },
+                        onLongClick = {
+                            keyboardCurrentView.value = KeyboardCurrentView.SYMBOLS_VIEW
+                            service?.enterManualMode()
+                        }
+                    ),
+                //id = KEY1_ID,
                 text = KEY1_TEXT,
-                service = service,
-                numberASCIIcode = ASCII_CODE_1,
-                keyboardHeight = keyboardSize
+//                service = service,
+//                numberASCIIcode = ASCII_CODE_1,
+//                keyboardHeight = keyboardSize
             )
             KeyboardTextKey(
                 id = KEY2_ID,

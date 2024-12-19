@@ -109,7 +109,7 @@ fun CustomKeyboard(
 ) {
     val TAG = object {}::class.java.enclosingMethod?.name
 
-    var keyboardView by remember { mutableStateOf(KeyboardCurrentView.TEXT_VIEW) }
+    var keyboardView = remember { mutableStateOf(KeyboardCurrentView.TEXT_VIEW) }
 
     val actionId = service?.currentInputEditorInfo?.imeOptions?.and(EditorInfo.IME_MASK_ACTION)
     val actionIconId =
@@ -157,7 +157,7 @@ fun CustomKeyboard(
                 .then(modifier)
                 .background(Color.Black)
         ) {
-            if( keyboardView != KeyboardCurrentView.EMOJI_VIEW ) {
+            if( keyboardView.value != KeyboardCurrentView.EMOJI_VIEW ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize(),
@@ -179,15 +179,15 @@ fun CustomKeyboard(
                             ){
                                 KeyboardKey(
                                     text =
-                                    if (keyboardView == KeyboardCurrentView.NUMPAD_VIEW) {
+                                    if (keyboardView.value == KeyboardCurrentView.NUMPAD_VIEW) {
                                         KEY2_TEXT_LATIN
-                                    } else if (keyboardView == KeyboardCurrentView.EMOJI_VIEW) {
+                                    } else if (keyboardView.value == KeyboardCurrentView.SYMBOLS_VIEW) {
                                         "123"
                                     } else {
                                         "emojis"
                                     },
                                     iconID =
-                                    if (keyboardView == KeyboardCurrentView.TEXT_VIEW)
+                                    if (keyboardView.value == KeyboardCurrentView.TEXT_VIEW)
                                         R.drawable.ic_insert_emoticon_white_18dp
                                     else
                                         null,
@@ -195,14 +195,14 @@ fun CustomKeyboard(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clickable {
-                                            if (keyboardView == KeyboardCurrentView.NUMPAD_VIEW) {
+                                            if (keyboardView.value == KeyboardCurrentView.NUMPAD_VIEW) {
                                                 service?.exitManualMode()
-                                                keyboardView = KeyboardCurrentView.TEXT_VIEW
-                                            } else if (keyboardView == KeyboardCurrentView.EMOJI_VIEW) {
-                                                keyboardView = KeyboardCurrentView.NUMPAD_VIEW
+                                                keyboardView.value = KeyboardCurrentView.TEXT_VIEW
+                                            } else if (keyboardView.value == KeyboardCurrentView.SYMBOLS_VIEW) {
+                                                keyboardView.value = KeyboardCurrentView.NUMPAD_VIEW
                                                 service?.enterManualMode()
                                             } else {
-                                                keyboardView = KeyboardCurrentView.EMOJI_VIEW
+                                                keyboardView.value = KeyboardCurrentView.EMOJI_VIEW
                                             }
                                         }
                                 )
@@ -214,7 +214,7 @@ fun CustomKeyboard(
                                     .weight(1f),
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                if(keyboardView == KeyboardCurrentView.TEXT_VIEW) {
+                                if(keyboardView.value == KeyboardCurrentView.TEXT_VIEW) {
 
                                     KeyboardKey(
                                         modifier = Modifier
@@ -286,16 +286,17 @@ fun CustomKeyboard(
                             modifier = Modifier.weight(3f),
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            if (keyboardView == KeyboardCurrentView.TEXT_VIEW) {
+                            if (keyboardView.value == KeyboardCurrentView.TEXT_VIEW) {
                                 Keypad(
                                     this,
                                     service = service,
                                     keyboardSize = keyboardSize,
                                     languageSet = languageSet,
                                     isCaps = caps?.value,
-                                    isManual = isManual?.value
+                                    isManual = isManual?.value,
+                                    keyboardCurrentView = keyboardView
                                 )
-                            } else if (keyboardView == KeyboardCurrentView.EMOJI_VIEW) {
+                            } else if (keyboardView.value == KeyboardCurrentView.EMOJI_VIEW) {
                                 Row(
                                     modifier = Modifier
                                         .padding(start = 2.dp, end = 2.dp)
@@ -306,11 +307,18 @@ fun CustomKeyboard(
 
                                 }
 
-                            } else if (keyboardView == KeyboardCurrentView.NUMPAD_VIEW) {
+                            } else if (keyboardView.value == KeyboardCurrentView.NUMPAD_VIEW) {
                                 Numpad(
                                     this,
                                     service = service,
                                     keyboardSize = keyboardSize,
+                                )
+                            } else if (keyboardView.value == KeyboardCurrentView.SYMBOLS_VIEW) {
+                                Symbolspad(
+                                    this,
+                                    service = service,
+                                    keyboardSize = keyboardSize,
+                                    keyboardCurrentView = keyboardView
                                 )
                             }
 
@@ -377,7 +385,7 @@ fun CustomKeyboard(
                     ){
                         Button(
                             modifier = Modifier.size(40.dp),
-                            onClick = { keyboardView = KeyboardCurrentView.TEXT_VIEW }
+                            onClick = { keyboardView.value = KeyboardCurrentView.TEXT_VIEW }
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_keyboard_white_24dp),
