@@ -38,11 +38,6 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-
-    assetPacks = [":language_it_IT", ":language_fr_FR", ":language_es_ES", ":language_pt_PT",
-                  ":language_en_GB", ":language_pt_BR", ":language_de_DE", ":language_nl_NL",
-                  ":language_cs_CZ", ":language_da_DK", ":language_fi_FI", ":language_sv_SE",
-                  ":language_en_US"]
 }
 
 dependencies {
@@ -98,10 +93,6 @@ dependencies {
     kapt "com.google.dagger:hilt-compiler:2.49"
 
     implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
-
-    /***** Play asset delivery *****/
-    implementation "com.google.android.play:asset-delivery-ktx:2.2.2"
-//    implementation 'com.google.android.play:core-ktx:1.8.1'
 
     /***** Play services *****/
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3"
