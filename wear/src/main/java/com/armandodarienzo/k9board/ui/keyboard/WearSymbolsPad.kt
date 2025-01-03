@@ -240,6 +240,7 @@ fun Symbolspad(
                     .combinedClickable(
                         onClick = {
                             keyboardCurrentView!!.value = KeyboardCurrentView.TEXT_VIEW
+                            service?.exitManualMode()
                         },
                     ),
                 text = "abc",
