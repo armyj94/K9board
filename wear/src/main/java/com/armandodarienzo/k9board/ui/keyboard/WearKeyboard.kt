@@ -200,7 +200,6 @@ fun CustomKeyboard(
                                                 keyboardView.value = KeyboardCurrentView.TEXT_VIEW
                                             } else if (keyboardView.value == KeyboardCurrentView.SYMBOLS_VIEW) {
                                                 keyboardView.value = KeyboardCurrentView.NUMPAD_VIEW
-                                                service?.enterManualMode()
                                             } else {
                                                 keyboardView.value = KeyboardCurrentView.EMOJI_VIEW
                                             }

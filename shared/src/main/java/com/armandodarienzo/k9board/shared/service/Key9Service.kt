@@ -100,6 +100,7 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     var isCaps = mutableStateOf(KeyboardCapsStatus.LOWER_CASE)
     var doubleSpaceChar = mutableStateOf(DoubleSpaceCharacter.NONE)
     var isManual = mutableStateOf(false)
+    private var wasManual = isManual.value
 
     private var lastKeyId: Int = 0
     private var keyCodesIndex: Int = 0
@@ -651,14 +652,18 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     }
 
     fun enterManualMode() {
-        if (isCaps.value == KeyboardCapsStatus.UPPER_CASE) isCaps.value =
-            KeyboardCapsStatus.CAPS_LOCK
+        if (isCaps.value == KeyboardCapsStatus.UPPER_CASE)
+            isCaps.value = KeyboardCapsStatus.CAPS_LOCK
+        wasManual = isManual.value
         isManual.value = true
         finishComposingText()
     }
 
     fun exitManualMode() {
-        isManual.value = false
+        if(!wasManual) {
+            isManual.value = false
+        }
+        wasManual = false
     }
 
     private fun commitText(s: String) {
