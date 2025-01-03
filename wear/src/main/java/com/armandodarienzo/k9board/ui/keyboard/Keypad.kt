@@ -327,14 +327,17 @@ fun Keypad(
                     .weight(1f)
                     .combinedClickable(
                         onClick = {
-                            if (isManual == true) {
+                            if (isManual == true)
                                 service?.exitManualMode()
-                            } else {
+                            else
                                 service?.swapClick()
-                            }
+
                         },
                         onLongClick = {
-                            service?.enterManualMode()
+                            if (isManual == false)
+                                service?.enterManualMode()
+                            else
+                                service?.exitManualMode()
                         }
                     ),
                 text = "sync",
