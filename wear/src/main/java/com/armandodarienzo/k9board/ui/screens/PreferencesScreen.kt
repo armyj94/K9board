@@ -29,9 +29,11 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
+import androidx.wear.compose.material.Switch
 
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.material.ToggleChip
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
 import androidx.wear.compose.material.items
@@ -94,7 +96,7 @@ fun PreferenceScreenContentWear(
 
     val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
 
-    val preferencesItems = mutableListOf<PreferencesMenuItem>()
+    val preferencesItems = mutableListOf<PreferencesMenuItem<Any>>()
 
     val doubleSpaceOptionName = stringResource(id = R.string.double_space_character)
     val openDoubleSpaceDialog = remember { mutableStateOf(false) }
@@ -121,6 +123,18 @@ fun PreferenceScreenContentWear(
             onClick = { openDoubleSpaceDialog.value = true }
         )
     )
+
+
+    val autoCapsOptionName = stringResource(id = R.string.auto_caps)
+
+    preferencesItems.add(
+        PreferencesMenuItem(
+            name = autoCapsOptionName,
+            value = false,
+            onClick = { }
+        )
+    )
+
 
     Scaffold(
         modifier = Modifier
@@ -156,36 +170,60 @@ fun PreferenceScreenContentWear(
 }
 
 @Composable
-fun PreferencesElementWear(
+fun <T> PreferencesElementWear(
     modifier: Modifier = Modifier,
     onClick : () -> Unit,
     elementName: String,
-    elementValue: String? = null
+    elementValue: T? = null
 ) {
-    // Use a Chip for a more compact and visually appealing list item on Wear OS
-    Chip(
-        onClick = { onClick() }, // Trigger the menuItem's onClick action
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(), // Adjust padding for Wear OS
-        label = {
-            Text(
-                text = elementName,
-                style = MaterialTheme.typography.body1, // Use a suitable text style for Wear OS
-                color = MaterialTheme.colors.onSurface
-            )
-        },
-        secondaryLabel = if(!elementValue.isNullOrBlank()){
-            {
+    if (elementValue is String) {
+        Chip(
+            onClick = { onClick() },
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(),
+            label = {
                 Text(
-                    text = elementValue,
-                    style = MaterialTheme.typography.caption2, // Use a suitable text style for Wear OS
+                    text = elementName,
+                    style = MaterialTheme.typography.body1, // Use a suitable text style for Wear OS
                     color = MaterialTheme.colors.onSurface
                 )
+            },
+            secondaryLabel = if(elementValue.isNotBlank()){
+                {
+                    Text(
+                        text = elementValue,
+                        style = MaterialTheme.typography.caption2, // Use a suitable text style for Wear OS
+                        color = MaterialTheme.colors.onSurface
+                    )
+                }
+            } else {
+                null
+            },
+            colors = ChipDefaults.secondaryChipColors()
+        )
+    } else if (elementValue is Boolean) {
+        ToggleChip(
+            checked = elementValue,
+            onCheckedChange = { onClick() },
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(),
+            label = {
+                Text(
+                    text = elementName,
+                    style = MaterialTheme.typography.body1, // Use a suitable text style for Wear OS
+                    color = MaterialTheme.colors.onSurface
+                )
+            },
+            toggleControl = {
+                Switch(
+                    checked = elementValue,
+                    onCheckedChange = { onClick() }
+                )
             }
-        } else {
-            null
-        },
-        colors = ChipDefaults.secondaryChipColors()
-    )
+        )
+    }
+
+
 }

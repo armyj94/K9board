@@ -12,6 +12,7 @@ import com.armandodarienzo.k9board.shared.SHARED_PREFS_HAPTIC_FEEDBACK
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_KEYBOARD_SIZE
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_THEME
+import com.armandodarienzo.k9board.shared.SHARED_PREFS_AUTO_CAPS
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_START_MANUAL
 import com.armandodarienzo.k9board.shared.THEME_MATERIAL_YOU
 import com.armandodarienzo.k9board.shared.model.DoubleSpaceCharacter
@@ -77,6 +78,14 @@ class UserPreferencesRepositoryLocal @Inject constructor(
         return getPreference(KEY_START_MANUAL, false)
     }
 
+    override suspend fun setAutoCaps(enabled: Boolean) {
+        setPreference(KEY_AUTO_CAPS, enabled)
+    }
+
+    override suspend fun isAutoCapsEnabled(): Result<Boolean> {
+        return getPreference(KEY_AUTO_CAPS, false)
+    }
+
 
     private suspend fun <T> setPreference(key: Preferences.Key<T>, value: T) {
         Result.runCatching {
@@ -133,6 +142,10 @@ class UserPreferencesRepositoryLocal @Inject constructor(
 
         val KEY_START_MANUAL = booleanPreferencesKey(
             name = SHARED_PREFS_START_MANUAL
+        )
+
+        val KEY_AUTO_CAPS = booleanPreferencesKey(
+            name = SHARED_PREFS_AUTO_CAPS
         )
     }
 
