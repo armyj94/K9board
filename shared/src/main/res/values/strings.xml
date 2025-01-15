@@ -32,6 +32,8 @@
 
     <string name="start_with_manual">Start with manual</string>
 
+    <string name="auto_caps">Auto capitalization</string>
+
     <!-- Languages strings -->
     <string name="downloading">Downloading</string>
 

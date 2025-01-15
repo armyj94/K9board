@@ -29,9 +29,11 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
+import androidx.wear.compose.material.Switch
 
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.material.ToggleChip
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
 import androidx.wear.compose.material.items
@@ -52,11 +54,34 @@ import com.armandodarienzo.k9board.ui.RadioDialog
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
 fun PreferencesContentPreview() {
+    val preferencesItems = mutableListOf<PreferencesMenuItem<Any>>()
+
+    preferencesItems.add(
+        PreferencesMenuItem(
+            name = stringResource(id = R.string.double_space_character),
+            value = stringResource(id = R.string.double_space_dot),
+            onClick = { }
+        )
+    )
+
+    preferencesItems.add(
+        PreferencesMenuItem(
+            name = stringResource(id = R.string.auto_caps),
+            value = false,
+            onClick = { }
+        )
+    )
+
+    preferencesItems.add(
+        PreferencesMenuItem(
+            name = stringResource(id = R.string.start_with_manual),
+            value = true,
+            onClick = { }
+        )
+    )
+
     PreferenceScreenContentWear(
-        doubleSpaceCharacter = DoubleSpaceCharacter.COMMA,
-        onDoubleSpaceCharacterSelected = {},
-        startWithManual = false,
-        onStartWithManualSelected = {}
+        preferencesItems
     )
 }
 
@@ -65,62 +90,71 @@ fun PreferencesScreen(
     navController: NavController,
     viewModel: PreferencesViewModel = hiltViewModel()
 ) {
+    val preferencesItems = mutableListOf<PreferencesMenuItem<Any>>()
+
+    //Double space character
     val doubleSpaceCharacter = viewModel.doubleSpaceCharState.value
-    val onDoubleSpaceCharacterSelected : (DoubleSpaceCharacter) -> Unit = {
-        viewModel.setDoubleSpaceChar(it)
-    }
+    val openDoubleSpaceDialog = remember { mutableStateOf(false)  }
 
-    val startWithManual = viewModel.startWithManualState.value
-    val onStartWithManualSelected : (Boolean) -> Unit = {
-        viewModel.setStartWithManual(it)
-    }
-
-    PreferenceScreenContentWear(
-        doubleSpaceCharacter,
-        onDoubleSpaceCharacterSelected,
-        startWithManual,
-        onStartWithManualSelected
-    )
-}
-
-@Composable
-fun PreferenceScreenContentWear(
-    doubleSpaceCharacter: DoubleSpaceCharacter,
-    onDoubleSpaceCharacterSelected : (DoubleSpaceCharacter) -> Unit,
-    startWithManual : Boolean,
-    onStartWithManualSelected : (Boolean) -> Unit
-) {
-    val screenHeight = LocalConfiguration.current.screenHeightDp
-
-    val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
-
-    val preferencesItems = mutableListOf<PreferencesMenuItem>()
-
-    val doubleSpaceOptionName = stringResource(id = R.string.double_space_character)
-    val openDoubleSpaceDialog = remember { mutableStateOf(false) }
-    val doubleSpaceRadioOptions = DoubleSpaceCharacter.entries.map {
-        RadioOption(it, doubleSpaceCharacter == it)
-    }.toTypedArray()
-    when {
-        openDoubleSpaceDialog.value -> {
-            RadioDialog(
-                options = doubleSpaceRadioOptions,
-                onDismissRequest = {
-                    openDoubleSpaceDialog.value = false
-                }
-            ) {
-                onDoubleSpaceCharacterSelected(it.value as DoubleSpaceCharacter)
-            }
+    if (openDoubleSpaceDialog.value) {
+        RadioDialog(
+            options = DoubleSpaceCharacter.entries.map {
+                RadioOption(it, doubleSpaceCharacter == it)
+            }.toTypedArray(),
+            onDismissRequest = { openDoubleSpaceDialog.value = false }
+        ) { selectedOption ->
+            viewModel.setDoubleSpaceChar(selectedOption.value as DoubleSpaceCharacter)
         }
     }
 
     preferencesItems.add(
         PreferencesMenuItem(
-            name = doubleSpaceOptionName,
+            name = stringResource(id = R.string.double_space_character),
             value = stringResource(doubleSpaceCharacter.getLabelId()),
             onClick = { openDoubleSpaceDialog.value = true }
         )
     )
+
+    //Auto caps
+    val autoCaps = viewModel.autoCapsState.value
+    val onAutoCapsSelected : (Boolean) -> Unit = {
+        viewModel.setAutoCaps(it)
+    }
+
+    preferencesItems.add(
+        PreferencesMenuItem(
+            name = stringResource(id = R.string.auto_caps),
+            value = autoCaps,
+            onClick = { onAutoCapsSelected(!autoCaps) }
+        )
+    )
+
+    //Start with manual
+    val startWithManual = viewModel.startWithManualState.value
+    val onStartWithManualSelected : (Boolean) -> Unit = {
+        viewModel.setStartWithManual(it)
+    }
+
+    preferencesItems.add(
+        PreferencesMenuItem(
+            name = stringResource(id = R.string.start_with_manual),
+            value = startWithManual,
+            onClick = { onStartWithManualSelected(!startWithManual) }
+        )
+    )
+
+    PreferenceScreenContentWear(
+        preferencesItems
+    )
+}
+
+@Composable
+fun PreferenceScreenContentWear(
+    preferencesItems: List<PreferencesMenuItem<Any>>
+) {
+    val screenHeight = LocalConfiguration.current.screenHeightDp
+
+    val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
 
     Scaffold(
         modifier = Modifier
@@ -149,43 +183,65 @@ fun PreferenceScreenContentWear(
                     elementValue = preferenceItem.value
                 )
             }
-
-
         }
     }
 }
 
 @Composable
-fun PreferencesElementWear(
+fun <T> PreferencesElementWear(
     modifier: Modifier = Modifier,
     onClick : () -> Unit,
     elementName: String,
-    elementValue: String? = null
+    elementValue: T? = null
 ) {
-    // Use a Chip for a more compact and visually appealing list item on Wear OS
-    Chip(
-        onClick = { onClick() }, // Trigger the menuItem's onClick action
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(), // Adjust padding for Wear OS
-        label = {
-            Text(
-                text = elementName,
-                style = MaterialTheme.typography.body1, // Use a suitable text style for Wear OS
-                color = MaterialTheme.colors.onSurface
-            )
-        },
-        secondaryLabel = if(!elementValue.isNullOrBlank()){
-            {
+    if (elementValue is String) {
+        Chip(
+            onClick = { onClick() },
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(),
+            label = {
                 Text(
-                    text = elementValue,
-                    style = MaterialTheme.typography.caption2, // Use a suitable text style for Wear OS
+                    text = elementName,
+                    style = MaterialTheme.typography.body1, // Use a suitable text style for Wear OS
                     color = MaterialTheme.colors.onSurface
                 )
+            },
+            secondaryLabel = if(elementValue.isNotBlank()){
+                {
+                    Text(
+                        text = elementValue,
+                        style = MaterialTheme.typography.caption2, // Use a suitable text style for Wear OS
+                        color = MaterialTheme.colors.onSurface
+                    )
+                }
+            } else {
+                null
+            },
+            colors = ChipDefaults.secondaryChipColors()
+        )
+    } else if (elementValue is Boolean) {
+        ToggleChip(
+            checked = elementValue,
+            onCheckedChange = { onClick() },
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(),
+            label = {
+                Text(
+                    text = elementName,
+                    style = MaterialTheme.typography.body1, // Use a suitable text style for Wear OS
+                    color = MaterialTheme.colors.onSurface
+                )
+            },
+            toggleControl = {
+                Switch(
+                    checked = elementValue,
+                    onCheckedChange = { onClick() }
+                )
             }
-        } else {
-            null
-        },
-        colors = ChipDefaults.secondaryChipColors()
-    )
+        )
+    }
+
+
 }

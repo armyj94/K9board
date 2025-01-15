@@ -33,4 +33,8 @@ interface UserPreferencesRepository {
 
     suspend fun isStartWithManualEnabled(): Result<Boolean>
 
+    suspend fun setAutoCaps(enabled: Boolean)
+
+    suspend fun isAutoCapsEnabled(): Result<Boolean>
+
 }

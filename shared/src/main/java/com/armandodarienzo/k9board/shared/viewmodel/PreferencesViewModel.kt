@@ -28,11 +28,15 @@ class PreferencesViewModel @Inject constructor(
     private val _startWithManualState = mutableStateOf(false)
     val startWithManualState : State<Boolean> = _startWithManualState
 
+    private val _autoCapsState = mutableStateOf(true)
+    val autoCapsState : State<Boolean> = _autoCapsState
+
     init {
         viewModelScope.launch {
             _keyboardSizeState.value = userPreferencesRepository.getKeyboardSize().getOrNull()!!
             _doubleSpaceCharState.value = userPreferencesRepository.getDoubleSpaceCharacter().getOrNull()!!
             _startWithManualState.value = userPreferencesRepository.isStartWithManualEnabled().getOrNull()!!
+            _autoCapsState.value = userPreferencesRepository.isAutoCapsEnabled().getOrNull()!!
         }
     }
 
@@ -54,6 +58,13 @@ class PreferencesViewModel @Inject constructor(
         _startWithManualState.value = enabled
         viewModelScope.launch {
             userPreferencesRepository.setStartWithManual(enabled)
+        }
+    }
+
+    fun setAutoCaps(enabled: Boolean) {
+        _autoCapsState.value = enabled
+        viewModelScope.launch {
+            userPreferencesRepository.setAutoCaps(enabled)
         }
     }
 }
