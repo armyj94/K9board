@@ -54,11 +54,34 @@ import com.armandodarienzo.k9board.ui.RadioDialog
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
 fun PreferencesContentPreview() {
+    val preferencesItems = mutableListOf<PreferencesMenuItem<Any>>()
+
+    preferencesItems.add(
+        PreferencesMenuItem(
+            name = stringResource(id = R.string.double_space_character),
+            value = stringResource(id = R.string.double_space_dot),
+            onClick = { }
+        )
+    )
+
+    preferencesItems.add(
+        PreferencesMenuItem(
+            name = stringResource(id = R.string.auto_caps),
+            value = false,
+            onClick = { }
+        )
+    )
+
+    preferencesItems.add(
+        PreferencesMenuItem(
+            name = stringResource(id = R.string.start_with_manual),
+            value = true,
+            onClick = { }
+        )
+    )
+
     PreferenceScreenContentWear(
-        doubleSpaceCharacter = DoubleSpaceCharacter.COMMA,
-        onDoubleSpaceCharacterSelected = {},
-        startWithManual = false,
-        onStartWithManualSelected = {}
+        preferencesItems
     )
 }
 
@@ -67,74 +90,71 @@ fun PreferencesScreen(
     navController: NavController,
     viewModel: PreferencesViewModel = hiltViewModel()
 ) {
-    val doubleSpaceCharacter = viewModel.doubleSpaceCharState.value
-    val onDoubleSpaceCharacterSelected : (DoubleSpaceCharacter) -> Unit = {
-        viewModel.setDoubleSpaceChar(it)
-    }
-
-    val startWithManual = viewModel.startWithManualState.value
-    val onStartWithManualSelected : (Boolean) -> Unit = {
-        viewModel.setStartWithManual(it)
-    }
-
-    PreferenceScreenContentWear(
-        doubleSpaceCharacter,
-        onDoubleSpaceCharacterSelected,
-        startWithManual,
-        onStartWithManualSelected
-    )
-}
-
-@Composable
-fun PreferenceScreenContentWear(
-    doubleSpaceCharacter: DoubleSpaceCharacter,
-    onDoubleSpaceCharacterSelected : (DoubleSpaceCharacter) -> Unit,
-    startWithManual : Boolean,
-    onStartWithManualSelected : (Boolean) -> Unit
-) {
-    val screenHeight = LocalConfiguration.current.screenHeightDp
-
-    val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
-
     val preferencesItems = mutableListOf<PreferencesMenuItem<Any>>()
 
-    val doubleSpaceOptionName = stringResource(id = R.string.double_space_character)
-    val openDoubleSpaceDialog = remember { mutableStateOf(false) }
-    val doubleSpaceRadioOptions = DoubleSpaceCharacter.entries.map {
-        RadioOption(it, doubleSpaceCharacter == it)
-    }.toTypedArray()
-    when {
-        openDoubleSpaceDialog.value -> {
-            RadioDialog(
-                options = doubleSpaceRadioOptions,
-                onDismissRequest = {
-                    openDoubleSpaceDialog.value = false
-                }
-            ) {
-                onDoubleSpaceCharacterSelected(it.value as DoubleSpaceCharacter)
-            }
+    //Double space character
+    val doubleSpaceCharacter = viewModel.doubleSpaceCharState.value
+    val openDoubleSpaceDialog = remember { mutableStateOf(false)  }
+
+    if (openDoubleSpaceDialog.value) {
+        RadioDialog(
+            options = DoubleSpaceCharacter.entries.map {
+                RadioOption(it, doubleSpaceCharacter == it)
+            }.toTypedArray(),
+            onDismissRequest = { openDoubleSpaceDialog.value = false }
+        ) { selectedOption ->
+            viewModel.setDoubleSpaceChar(selectedOption.value as DoubleSpaceCharacter)
         }
     }
 
     preferencesItems.add(
         PreferencesMenuItem(
-            name = doubleSpaceOptionName,
+            name = stringResource(id = R.string.double_space_character),
             value = stringResource(doubleSpaceCharacter.getLabelId()),
             onClick = { openDoubleSpaceDialog.value = true }
         )
     )
 
-
-    val autoCapsOptionName = stringResource(id = R.string.auto_caps)
+    //Auto caps
+    val autoCaps = viewModel.autoCapsState.value
+    val onAutoCapsSelected : (Boolean) -> Unit = {
+        viewModel.setAutoCaps(it)
+    }
 
     preferencesItems.add(
         PreferencesMenuItem(
-            name = autoCapsOptionName,
-            value = false,
-            onClick = { }
+            name = stringResource(id = R.string.auto_caps),
+            value = autoCaps,
+            onClick = { onAutoCapsSelected(!autoCaps) }
         )
     )
 
+    //Start with manual
+    val startWithManual = viewModel.startWithManualState.value
+    val onStartWithManualSelected : (Boolean) -> Unit = {
+        viewModel.setStartWithManual(it)
+    }
+
+    preferencesItems.add(
+        PreferencesMenuItem(
+            name = stringResource(id = R.string.start_with_manual),
+            value = startWithManual,
+            onClick = { onStartWithManualSelected(!startWithManual) }
+        )
+    )
+
+    PreferenceScreenContentWear(
+        preferencesItems
+    )
+}
+
+@Composable
+fun PreferenceScreenContentWear(
+    preferencesItems: List<PreferencesMenuItem<Any>>
+) {
+    val screenHeight = LocalConfiguration.current.screenHeightDp
+
+    val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
 
     Scaffold(
         modifier = Modifier
@@ -163,8 +183,6 @@ fun PreferenceScreenContentWear(
                     elementValue = preferenceItem.value
                 )
             }
-
-
         }
     }
 }
