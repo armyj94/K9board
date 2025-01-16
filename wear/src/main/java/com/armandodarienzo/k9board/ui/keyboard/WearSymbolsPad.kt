@@ -36,6 +36,7 @@ import com.armandodarienzo.k9board.shared.KEY8_TEXT_SYMBOLS
 import com.armandodarienzo.k9board.shared.KEY9_ID
 import com.armandodarienzo.k9board.shared.KEY9_TEXT_SYMBOLS
 import com.armandodarienzo.k9board.shared.codifyChars
+import com.armandodarienzo.k9board.shared.model.DoubleSpaceCharacter
 import com.armandodarienzo.k9board.shared.model.KeyPopupProperties
 import com.armandodarienzo.k9board.shared.service.Key9Service
 
@@ -251,6 +252,10 @@ fun Symbolspad(
                     .combinedClickable(
                         onClick = {
                             service?.spaceClick()
+                        },
+                        onDoubleClick = {
+                            if (service?.doubleSpaceCharState?.value != DoubleSpaceCharacter.NONE)
+                                service?.doubleSpaceClick()
                         }
                     ),
                 text = "⎵",
