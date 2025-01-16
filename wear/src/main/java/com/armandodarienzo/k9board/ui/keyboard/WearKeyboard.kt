@@ -179,18 +179,17 @@ fun CustomKeyboard(
                             ){
                                 KeyboardKey(
                                     text =
-                                    if (keyboardView.value == KeyboardCurrentView.NUMPAD_VIEW) {
-                                        KEY2_TEXT_LATIN
-                                    } else if (keyboardView.value == KeyboardCurrentView.SYMBOLS_VIEW) {
-                                        "123"
-                                    } else {
-                                        "emojis"
-                                    },
+                                        if (keyboardView.value == KeyboardCurrentView.NUMPAD_VIEW) {
+                                            KEY2_TEXT_LATIN
+                                        } else {
+                                            "emojis"
+                                        },
                                     iconID =
-                                    if (keyboardView.value == KeyboardCurrentView.TEXT_VIEW)
-                                        R.drawable.ic_insert_emoticon_white_18dp
-                                    else
-                                        null,
+                                        if (keyboardView.value == KeyboardCurrentView.TEXT_VIEW
+                                            || keyboardView.value == KeyboardCurrentView.SYMBOLS_VIEW)
+                                            R.drawable.ic_insert_emoticon_white_18dp
+                                        else
+                                            null,
                                     //color = MaterialTheme.colorScheme.secondaryContainer,
                                     modifier = Modifier
                                         .weight(1f)
@@ -198,8 +197,6 @@ fun CustomKeyboard(
                                             if (keyboardView.value == KeyboardCurrentView.NUMPAD_VIEW) {
                                                 service?.exitManualMode()
                                                 keyboardView.value = KeyboardCurrentView.TEXT_VIEW
-                                            } else if (keyboardView.value == KeyboardCurrentView.SYMBOLS_VIEW) {
-                                                keyboardView.value = KeyboardCurrentView.NUMPAD_VIEW
                                             } else {
                                                 keyboardView.value = KeyboardCurrentView.EMOJI_VIEW
                                             }
@@ -251,6 +248,21 @@ fun CustomKeyboard(
                                             else ->
                                                 R.drawable.ic_keyboard_capslock_white_18dp
                                         },
+                                    )
+
+                                } else if (
+                                    keyboardView.value == KeyboardCurrentView.SYMBOLS_VIEW
+                                ) {
+                                    KeyboardKey(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .combinedClickable(
+                                                onClick = {
+                                                    keyboardView.value =
+                                                        KeyboardCurrentView.NUMPAD_VIEW
+                                                }
+                                            ),
+                                        text = "123",
                                     )
 
                                 } else {
