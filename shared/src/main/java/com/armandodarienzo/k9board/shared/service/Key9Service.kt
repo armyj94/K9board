@@ -94,6 +94,7 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
 
     var isCaps = mutableStateOf(KeyboardCapsStatus.UPPER_CASE)
+    var isAutoCaps = mutableStateOf(false)
 
     private var _doubleSpaceCharState = mutableStateOf(DoubleSpaceCharacter.NONE)
     val doubleSpaceCharState = _doubleSpaceCharState
@@ -158,6 +159,15 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
             setComposingRegion()
         } else finishComposingText()
 
+        if (isAutoCaps.value &&
+            (textBeforeCursor.trimEnd().endsWith(".") ||
+                    textBeforeCursor.trimEnd().endsWith("?") ||
+                    textBeforeCursor.trimEnd().endsWith("!")
+                    )
+            ) {
+            isCaps.value = KeyboardCapsStatus.UPPER_CASE
+        }
+
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -216,15 +226,14 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         lifecycleScope.launch {
             isManual.value = userPreferencesRepository.isStartWithManualEnabled().getOrNull()!!
             _doubleSpaceCharState.value = userPreferencesRepository.getDoubleSpaceCharacter().getOrNull()!!
+            isAutoCaps.value = userPreferencesRepository.isAutoCapsEnabled().getOrNull()!!
+
 
             var getFrequencyTime = measureTimeMillis {
                 meanFrequency = db.getMeanFrequency()
                 wordsMaxLength = db.getMaxLength()
             }
         }
-
-        //TODO: fetch user preference
-        isCaps.value = KeyboardCapsStatus.LOWER_CASE
 
         return view
     }
@@ -357,6 +366,15 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
             } else if (!isManual.value)
                 setComposingRegion()
 
+        }
+
+        if (isAutoCaps.value &&
+            (textBeforeCursor.trimEnd().endsWith(".") ||
+                    textBeforeCursor.trimEnd().endsWith("?") ||
+                    textBeforeCursor.trimEnd().endsWith("!")
+                    )
+        ) {
+            isCaps.value = KeyboardCapsStatus.UPPER_CASE
         }
 
     }
