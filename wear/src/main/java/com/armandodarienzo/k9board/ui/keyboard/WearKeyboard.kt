@@ -21,6 +21,7 @@ import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.KeyboardCurrentView
 import com.armandodarienzo.k9board.shared.service.Key9Service
 import com.armandodarienzo.k9board.shared.*
+import com.armandodarienzo.k9board.shared.model.DoubleSpaceCharacter
 
 
 @RequiresApi(Build.VERSION_CODES.S)
@@ -261,6 +262,10 @@ fun CustomKeyboard(
                                             .combinedClickable(
                                                 onClick = {
                                                     service?.spaceClick()
+                                                },
+                                                onDoubleClick = {
+                                                    if (service?.doubleSpaceCharState?.value != DoubleSpaceCharacter.NONE)
+                                                        service?.doubleSpaceClick()
                                                 }
                                             ),
                                         text = "⎵",

@@ -45,16 +45,12 @@ import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepositoryLo
 import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.armandodarienzo.k9board.shared.substringAfterLastNotMatching
 import com.armandodarienzo.k9board.shared.substringBeforeFirstNotMatching
-import com.armandodarienzo.k9board.shared.BuildConfig
 import com.armandodarienzo.k9board.shared.DATABASE_NAME
-import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.armandodarienzo.k9board.shared.ui.KeyboardProvider
 import com.armandodarienzo.k9board.shared.ui.keyboard.ComposeKeyboardView
 import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import kotlin.math.sqrt
@@ -97,8 +93,12 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     lateinit var capsIndexes: MutableList<Int>
 
 
-    var isCaps = mutableStateOf(KeyboardCapsStatus.LOWER_CASE)
-    var doubleSpaceChar = mutableStateOf(DoubleSpaceCharacter.NONE)
+    var isCaps = mutableStateOf(KeyboardCapsStatus.UPPER_CASE)
+    var isAutoCaps = mutableStateOf(false)
+
+    private var _doubleSpaceCharState = mutableStateOf(DoubleSpaceCharacter.NONE)
+    val doubleSpaceCharState = _doubleSpaceCharState
+
     var isManual = mutableStateOf(false)
     private var wasManual = isManual.value
 
@@ -159,6 +159,15 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
             setComposingRegion()
         } else finishComposingText()
 
+        if (isAutoCaps.value &&
+            (textBeforeCursor.trimEnd().endsWith(".") ||
+                    textBeforeCursor.trimEnd().endsWith("?") ||
+                    textBeforeCursor.trimEnd().endsWith("!")
+                    )
+            ) {
+            isCaps.value = KeyboardCapsStatus.UPPER_CASE
+        }
+
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -216,16 +225,15 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
         lifecycleScope.launch {
             isManual.value = userPreferencesRepository.isStartWithManualEnabled().getOrNull()!!
-            doubleSpaceChar.value = userPreferencesRepository.getDoubleSpaceCharacter().getOrNull()!!
+            _doubleSpaceCharState.value = userPreferencesRepository.getDoubleSpaceCharacter().getOrNull()!!
+            isAutoCaps.value = userPreferencesRepository.isAutoCapsEnabled().getOrNull()!!
+
 
             var getFrequencyTime = measureTimeMillis {
                 meanFrequency = db.getMeanFrequency()
                 wordsMaxLength = db.getMaxLength()
             }
         }
-
-        //TODO: fetch user preference
-        isCaps.value = KeyboardCapsStatus.LOWER_CASE
 
         return view
     }
@@ -303,6 +311,8 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
             value
         }
 
+
+
 //        db = if (BuildConfig.DEBUG) {
 //            DictionaryDataHelper(this, "dictionary.sqlite")
 //        } else {
@@ -356,6 +366,15 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
             } else if (!isManual.value)
                 setComposingRegion()
 
+        }
+
+        if (isAutoCaps.value &&
+            (textBeforeCursor.trimEnd().endsWith(".") ||
+                    textBeforeCursor.trimEnd().endsWith("?") ||
+                    textBeforeCursor.trimEnd().endsWith("!")
+                    )
+        ) {
+            isCaps.value = KeyboardCapsStatus.UPPER_CASE
         }
 
     }
@@ -607,11 +626,13 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     }
 
-
-
     fun spaceClick() {
         val code = ASCII_CODE_SPACE.toChar()
         commitText(code.toString())
+    }
+
+    fun doubleSpaceClick() {
+        commitText("${_doubleSpaceCharState.value.value}${ASCII_CODE_SPACE.toChar()}")
     }
 
     fun swapClick() {
