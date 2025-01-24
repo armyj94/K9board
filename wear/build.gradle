@@ -13,8 +13,8 @@ android {
         applicationId "com.armandodarienzo.k9board"
         minSdk 30
         targetSdk 34
-        versionCode 10003
-        versionName "First actual internal wear release"
+        versionCode 10005
+        versionName "First open beta"
         vectorDrawables {
             useSupportLibrary true
         }
