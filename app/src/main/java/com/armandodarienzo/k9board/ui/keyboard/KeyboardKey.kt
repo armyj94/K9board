@@ -189,13 +189,20 @@ fun KeyboardTextKey(
 
     keyPopupProperties?.let {
         charList.value =
-            text.toCharArray().map{ char -> char.toString() }.toMutableList().also { list ->
-                list.addAll(it.chars)
-            }.map { char ->
-                if (capsStatus != KeyboardCapsStatus.LOWER_CASE) {
-                    char.uppercase(Locale.ROOT)
-                } else char
-            }.toMutableStateList()
+            text
+                .replace(" ", "")
+                .toCharArray()
+                .map{ char -> char.toString() }
+                .toMutableList()
+                .also { list ->
+                    list.addAll(it.chars)
+                }
+                .map { char ->
+                    if (capsStatus != KeyboardCapsStatus.LOWER_CASE) {
+                        char.uppercase(Locale.ROOT)
+                    } else char
+                }
+                .toMutableStateList()
 
         val columns =
             min(
