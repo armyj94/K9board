@@ -23,6 +23,7 @@ import com.armandodarienzo.k9board.model.KeyboardCurrentView
 import com.armandodarienzo.k9board.shared.service.Key9Service
 import com.armandodarienzo.k9board.shared.*
 import com.armandodarienzo.k9board.shared.extensions.ReverseArrangement
+import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Preview
@@ -62,7 +63,8 @@ fun CustomKeyboard(
     val backgroundColor: Color = colorResource(backGroundColorId)
     var reverseLayout by remember { mutableStateOf(false) }
     val collapsed by remember { mutableStateOf(false) }
-    var keyboardView by remember { mutableStateOf(KeyboardCurrentView.TEXT_VIEW) }
+
+    var keyboardView = remember { mutableStateOf(KeyboardCurrentView.TEXT_VIEW) }
 
     val actionId = service?.currentInputEditorInfo?.imeOptions?.and(EditorInfo.IME_MASK_ACTION)
     val actionIconId =
@@ -184,7 +186,7 @@ fun CustomKeyboard(
                 modifier = Modifier.weight(3f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                if (keyboardView == KeyboardCurrentView.TEXT_VIEW) {
+                if (keyboardView.value == KeyboardCurrentView.TEXT_VIEW) {
                     /*First row*/
                     Row(
                         modifier = Modifier
@@ -192,15 +194,50 @@ fun CustomKeyboard(
                             .weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-
-                        KeyboardTextKey(
+                        KeyboardKey(
                             modifier = Modifier
-                                .weight(1f),
-                            id = KEY1_ID,
+                                .weight(1f)
+                                .combinedClickable(
+                                    onClick = {
+                                        if (service?.isManual?.value == true) {
+                                            service.addCharToCurrentText(
+                                                codifyChars(
+                                                    if (service.isCaps.value == KeyboardCapsStatus.LOWER_CASE) KEY1_TEXT
+                                                    else KEY1_TEXT.uppercase(Locale.ROOT)
+                                                )
+                                                    .also {
+                                                        ASCII_CODE_1.let { numberASCIIcode ->
+                                                            it.add(numberASCIIcode)
+                                                        }
+                                                    }
+                                                    .toIntArray(),
+                                                KEY1_ID
+                                            )
+                                        } else {
+                                            service?.keyClick(
+                                                codifyChars(
+                                                    if (service.isCaps.value == KeyboardCapsStatus.LOWER_CASE) KEY1_TEXT
+                                                    else KEY1_TEXT.uppercase(Locale.ROOT)
+                                                )
+                                                    .also {
+                                                        ASCII_CODE_1.let { numberASCIIcode ->
+                                                            it.add(numberASCIIcode)
+                                                        }
+                                                    }
+                                                    .toIntArray()
+                                            )
+                                        }
+                                    },
+                                    onLongClick = {
+                                        keyboardView.value = KeyboardCurrentView.SYMBOLS_VIEW
+                                        service?.enterManualMode()
+                                    }
+                                ),
+                            //id = KEY1_ID,
                             text = KEY1_TEXT,
-                            service = service,
-                            numberASCIIcode = ASCII_CODE_1,
-                            keyboardHeight = keyboardSize
+//                service = service,
+//                numberASCIIcode = ASCII_CODE_1,
+//                keyboardHeight = keyboardSize
                         )
                         KeyboardTextKey(
                             id = KEY2_ID,
@@ -430,7 +467,7 @@ fun CustomKeyboard(
                         )
 
                     }
-                } else if (keyboardView == KeyboardCurrentView.EMOJI_VIEW) {
+                } else if (keyboardView.value == KeyboardCurrentView.EMOJI_VIEW) {
                     Row(
                         modifier = Modifier
                             .padding(start = 2.dp, end = 2.dp)
@@ -449,11 +486,18 @@ fun CustomKeyboard(
 
                     }
 
-                } else if (keyboardView == KeyboardCurrentView.NUMPAD_VIEW) {
+                } else if (keyboardView.value == KeyboardCurrentView.NUMPAD_VIEW) {
                     Numpad(
                         this,
                         service = service,
                         keyboardSize = keyboardSize,
+                    )
+                } else if (keyboardView.value == KeyboardCurrentView.SYMBOLS_VIEW) {
+                    Symbolspad(
+                        this,
+                        service = service,
+                        keyboardSize = keyboardSize,
+                        keyboardCurrentView = keyboardView
                     )
                 }
 
@@ -524,7 +568,7 @@ fun CustomKeyboard(
                 ) {
                     KeyboardKey(
                         text =
-                        if (keyboardView == KeyboardCurrentView.NUMPAD_VIEW) {
+                        if (keyboardView.value == KeyboardCurrentView.NUMPAD_VIEW) {
                             KEY2_TEXT_LATIN
                         } else {
                             "123"
@@ -533,11 +577,11 @@ fun CustomKeyboard(
                         modifier = Modifier
                             .weight(1f)
                             .clickable {
-                                if (keyboardView == KeyboardCurrentView.NUMPAD_VIEW) {
+                                if (keyboardView.value == KeyboardCurrentView.NUMPAD_VIEW) {
                                     service?.exitManualMode()
-                                    keyboardView = KeyboardCurrentView.TEXT_VIEW
+                                    keyboardView.value = KeyboardCurrentView.TEXT_VIEW
                                 } else {
-                                    keyboardView = KeyboardCurrentView.NUMPAD_VIEW
+                                    keyboardView.value = KeyboardCurrentView.NUMPAD_VIEW
                                     service?.enterManualMode()
                                 }
                             }
@@ -556,10 +600,10 @@ fun CustomKeyboard(
                         modifier = Modifier
                             .weight(1f)
                             .clickable {
-                                if (keyboardView == KeyboardCurrentView.EMOJI_VIEW)
-                                    keyboardView = KeyboardCurrentView.TEXT_VIEW
+                                if (keyboardView.value == KeyboardCurrentView.EMOJI_VIEW)
+                                    keyboardView.value = KeyboardCurrentView.TEXT_VIEW
                                 else
-                                    keyboardView = KeyboardCurrentView.EMOJI_VIEW
+                                    keyboardView.value = KeyboardCurrentView.EMOJI_VIEW
                             }
 //                                    .aspectRatio(1f, false)
 

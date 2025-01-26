@@ -54,6 +54,7 @@ const val KEY6_TEXT_SYMBOLS = "\\ / '" // Escaped backslash
 const val KEY7_TEXT_SYMBOLS = "\" % <"
 const val KEY8_TEXT_SYMBOLS = "> ^ \""
 const val KEY9_TEXT_SYMBOLS = "_ ="
+const val KEY10_TEXT_SYMBOLS = "€ \$ £ ¥"
 
 
 object Key2SpecialChars {
