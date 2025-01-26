@@ -1,7 +1,9 @@
 package com.armandodarienzo.k9board.ui.keyboard
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -35,6 +37,7 @@ fun NumpadPreview() {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun Numpad(
@@ -171,9 +174,14 @@ fun Numpad(
             KeyboardKey(
                 modifier = Modifier
                     .weight(1f)
-                    .clickable {
-                        service?.spaceClick()
-                    },
+                    .combinedClickable(
+                        onClick = {
+                            service?.spaceClick()
+                        },
+                        onDoubleClick = {
+                            service?.doubleSpaceClick()
+                        }
+                    ),
                 text = "⎵",
             )
             KeyboardKey(
