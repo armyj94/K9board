@@ -253,9 +253,14 @@ fun Symbolspad(
             KeyboardKey(
                 modifier = Modifier
                     .weight(1f)
-                    .clickable {
-                        service?.spaceClick()
-                    },
+                    .combinedClickable(
+                        onClick = {
+                            service?.spaceClick()
+                        },
+                        onDoubleClick = {
+                            service?.doubleSpaceClick()
+                        }
+                    ),
                 text = "⎵",
             )
             KeyboardKey(

@@ -422,6 +422,9 @@ fun CustomKeyboard(
                                 .combinedClickable(
                                     onClick = {
                                         service?.spaceClick()
+                                    },
+                                    onDoubleClick = {
+                                        service?.doubleSpaceClick()
                                     }
                                 ),
                             text = "⎵",
