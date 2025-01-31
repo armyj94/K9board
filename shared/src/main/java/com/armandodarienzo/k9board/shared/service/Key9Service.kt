@@ -19,6 +19,7 @@ import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.emoji2.emojipicker.EmojiViewItem
 import androidx.lifecycle.Lifecycle
@@ -95,6 +96,9 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
     var isCaps = mutableStateOf(KeyboardCapsStatus.UPPER_CASE)
     var isAutoCaps = mutableStateOf(false)
+
+    private var _textLengthState = mutableIntStateOf(0)
+    val textLengthState = _textLengthState
 
     private var _doubleSpaceCharState = mutableStateOf(DoubleSpaceCharacter.NONE)
     val doubleSpaceCharState = _doubleSpaceCharState
@@ -376,6 +380,9 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         ) {
             isCaps.value = KeyboardCapsStatus.UPPER_CASE
         }
+
+        _textLengthState.intValue =
+            textBeforeCursor.length + textSelection.length + textAfterCursor.length
 
     }
 

@@ -112,6 +112,8 @@ fun CustomKeyboard(
 
     var keyboardView = remember { mutableStateOf(KeyboardCurrentView.TEXT_VIEW) }
 
+    val textLengthState = remember { service?.textLengthState }
+
     val actionId = service?.currentInputEditorInfo?.imeOptions?.and(EditorInfo.IME_MASK_ACTION)
     val actionIconId =
         when (actionId) {
@@ -127,16 +129,26 @@ fun CustomKeyboard(
             EditorInfo.IME_ACTION_GO -> {
                 R.drawable.outline_arrow_right_alt_24
             }
+            EditorInfo.IME_ACTION_DONE -> {
+                if((textLengthState?.intValue ?: 0) == 0) {
+                    R.drawable.round_cancel_24
+                } else {
+                    R.drawable.baseline_check_24
+                }
+            }
             else -> {
-               R.drawable.rounded_subdirectory_arrow_left_24
+                R.drawable.rounded_subdirectory_arrow_left_24
             }
         }
+
+
     val imeAction =
         when (actionId) {
             EditorInfo.IME_ACTION_SEND,
             EditorInfo.IME_ACTION_SEARCH,
             EditorInfo.IME_ACTION_NEXT,
-            EditorInfo.IME_ACTION_GO -> {
+            EditorInfo.IME_ACTION_GO,
+            EditorInfo.IME_ACTION_DONE -> {
                 { service.currentInputConnection?.performEditorAction(actionId) }
             }
             else -> {
