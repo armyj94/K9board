@@ -7,13 +7,13 @@ plugins {
 
 android {
     namespace 'com.armandodarienzo.k9board'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.armandodarienzo.k9board"
         minSdk 30
-        targetSdk 34
-        versionCode 10005
+        targetSdk 36
+        versionCode 10006
         versionName "First open beta"
         vectorDrawables {
             useSupportLibrary true
@@ -79,6 +79,9 @@ dependencies {
     /***** Workmanager *****/
     implementation "androidx.work:work-runtime-ktx:$work_version"
     implementation 'com.google.guava:guava:31.1-android'
+
+    /***** Splashscreen *****/
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
 }
 

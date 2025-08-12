@@ -30,9 +30,9 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
-
         super.onCreate(savedInstanceState)
+
+        installSplashScreen()
 
         setTheme(android.R.style.Theme_DeviceDefault)
 
