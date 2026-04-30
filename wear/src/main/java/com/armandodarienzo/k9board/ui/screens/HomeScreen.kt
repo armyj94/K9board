@@ -136,6 +136,14 @@ fun HomeScreen(
                 navController.navigate(route = Screens.PreferencesScreen.name)
             }
         ),
+        MainMenuItem(
+            name = stringResource(id = R.string.main_activity_test_keyboard),
+            optionKeyString = null,
+            iconID = R.drawable.ic_baseline_edit_note_24,
+            onClick = {
+                navController.navigate(route = Screens.KeyboardTestScreen.name)
+            }
+        ),
     )
 
     HomeScreenContentWear(menuItems = menuItems)

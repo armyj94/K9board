@@ -13,6 +13,7 @@
     <string name="main_activity_privacy_policy">Privacy policy</string>
     <string name="main_activity_tutorial">Tutorial</string>
     <string name="main_activity_settings">Settings</string>
+    <string name="main_activity_test_keyboard">Test Keyboard</string>
 
     <!-- Preferences strings -->
     <string name="layout_and_aspect_section">Layout and aspect</string>
