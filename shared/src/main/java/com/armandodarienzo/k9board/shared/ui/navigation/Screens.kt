@@ -3,7 +3,8 @@ package com.armandodarienzo.k9board.shared.ui.navigation
 enum class Screens {
     HomeScreen,
     LanguageSelectionScreen,
-    PreferencesScreen;
+    PreferencesScreen,
+    KeyboardTestScreen;
 
 
     companion object {
@@ -12,6 +13,7 @@ enum class Screens {
                 HomeScreen.name -> HomeScreen
                 LanguageSelectionScreen.name -> LanguageSelectionScreen
                 PreferencesScreen.name -> PreferencesScreen
+                KeyboardTestScreen.name -> KeyboardTestScreen
                 null -> HomeScreen
                 else -> throw java.lang.IllegalArgumentException("Route $route is not recognized")
             }
