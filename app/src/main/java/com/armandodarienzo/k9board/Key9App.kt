@@ -3,18 +3,10 @@ package com.armandodarienzo.k9board
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.Context
-import android.os.Build
-import androidx.datastore.core.DataStore
-import androidx.datastore.dataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
-import com.armandodarienzo.k9board.shared.USER_PREFERENCES_NAME
+import com.armandodarienzo.k9board.shared.DATABASE_ASSETS_PATH
 import com.armandodarienzo.k9board.shared.getDatabaseName
 import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
-import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper.Companion.ASSETS_PATH
 
-import com.google.android.material.color.DynamicColors
 import dagger.hilt.android.HiltAndroidApp
 import java.io.File
 import java.io.FileOutputStream
@@ -31,7 +23,7 @@ class Key9App: Application() {
         )
 
         val defaultDBName = getDatabaseName(SupportedLanguageTag.AMERICAN.value)
-        val languageRelativePath = "$ASSETS_PATH/$defaultDBName"
+        val languageRelativePath = "$DATABASE_ASSETS_PATH/$defaultDBName"
         val inputStream = this.assets.open(languageRelativePath)
 
         try {

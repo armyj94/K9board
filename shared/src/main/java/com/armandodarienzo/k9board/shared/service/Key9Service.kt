@@ -45,16 +45,15 @@ import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepositoryLo
 import com.armandodarienzo.k9board.shared.repository.dataStore
 import com.armandodarienzo.k9board.shared.substringAfterLastNotMatching
 import com.armandodarienzo.k9board.shared.substringBeforeFirstNotMatching
-import com.armandodarienzo.k9board.shared.DATABASE_NAME
 import com.armandodarienzo.k9board.shared.ui.KeyboardProvider
 import com.armandodarienzo.k9board.shared.ui.keyboard.ComposeKeyboardView
-import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper
+import com.armandodarienzo.k9board.repository.WordRepository
+import com.armandodarienzo.k9board.repository.WordRepositoryProvider
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import kotlin.math.sqrt
-import kotlin.system.measureTimeMillis
 
 
 @AndroidEntryPoint
@@ -79,8 +78,10 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     var classInputType = 0
     var variationInputType = 0
 
-    //DbDataHelper
-    lateinit var db: DictionaryDataHelper
+    @Inject
+    lateinit var wordRepositoryProvider: WordRepositoryProvider
+    private var wordRepository: WordRepository? = null
+
     var meanFrequency: Int = 0
     var wordsMaxLength: Int = 10
 
@@ -155,8 +156,8 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
 
         textComposition = TextComposition(textBeforeCursor.length, textBeforeCursor.length, "")
-        if (textSelection.length == 0 ) {
-            setComposingRegion()
+        if (textSelection.length == 0) {
+            lifecycleScope.launch { setComposingRegion() }
         } else finishComposingText()
 
         if (isAutoCaps.value &&
@@ -216,22 +217,16 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 //            DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
 //        }
 
-        Log.d(TAG, "database name ${DATABASE_NAME}_${languageSet}.sqlite")
-        db = DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
-
-//        db = DictionaryDataHelper(this, "dictionary.sqlite")
-        db.writableDatabase.enableWriteAheadLogging()//db.readableDatabase
-        db.writableDatabase.execSQL("PRAGMA synchronous = NORMAL")
+        wordRepository = wordRepositoryProvider.getForLanguage(languageSet)
 
         lifecycleScope.launch {
             isManual.value = userPreferencesRepository.isStartWithManualEnabled().getOrNull()!!
             _doubleSpaceCharState.value = userPreferencesRepository.getDoubleSpaceCharacter().getOrNull()!!
             isAutoCaps.value = userPreferencesRepository.isAutoCapsEnabled().getOrNull()!!
 
-
-            var getFrequencyTime = measureTimeMillis {
-                meanFrequency = db.getMeanFrequency()
-                wordsMaxLength = db.getMaxLength()
+            wordRepository?.let { repo ->
+                meanFrequency = repo.getMeanFrequency()
+                wordsMaxLength = repo.getMaxLength()
             }
         }
 
@@ -258,14 +253,10 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 
             val writtenWords = admissibleChars.joinToString("").split(" ")
 
-            writtenWords.forEach {
-                val word =
-                    Word(
-                        it,
-                        USER_WORDS_FLAG
-                    )
+            writtenWords.forEach { wordText ->
+                val word = Word(wordText, USER_WORDS_FLAG)
                 Log.d(TAG, "word = ${word.text}")
-                db.upsert(word)
+                lifecycleScope.launch { wordRepository?.upsert(word) }
             }
         }
 
@@ -319,16 +310,11 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
 //            DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
 //        }
 
-        db = DictionaryDataHelper(this, "${DATABASE_NAME}_${languageSet}.sqlite")
-
-//        db = DictionaryDataHelper(this, "dictionary.sqlite")
-        db.writableDatabase.enableWriteAheadLogging()//db.readableDatabase
-        db.writableDatabase.execSQL("PRAGMA synchronous = NORMAL")
+        wordRepository = wordRepositoryProvider.getForLanguage(languageSet)
         super.onWindowShown()
     }
 
     override fun onWindowHidden() {
-        db.close()
         super.onWindowHidden()
     }
 
@@ -364,7 +350,7 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
             if (textSelection.text.isNotEmpty()) {
                 finishComposingText()
             } else if (!isManual.value)
-                setComposingRegion()
+                lifecycleScope.launch { setComposingRegion() }
 
         }
 
@@ -447,60 +433,54 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         return textAfterCursor.substringBeforeFirstNotMatching(WORDS_REGEX)
     }
 
-    private fun updateCurrentWord(newCode: Char?){
+    private suspend fun updateCurrentWord(newCode: Char?) {
 
         var attempt = 1
 
         val wordTextBeforeCursor = getWordTextBeforeCursor()
         val wordTextAfterCursor = getWordTextAfterCursor()
         currentT9code =
-            Word.getNumberDigitsCode(wordTextBeforeCursor) + (newCode?:"") +
+            Word.getNumberDigitsCode(wordTextBeforeCursor) + (newCode ?: "") +
                     Word.getNumberDigitsCode(wordTextAfterCursor)
 
-        words = db.getWordsByCode(currentT9code)
+        words = wordRepository?.getWordsByCode(currentT9code)?.toMutableList() ?: mutableListOf()
         words.forEach {
             Log.d(TAG, "word = ${it.text}")
         }
 
-
-        if(newCode == null){
+        if (newCode == null) {
 
             currentWord =
                 words
                     .filter { word: Word ->
                         word.text.compareTo(
                             wordTextBeforeCursor + wordTextAfterCursor,
-                            ignoreCase = true) == 0
+                            ignoreCase = true
+                        ) == 0
                     }
-                    .firstOrNull()?: Word(
-                wordTextBeforeCursor + wordTextAfterCursor
-                )
+                    .firstOrNull() ?: Word(wordTextBeforeCursor + wordTextAfterCursor)
 
         } else {
 
-            if (words.isNotEmpty()){
+            if (words.isNotEmpty()) {
                 currentWord = words.first()
-            } else if (currentT9code.isNotEmpty()){
+            } else if (currentT9code.isNotEmpty()) {
 
                 //TODO: improve this fetch
-                if(currentT9code.length > 2){ //Ottimizzazione per inizio composizione
-                    while (words.isEmpty() && currentT9code.length + attempt <= wordsMaxLength ){
-                        words.addAll(db.gePlaceholderWordsByCode(currentT9code, attempt))
+                if (currentT9code.length > 2) { //Ottimizzazione per inizio composizione
+                    while (words.isEmpty() && currentT9code.length + attempt <= wordsMaxLength) {
+                        words.addAll(
+                            wordRepository?.getPlaceholderWordsByCode(currentT9code, attempt)
+                                ?: emptyList()
+                        )
                         attempt += 1
                     }
                 }
 
-
                 currentWord = if (words.isNotEmpty()) words.first()
-                                else Word(
-                    wordTextBeforeCursor + newCode.toString()
-                            + wordTextAfterCursor
-                )
-
+                else Word(wordTextBeforeCursor + newCode.toString() + wordTextAfterCursor)
             }
-
         }
-
     }
 
     private fun getCapsIndexesOfCurrentWord(): List<Int>{
@@ -541,7 +521,7 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         commitText("\n")
     }
 
-    private fun addCharToCurrentWord(code: Int) {
+    private suspend fun addCharToCurrentWord(code: Int) {
 
         val digit = code.toChar()
 
@@ -593,11 +573,9 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
     }
 
     fun keyClick(codes: IntArray) {
-
-            Log.d(TAG, "keyClick")
-            var digitCode = codes.last()
-
-            if (digitCode != null) addCharToCurrentWord(digitCode)
+        Log.d(TAG, "keyClick")
+        val digitCode = codes.last()
+        lifecycleScope.launch { addCharToCurrentWord(digitCode) }
     }
 
     fun addCharToCurrentText(codes: IntArray, keyId: Int) {
@@ -696,7 +674,7 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         currentInputConnection?.commitText(s, 1)
     }
 
-    private fun setComposingRegion() {
+    private suspend fun setComposingRegion() {
         val composingStartIndex: Int
         val composingEndIndex: Int
 
