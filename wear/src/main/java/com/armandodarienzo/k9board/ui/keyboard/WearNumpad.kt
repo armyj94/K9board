@@ -1,7 +1,10 @@
 package com.armandodarienzo.k9board.ui.keyboard
+
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -14,172 +17,81 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastJoinToString
-import com.armandodarienzo.k9board.shared.model.KeyPopupProperties
+import com.armandodarienzo.k9board.keyboard.KeyboardIntent
 import com.armandodarienzo.k9board.shared.KEY10_ID
 import com.armandodarienzo.k9board.shared.NumpadKey10SpecialChars
-import com.armandodarienzo.k9board.shared.service.Key9Service
+import com.armandodarienzo.k9board.shared.model.KeyPopupProperties
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
 @Preview
 fun NumpadPreview() {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Numpad(
-            this,
-            keyboardSize = 280
-        )
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Numpad(this, keyboardSize = 280)
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun Numpad(
     columnScope: ColumnScope,
-    service: Key9Service? = null,
     keyboardSize: Int,
+    onIntent: (KeyboardIntent) -> Unit = {},
 ) {
-
     val key10_text = remember { NumpadKey10SpecialChars.VALUES.fastJoinToString("") }
 
     columnScope.apply {
-        /*First row*/
         Row(
-            modifier = Modifier
-                .padding(start = 2.dp, end = 2.dp)
-                .weight(1f),
+            modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-
-            KeyboardKey(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable {
-                        service?.writeSpecificChar("1")
-                    },
-                text = "1",
-            )
-            KeyboardKey(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable {
-                        service?.writeSpecificChar("2")
-                    },
-                text = "2",
-            )
-            KeyboardKey(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable {
-                        service?.writeSpecificChar("3")
-                    },
-                text = "3",
-            )
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("1")) }, text = "1")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("2")) }, text = "2")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("3")) }, text = "3")
         }
 
-        /*Second row*/
         Row(
-            modifier = Modifier
-                .padding(start = 2.dp, end = 2.dp)
-                .weight(1f),
+            modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            KeyboardKey(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable {
-                        service?.writeSpecificChar("4")
-                    },
-                text = "4",
-            )
-            KeyboardKey(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable {
-                        service?.writeSpecificChar("5")
-                    },
-                text = "5",
-            )
-            KeyboardKey(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable {
-                        service?.writeSpecificChar("6")
-                    },
-                text = "6",
-            )
-
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("4")) }, text = "4")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("5")) }, text = "5")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("6")) }, text = "6")
         }
 
-        /*Third row*/
         Row(
-            modifier = Modifier
-                .padding(start = 2.dp, end = 2.dp)
-                .weight(1f),
+            modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            KeyboardKey(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable {
-                        service?.writeSpecificChar("7")
-                    },
-                text = "7",
-            )
-            KeyboardKey(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable {
-                        service?.writeSpecificChar("8")
-                    },
-                text = "8",
-            )
-            KeyboardKey(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable {
-                        service?.writeSpecificChar("9")
-                    },
-                text = "9",
-            )
-
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("7")) }, text = "7")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("8")) }, text = "8")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("9")) }, text = "9")
         }
 
-        /*4th row*/
         Row(
-            modifier = Modifier
-                .padding(start = 2.dp, end = 2.dp)
-                .weight(1f),
+            modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             KeyboardTextKey(
-                modifier = Modifier
-                    .weight(1f),
+                modifier = Modifier.weight(1f),
                 id = KEY10_ID,
                 text = key10_text,
                 keyboardHeight = keyboardSize,
-                service = service,
-                keyPopupProperties =
-                KeyPopupProperties(
+                keyPopupProperties = KeyPopupProperties(
                     alignment = Alignment.TopEnd,
-                    onIdSelected = { service?.writeSpecificChar(it) }
-                )
+                    onIdSelected = { onIntent(KeyboardIntent.WriteSpecificChar(it)) }
+                ),
+                onKeyClick = { onIntent(KeyboardIntent.WriteSpecificChar(it.last().toChar().toString())) },
             )
             KeyboardKey(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable {
-                        service?.writeSpecificChar("0")
-                    },
-                text = "0",
+                modifier = Modifier.weight(1f).combinedClickable(
+                    onClick = { onIntent(KeyboardIntent.SpacePressed) },
+                    onDoubleClick = { onIntent(KeyboardIntent.DoubleSpacePressed) }
+                ),
+                text = "⎵",
             )
-
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("0")) }, text = "0")
         }
-
-
     }
-    
-
-
 }
