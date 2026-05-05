@@ -1,6 +1,5 @@
 package com.armandodarienzo.k9board.data.repository
 
-import androidx.sqlite.db.SimpleSQLiteQuery
 import com.armandodarienzo.k9board.data.database.WordDatabase
 import com.armandodarienzo.k9board.data.mapper.toDomain
 import com.armandodarienzo.k9board.data.mapper.toEntity
@@ -11,7 +10,7 @@ import kotlinx.coroutines.flow.map
 
 private const val USER_WORDS_FLAG = "hand-added"
 
-class WordRepositoryImpl(private val db: WordDatabase) : WordRepository {
+class WordRepositoryImpl(db: WordDatabase) : WordRepository {
 
     private val dao = db.wordDao()
 
@@ -21,17 +20,12 @@ class WordRepositoryImpl(private val db: WordDatabase) : WordRepository {
     override suspend fun getPlaceholderWordsByCode(code: String, queryDepth: Int): List<Word> {
         val zeros = "0".repeat(queryDepth)
         val nines = "9".repeat(queryDepth)
-        val query = SimpleSQLiteQuery(
-            "SELECT substr(text,1,${code.length}) AS text, " +
-            "MAX(frequency) AS frequency, " +
-            "MAX(originalFrequency) AS originalFrequency " +
-            "FROM words " +
-            "WHERE t9code BETWEEN ? AND ? " +
-            "GROUP BY substr(text,1,${code.length})",
-            arrayOf("$code$zeros", "$code$nines")
-        )
-        return dao.getPlaceholderWordsByCode(query).map { entity ->
-            Word(entity.text, entity.frequency, "", entity.originalFrequency, "", code)
+        return dao.getPlaceholderWordsByCode(
+            prefixLength = code.length,
+            lowerBound = "$code$zeros",
+            upperBound = "$code$nines"
+        ).map { dto ->
+            Word(dto.text, dto.frequency, null, dto.originalFrequency, "false", code)
         }
     }
 

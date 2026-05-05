@@ -4,10 +4,9 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.RawQuery
 import androidx.room.Transaction
-import androidx.sqlite.db.SupportSQLiteQuery
 import com.armandodarienzo.k9board.data.model.WordEntity
+import com.armandodarienzo.k9board.data.model.WordPrefixDto
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -16,8 +15,19 @@ interface WordDao {
     @Query("SELECT * FROM words WHERE t9code = :code ORDER BY frequency DESC, text ASC")
     suspend fun getWordsByCode(code: String): List<WordEntity>
 
-    @RawQuery
-    suspend fun getPlaceholderWordsByCode(query: SupportSQLiteQuery): List<WordEntity>
+    @Query("""
+        SELECT substr(text, 1, :prefixLength) AS text,
+               MAX(frequency) AS frequency,
+               MAX(originalFrequency) AS originalFrequency
+        FROM words
+        WHERE t9code BETWEEN :lowerBound AND :upperBound
+        GROUP BY substr(text, 1, :prefixLength)
+    """)
+    suspend fun getPlaceholderWordsByCode(
+        prefixLength: Int,
+        lowerBound: String,
+        upperBound: String
+    ): List<WordPrefixDto>
 
     @Query("SELECT * FROM words WHERE flags = :flags ORDER BY frequency DESC, text ASC")
     suspend fun getWordsByFlag(flags: String): List<WordEntity>
