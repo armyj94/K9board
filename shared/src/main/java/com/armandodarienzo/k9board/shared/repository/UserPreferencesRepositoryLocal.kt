@@ -15,9 +15,9 @@ import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_THEME
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_AUTO_CAPS
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_START_MANUAL
 import com.armandodarienzo.k9board.shared.THEME_MATERIAL_YOU
-import com.armandodarienzo.k9board.shared.model.DoubleSpaceCharacter
-import com.armandodarienzo.k9board.shared.model.KeyboardSize
-import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
+import com.armandodarienzo.k9board.model.DoubleSpaceCharacter
+import com.armandodarienzo.k9board.model.KeyboardSize
+import com.armandodarienzo.k9board.model.SupportedLanguageTag
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -26,7 +26,7 @@ import javax.inject.Inject
 
 class UserPreferencesRepositoryLocal @Inject constructor(
     private val userDataStorePreferences: DataStore<Preferences>
-) : UserPreferencesRepository {
+) : com.armandodarienzo.k9board.repository.UserPreferencesRepository {
 
     override suspend fun setTheme(theme: String) {
         setPreference(KEY_THEME, theme)
@@ -45,11 +45,11 @@ class UserPreferencesRepositoryLocal @Inject constructor(
     }
 
     override suspend fun setKeyboardSize(keySize: KeyboardSize) {
-        setPreference(KEY_KEYBOARD_SIZE, keySize.value)
+        setPreference(KEY_KEYBOARD_SIZE, keySize.factor)
     }
 
     override suspend fun getKeyboardSize(): Result<KeyboardSize> {
-        return getPreference(KEY_KEYBOARD_SIZE, KeyboardSize.MEDIUM.value)
+        return getPreference(KEY_KEYBOARD_SIZE, KeyboardSize.MEDIUM.factor)
             .mapCatching { (KeyboardSize from it) ?: KeyboardSize.MEDIUM }
     }
 

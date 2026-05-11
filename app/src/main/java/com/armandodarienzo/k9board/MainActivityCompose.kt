@@ -25,28 +25,13 @@ class MainActivityCompose : ComponentActivity() {
     }
 }
 
-//@Composable
-//fun Greeting(name: String) {
-//    Text(text = "Hello $name!")
-//}
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun DefaultPreview() {
-//    T9KeyboardTheme {
-//        Greeting("Android")
-//    }
-//}
-
 @Composable
 fun MyApp(content: @Composable () -> Unit) {
     T9KeyboardTheme (themePreference = THEME_MATERIAL_YOU) {
-        // A surface container using the 'background' color from the theme
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-//                    HomeScreen()
             content()
         }
     }

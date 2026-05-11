@@ -35,8 +35,8 @@ import com.armandodarienzo.k9board.keyboard.KeyboardViewModel
 import com.armandodarienzo.k9board.keyboard.ui.ComposeKeyboardView
 import com.armandodarienzo.k9board.shared.KEYBOARD_MIN_SIZE
 import com.armandodarienzo.k9board.shared.KEYBOARD_SIZE_FACTOR_WATCH
-import com.armandodarienzo.k9board.shared.model.KeyboardSize
-import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
+import com.armandodarienzo.k9board.model.KeyboardSize
+import com.armandodarienzo.k9board.model.SupportedLanguageTag
 import com.armandodarienzo.k9board.shared.repository.UserPreferencesRepositoryLocal
 import com.armandodarienzo.k9board.shared.repository.dataStore
 import dagger.hilt.android.AndroidEntryPoint
@@ -205,7 +205,7 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         val themeSet = repo.getTheme().getOrDefault("")
         val isManualDefault = repo.isStartWithManualEnabled().getOrNull() ?: false
         val doubleSpaceChar = repo.getDoubleSpaceCharacter().getOrNull()
-            ?: com.armandodarienzo.k9board.shared.model.DoubleSpaceCharacter.NONE
+            ?: com.armandodarienzo.k9board.model.DoubleSpaceCharacter.NONE
         val isAutoCaps = repo.isAutoCapsEnabled().getOrNull() ?: false
         val hapticFeedback = repo.isHapticFeedbackEnabled().getOrNull() ?: false
         val keyboardSizeFactor = if (packageManager.hasSystemFeature(PackageManager.FEATURE_WATCH)) {

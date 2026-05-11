@@ -23,14 +23,15 @@ import androidx.wear.compose.material.RadioButton
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
+import com.armandodarienzo.k9board.model.KeyboardSize
 import com.armandodarienzo.k9board.shared.R
-import com.armandodarienzo.k9board.shared.model.KeyboardSize
 import com.armandodarienzo.k9board.shared.model.RadioOption
+import com.armandodarienzo.k9board.shared.model.getLabelId
 
 val options = listOf(
-    RadioOption(KeyboardSize.SMALL, true),
-    RadioOption(KeyboardSize.MEDIUM, false),
-    RadioOption(KeyboardSize.LARGE, false)
+    RadioOption(KeyboardSize.SMALL, true, KeyboardSize.SMALL.getLabelId()),
+    RadioOption(KeyboardSize.MEDIUM, false, KeyboardSize.MEDIUM.getLabelId()),
+    RadioOption(KeyboardSize.LARGE, false, KeyboardSize.LARGE.getLabelId())
 )
 
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)

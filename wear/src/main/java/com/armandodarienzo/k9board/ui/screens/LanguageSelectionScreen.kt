@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,29 +42,28 @@ import androidx.wear.compose.material.RadioButton
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.armandodarienzo.k9board.model.SupportedLanguageTag
 import com.armandodarienzo.k9board.shared.model.DatabaseStatus
-import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
-import com.armandodarienzo.k9board.shared.packName
-import com.armandodarienzo.k9board.shared.viewmodel.LanguageViewModel
-import kotlinx.coroutines.flow.StateFlow
+import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionViewModel
+import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionViewModel.Action
 import com.armandodarienzo.k9board.shared.R.drawable as K9BOARD_DRAWABLES
 import java.util.Locale
 
 @Composable
 fun LanguageSelectionScreen(
     navController: NavController,
-    viewModel: LanguageViewModel = hiltViewModel()
+    viewModel: LanguageSelectionViewModel = hiltViewModel()
 ) {
-
-    val selectedOption by viewModel.languageState
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
     LanguagesScreenContent(
-        selectedOption = selectedOption,
-        databaseStatuses = viewModel.databaseStatus,
-        onSelected = { viewModel.setLanguage(it) },
-        onDownload = { viewModel.downloadLanguagePack(it) },
-        onCancel = { viewModel.cancelDownload(it) },
-        onRemove = { viewModel.cancelDownload(it) },
+        selectedOption = state.selectedLanguage,
+        downloadStatus = state.downloadStatus,
+        onSelected = { viewModel.processAction(Action.SelectLanguage(it)) },
+        onDownload = { viewModel.processAction(Action.Download(it)) },
+        onCancel = { viewModel.processAction(Action.CancelDownload(it)) },
+        onRemove = { viewModel.processAction(Action.RemoveLanguagePack(it)) },
     )
 }
 
@@ -88,14 +89,12 @@ fun LanguageListPreview() {
 @Composable
 fun LanguagesScreenContent(
     selectedOption: String,
-    databaseStatuses: Map<String, StateFlow<DatabaseStatus?>> = emptyMap(),
+    downloadStatus: Map<String, DatabaseStatus> = emptyMap(),
     onSelected: (String) -> Unit,
     onDownload: (String) -> Unit,
     onCancel: (String) -> Unit,
     onRemove: (String) -> Unit
 ){
-    val TAG = object {}::class.java.enclosingMethod?.name
-
     val languageTags = remember{ SupportedLanguageTag.entries.map{ it.value } }
     val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
     val screenHeight = LocalConfiguration.current.screenHeightDp
@@ -111,16 +110,9 @@ fun LanguagesScreenContent(
                 end = (screenHeight * 0.05).dp),
         ) {
             items(languageTags) { tag ->
-                val packName = packName(tag)
-
-                val databaseStatusStateFlow = databaseStatuses[tag]
-                val databaseStatusState by databaseStatusStateFlow?.collectAsState() ?: remember { mutableStateOf(null) }
-                val downloadState by remember(databaseStatusState) {
-                    derivedStateOf { databaseStatusState?.state }
-                }
-                val progress by remember(databaseStatusState) {
-                    derivedStateOf { databaseStatusState?.progress}
-                }
+                val status = downloadStatus[tag]
+                val downloadState = status?.state ?: DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED
+                val progress = status?.progress ?: 0F
 
                 Log.d("LanguageSelectionScreen", "progress is $progress")
 
@@ -139,8 +131,8 @@ fun LanguagesScreenContent(
                     LanguageRow(
                         tag = tag,
                         selectedOption = selectedOption,
-                        databaseStatus = downloadState ?: DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
-                        downloadProgress = progress ?: 0F,
+                        databaseStatus = downloadState,
+                        downloadProgress = progress,
                         onDownload = onDownload,
                         onSelected = onSelected,
                         onCancel = onCancel,

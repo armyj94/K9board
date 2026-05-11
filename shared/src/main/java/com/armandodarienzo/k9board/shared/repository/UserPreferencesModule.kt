@@ -25,7 +25,7 @@ abstract class UserPreferencesModule {
     @Singleton
     abstract fun bindUserPreferencesRepository(
         userPreferencesRepository: UserPreferencesRepositoryLocal
-    ): UserPreferencesRepository
+    ): com.armandodarienzo.k9board.repository.UserPreferencesRepository
 
     companion object {
 

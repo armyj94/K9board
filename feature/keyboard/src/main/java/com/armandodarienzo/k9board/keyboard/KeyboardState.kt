@@ -1,7 +1,7 @@
 package com.armandodarienzo.k9board.keyboard
 
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
-import com.armandodarienzo.k9board.shared.model.DoubleSpaceCharacter
+import com.armandodarienzo.k9board.model.DoubleSpaceCharacter
 
 data class KeyboardState(
     val capsStatus: KeyboardCapsStatus = KeyboardCapsStatus.UPPER_CASE,

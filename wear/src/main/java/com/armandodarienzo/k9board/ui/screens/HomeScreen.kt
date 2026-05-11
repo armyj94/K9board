@@ -39,7 +39,14 @@ import com.armandodarienzo.k9board.model.MainMenuItem
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
 import com.armandodarienzo.k9board.shared.ui.navigation.Screens
-import com.armandodarienzo.k9board.shared.viewmodel.HomeScreenViewModel
+import android.content.Context
+import android.view.inputmethod.InputMethodManager
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import com.armandodarienzo.k9board.settings_app.ui.base.rememberFlowWithLifecycle
+import com.armandodarienzo.k9board.settings_app.ui.screens.home.HomeScreenReducer
+import com.armandodarienzo.k9board.settings_app.ui.screens.home.HomeScreenViewModel
+import com.armandodarienzo.k9board.settings_app.ui.screens.home.HomeScreenViewModel.Action
 
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
@@ -93,6 +100,21 @@ fun HomeScreen(
     navController: NavController,
     viewModel: HomeScreenViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val effectFlow = rememberFlowWithLifecycle(viewModel.effect)
+
+    LaunchedEffect(effectFlow) {
+        effectFlow.collect { effect ->
+            when (effect) {
+                is HomeScreenReducer.Effect.LaunchActivity -> context.startActivity(effect.intent)
+                HomeScreenReducer.Effect.ShowImePicker -> {
+                    val imeManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    imeManager.showInputMethodPicker()
+                }
+            }
+        }
+    }
+
     val menuItems = listOf(
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_languages),
@@ -106,17 +128,13 @@ fun HomeScreen(
             name = stringResource(id = R.string.main_activity_enable_keyboard),
             optionKeyString = null,
             iconID = R.drawable.ic_keyboard_white_24dp,
-            onClick = {
-                viewModel.startEnableActivity()
-            }
+            onClick = { viewModel.processAction(Action.EnableKeyboard) }
         ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_change_keyboard),
             optionKeyString = null,
             iconID = R.drawable.ic_baseline_compare_arrows_18,
-            onClick = {
-                viewModel.changeKeyboard()
-            }
+            onClick = { viewModel.processAction(Action.ChangeKeyboard) }
         ),
 //        MainMenuItem(
 //            name = stringResource(id = R.string.main_activity_privacy_policy),

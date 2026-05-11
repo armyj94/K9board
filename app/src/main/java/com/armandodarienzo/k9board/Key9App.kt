@@ -5,7 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import com.armandodarienzo.k9board.shared.DATABASE_ASSETS_PATH
 import com.armandodarienzo.k9board.shared.getDatabaseName
-import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
+import com.armandodarienzo.k9board.model.SupportedLanguageTag
 
 import dagger.hilt.android.HiltAndroidApp
 import java.io.File

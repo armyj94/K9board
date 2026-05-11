@@ -1,6 +1,6 @@
 package com.armandodarienzo.k9board.keyboard
 
-import com.armandodarienzo.k9board.shared.model.DoubleSpaceCharacter
+import com.armandodarienzo.k9board.model.DoubleSpaceCharacter
 
 sealed class KeyboardIntent {
     // User key presses — ViewModel has text context from the last lifecycle event
