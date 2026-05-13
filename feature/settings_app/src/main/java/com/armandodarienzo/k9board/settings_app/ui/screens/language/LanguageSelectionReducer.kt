@@ -2,7 +2,7 @@ package com.armandodarienzo.k9board.settings_app.ui.screens.language
 
 import androidx.compose.runtime.Immutable
 import com.armandodarienzo.k9board.shared.model.DatabaseStatus
-import com.armandodarienzo.k9board.settings_app.ui.base.Reducer
+import com.armandodarienzo.k9board.shared.ui.base.Reducer
 
 class LanguageSelectionReducer :
     Reducer<LanguageSelectionReducer.LanguageSelectionState, LanguageSelectionReducer.Event, LanguageSelectionReducer.Effect> {

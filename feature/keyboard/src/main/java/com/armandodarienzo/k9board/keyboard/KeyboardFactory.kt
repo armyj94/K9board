@@ -9,6 +9,6 @@ interface KeyboardFactory {
     @Composable
     fun createKeyboard(
         state: KeyboardState,
-        onIntent: (KeyboardIntent) -> Unit,
+        onAction: (KeyboardAction) -> Unit,
     )
 }

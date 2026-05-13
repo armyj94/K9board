@@ -1,4 +1,4 @@
-package com.armandodarienzo.k9board.settings_app.ui.base
+package com.armandodarienzo.k9board.shared.ui.base
 
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow

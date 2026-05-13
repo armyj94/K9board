@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.*
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.Icon
 import androidx.wear.tooling.preview.devices.WearDevices
-import com.armandodarienzo.k9board.keyboard.KeyboardIntent
+import com.armandodarienzo.k9board.keyboard.KeyboardAction
 import com.armandodarienzo.k9board.keyboard.KeyboardState
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.KeyboardCurrentView
@@ -31,7 +31,7 @@ private fun SmallRound() {
         CustomKeyboard(
             Modifier.align(Alignment.BottomCenter),
             state = KeyboardState(backgroundColorId = android.R.color.system_accent1_50, languageSet = "us-US", keyboardSize = 134),
-            onIntent = {},
+            onAction = {},
         )
     }
 }
@@ -44,7 +44,7 @@ private fun Square() {
         CustomKeyboard(
             Modifier.align(Alignment.BottomCenter),
             state = KeyboardState(backgroundColorId = android.R.color.system_accent1_50, languageSet = "us-US", keyboardSize = 140),
-            onIntent = {},
+            onAction = {},
         )
     }
 }
@@ -57,7 +57,7 @@ private fun CyrillicSmall() {
         CustomKeyboard(
             Modifier.align(Alignment.BottomCenter),
             state = KeyboardState(backgroundColorId = android.R.color.system_accent1_50, languageSet = "ru-RU", keyboardSize = 140),
-            onIntent = {},
+            onAction = {},
         )
     }
 }
@@ -70,7 +70,7 @@ private fun LargeRound() {
         CustomKeyboard(
             Modifier.align(Alignment.BottomCenter),
             state = KeyboardState(backgroundColorId = android.R.color.system_accent1_50, languageSet = "us-US", keyboardSize = 158),
-            onIntent = {},
+            onAction = {},
         )
     }
 }
@@ -81,7 +81,7 @@ private fun LargeRound() {
 fun CustomKeyboard(
     modifier: Modifier = Modifier,
     state: KeyboardState,
-    onIntent: (KeyboardIntent) -> Unit,
+    onAction: (KeyboardAction) -> Unit,
 ) {
     val caps = state.capsStatus
     val isManual = state.isManual
@@ -103,8 +103,8 @@ fun CustomKeyboard(
         EditorInfo.IME_ACTION_SEND,
         EditorInfo.IME_ACTION_SEARCH,
         EditorInfo.IME_ACTION_NEXT,
-        EditorInfo.IME_ACTION_GO -> { { onIntent(KeyboardIntent.ImeActionPressed) } }
-        else -> { { onIntent(KeyboardIntent.NewLinePressed) } }
+        EditorInfo.IME_ACTION_GO -> { { onAction(KeyboardAction.ImeActionPressed) } }
+        else -> { { onAction(KeyboardAction.NewLinePressed) } }
     }
 
     Box(
@@ -135,7 +135,7 @@ fun CustomKeyboard(
                                 modifier = Modifier.weight(1f).clickable {
                                     when (keyboardView.value) {
                                         KeyboardCurrentView.NUMPAD_VIEW -> {
-                                            onIntent(KeyboardIntent.ExitManualMode)
+                                            onAction(KeyboardAction.ExitManualMode)
                                             keyboardView.value = KeyboardCurrentView.TEXT_VIEW
                                         }
                                         KeyboardCurrentView.SYMBOLS_VIEW ->
@@ -156,7 +156,7 @@ fun CustomKeyboard(
                                     modifier = Modifier.weight(1f).clickable {
                                         val nowMs = System.currentTimeMillis()
                                         if (caps == KeyboardCapsStatus.LOWER_CASE) shiftKeyTimer = nowMs
-                                        onIntent(KeyboardIntent.ShiftToggled(shiftKeyTimer, nowMs))
+                                        onAction(KeyboardAction.ShiftToggled(shiftKeyTimer, nowMs))
                                     },
                                     text = "shift",
                                     iconID = when (caps) {
@@ -168,8 +168,8 @@ fun CustomKeyboard(
                             } else {
                                 KeyboardKey(
                                     modifier = Modifier.weight(1f).combinedClickable(
-                                        onClick = { onIntent(KeyboardIntent.SpacePressed) },
-                                        onDoubleClick = { onIntent(KeyboardIntent.DoubleSpacePressed) }
+                                        onClick = { onAction(KeyboardAction.SpacePressed) },
+                                        onDoubleClick = { onAction(KeyboardAction.DoubleSpacePressed) }
                                     ),
                                     text = "⎵",
                                 )
@@ -195,12 +195,12 @@ fun CustomKeyboard(
                                     isCaps = caps,
                                     isManual = isManual,
                                     keyboardCurrentView = keyboardView,
-                                    onIntent = onIntent,
+                                    onAction = onAction,
                                 )
                             KeyboardCurrentView.NUMPAD_VIEW ->
-                                Numpad(this, keyboardSize = keyboardSize, onIntent = onIntent)
+                                Numpad(this, keyboardSize = keyboardSize, onAction = onAction)
                             KeyboardCurrentView.SYMBOLS_VIEW ->
-                                Symbolspad(this, keyboardSize = keyboardSize, keyboardCurrentView = keyboardView, onIntent = onIntent)
+                                Symbolspad(this, keyboardSize = keyboardSize, keyboardCurrentView = keyboardView, onAction = onAction)
                             else -> {}
                         }
                     }
@@ -228,7 +228,7 @@ fun CustomKeyboard(
                                 id = KEYDELETE_ID,
                                 text = "canc",
                                 iconID = R.drawable.ic_backspace_white_18dp,
-                                isRepeatableAction = { onIntent(KeyboardIntent.DeletePressed) }
+                                isRepeatableAction = { onAction(KeyboardAction.DeletePressed) }
                             )
                         }
                         Row(
@@ -239,7 +239,7 @@ fun CustomKeyboard(
                 }
             }
         } else {
-            EmojiPicker(onIntent)
+            EmojiPicker(onAction)
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -257,7 +257,7 @@ fun CustomKeyboard(
                     }
                     Button(
                         modifier = Modifier.size(40.dp),
-                        onClick = { onIntent(KeyboardIntent.DeletePressed) }
+                        onClick = { onAction(KeyboardAction.DeletePressed) }
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_backspace_white_18dp),

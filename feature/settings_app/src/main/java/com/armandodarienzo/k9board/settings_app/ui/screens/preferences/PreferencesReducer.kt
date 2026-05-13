@@ -3,7 +3,7 @@ package com.armandodarienzo.k9board.settings_app.ui.screens.preferences
 import androidx.compose.runtime.Immutable
 import com.armandodarienzo.k9board.model.DoubleSpaceCharacter
 import com.armandodarienzo.k9board.model.KeyboardSize
-import com.armandodarienzo.k9board.settings_app.ui.base.Reducer
+import com.armandodarienzo.k9board.shared.ui.base.Reducer
 
 class PreferencesReducer :
     Reducer<PreferencesReducer.PreferencesState, PreferencesReducer.Event, PreferencesReducer.Effect> {

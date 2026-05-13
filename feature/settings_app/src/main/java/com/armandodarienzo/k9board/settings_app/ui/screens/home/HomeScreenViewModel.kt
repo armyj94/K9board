@@ -5,10 +5,10 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.armandodarienzo.k9board.settings_app.ui.base.EffectDelegate
-import com.armandodarienzo.k9board.settings_app.ui.base.MviProcessor
-import com.armandodarienzo.k9board.settings_app.ui.base.MviStoreDelegate
-import com.armandodarienzo.k9board.settings_app.ui.base.StandardEffectDelegate
+import com.armandodarienzo.k9board.shared.ui.base.EffectDelegate
+import com.armandodarienzo.k9board.shared.ui.base.MviProcessor
+import com.armandodarienzo.k9board.shared.ui.base.MviStoreDelegate
+import com.armandodarienzo.k9board.shared.ui.base.StandardEffectDelegate
 import com.armandodarienzo.k9board.shared.ui.navigation.Screens
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext

@@ -1,4 +1,4 @@
-package com.armandodarienzo.k9board.settings_app.ui.base
+package com.armandodarienzo.k9board.shared.ui.base
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +12,7 @@ class MviStoreDelegate<State : Reducer.ViewState, Event : Reducer.ViewEvent, Eff
     private val initialState: State,
     private val scope: CoroutineScope,
     private val reducer: Reducer<State, Event, Effect>,
-    private val effectDelegate: StandardEffectDelegate<Effect>,
+    private val effectDelegate: EffectDelegate<Effect>,
     private val initialDataLoad: (suspend () -> Unit)? = null
 ) : MviStore<State, Event> {
 

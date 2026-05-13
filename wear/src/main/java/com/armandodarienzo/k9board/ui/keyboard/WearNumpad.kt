@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastJoinToString
-import com.armandodarienzo.k9board.keyboard.KeyboardIntent
+import com.armandodarienzo.k9board.keyboard.KeyboardAction
 import com.armandodarienzo.k9board.shared.KEY10_ID
 import com.armandodarienzo.k9board.shared.NumpadKey10SpecialChars
 import com.armandodarienzo.k9board.shared.model.KeyPopupProperties
@@ -37,7 +37,7 @@ fun NumpadPreview() {
 fun Numpad(
     columnScope: ColumnScope,
     keyboardSize: Int,
-    onIntent: (KeyboardIntent) -> Unit = {},
+    onAction: (KeyboardAction) -> Unit = {},
 ) {
     val key10_text = remember { NumpadKey10SpecialChars.VALUES.fastJoinToString("") }
 
@@ -46,27 +46,27 @@ fun Numpad(
             modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("1")) }, text = "1")
-            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("2")) }, text = "2")
-            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("3")) }, text = "3")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onAction(KeyboardAction.WriteSpecificChar("1")) }, text = "1")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onAction(KeyboardAction.WriteSpecificChar("2")) }, text = "2")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onAction(KeyboardAction.WriteSpecificChar("3")) }, text = "3")
         }
 
         Row(
             modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("4")) }, text = "4")
-            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("5")) }, text = "5")
-            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("6")) }, text = "6")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onAction(KeyboardAction.WriteSpecificChar("4")) }, text = "4")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onAction(KeyboardAction.WriteSpecificChar("5")) }, text = "5")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onAction(KeyboardAction.WriteSpecificChar("6")) }, text = "6")
         }
 
         Row(
             modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("7")) }, text = "7")
-            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("8")) }, text = "8")
-            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("9")) }, text = "9")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onAction(KeyboardAction.WriteSpecificChar("7")) }, text = "7")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onAction(KeyboardAction.WriteSpecificChar("8")) }, text = "8")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onAction(KeyboardAction.WriteSpecificChar("9")) }, text = "9")
         }
 
         Row(
@@ -80,18 +80,18 @@ fun Numpad(
                 keyboardHeight = keyboardSize,
                 keyPopupProperties = KeyPopupProperties(
                     alignment = Alignment.TopEnd,
-                    onIdSelected = { onIntent(KeyboardIntent.WriteSpecificChar(it)) }
+                    onIdSelected = { onAction(KeyboardAction.WriteSpecificChar(it)) }
                 ),
-                onKeyClick = { onIntent(KeyboardIntent.WriteSpecificChar(it.last().toChar().toString())) },
+                onKeyClick = { onAction(KeyboardAction.WriteSpecificChar(it.last().toChar().toString())) },
             )
             KeyboardKey(
                 modifier = Modifier.weight(1f).combinedClickable(
-                    onClick = { onIntent(KeyboardIntent.SpacePressed) },
-                    onDoubleClick = { onIntent(KeyboardIntent.DoubleSpacePressed) }
+                    onClick = { onAction(KeyboardAction.SpacePressed) },
+                    onDoubleClick = { onAction(KeyboardAction.DoubleSpacePressed) }
                 ),
                 text = "⎵",
             )
-            KeyboardKey(modifier = Modifier.weight(1f).clickable { onIntent(KeyboardIntent.WriteSpecificChar("0")) }, text = "0")
+            KeyboardKey(modifier = Modifier.weight(1f).clickable { onAction(KeyboardAction.WriteSpecificChar("0")) }, text = "0")
         }
     }
 }

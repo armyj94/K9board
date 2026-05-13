@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
-import com.armandodarienzo.k9board.keyboard.KeyboardIntent
+import com.armandodarienzo.k9board.keyboard.KeyboardAction
 import com.armandodarienzo.k9board.keyboard.KeyboardState
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.KeyboardCurrentView
@@ -32,7 +32,7 @@ import java.util.Locale
 fun CustomKeyboardPreview() {
     CustomKeyboard(
         state = KeyboardState(backgroundColorId = android.R.color.system_accent1_50, languageSet = "us-US", keyboardSize = 280),
-        onIntent = {},
+        onAction = {},
     )
 }
 
@@ -42,7 +42,7 @@ fun CustomKeyboardPreview() {
 fun CustomKeyboard(
     modifier: Modifier = Modifier,
     state: KeyboardState,
-    onIntent: (KeyboardIntent) -> Unit,
+    onAction: (KeyboardAction) -> Unit,
 ) {
     val backgroundColor: Color = colorResource(state.backgroundColorId.takeIf { it != 0 } ?: android.R.color.system_neutral2_50)
     var reverseLayout by remember { mutableStateOf(false) }
@@ -60,8 +60,8 @@ fun CustomKeyboard(
         EditorInfo.IME_ACTION_SEND,
         EditorInfo.IME_ACTION_SEARCH,
         EditorInfo.IME_ACTION_NEXT,
-        EditorInfo.IME_ACTION_GO -> { { onIntent(KeyboardIntent.ImeActionPressed) } }
-        else -> { { onIntent(KeyboardIntent.NewLinePressed) } }
+        EditorInfo.IME_ACTION_GO -> { { onAction(KeyboardAction.ImeActionPressed) } }
+        else -> { { onAction(KeyboardAction.NewLinePressed) } }
     }
 
     val caps = state.capsStatus
@@ -102,64 +102,64 @@ fun CustomKeyboard(
                                 onClick = {
                                     val codes = codifyChars(if (caps == KeyboardCapsStatus.LOWER_CASE) KEY1_TEXT else KEY1_TEXT.uppercase(Locale.ROOT))
                                         .also { ASCII_CODE_1.let { n -> it.add(n) } }.toIntArray()
-                                    if (isManual) onIntent(KeyboardIntent.ManualKeyPressed(codes, KEY1_ID))
-                                    else onIntent(KeyboardIntent.T9KeyPressed(codes.last()))
+                                    if (isManual) onAction(KeyboardAction.ManualKeyPressed(codes, KEY1_ID))
+                                    else onAction(KeyboardAction.T9KeyPressed(codes.last()))
                                 },
                                 onLongClick = {
                                     keyboardView.value = KeyboardCurrentView.SYMBOLS_VIEW
-                                    onIntent(KeyboardIntent.EnterManualMode)
+                                    onAction(KeyboardAction.EnterManualMode)
                                 }
                             ),
                             text = KEY1_TEXT,
                         )
                         KeyboardTextKey(id = KEY2_ID, modifier = Modifier.weight(1f), text = key2text, capsStatus = caps, isManual = isManual, numberASCIIcode = ASCII_CODE_2, keyboardHeight = keyboardSize,
-                            keyPopupProperties = KeyPopupProperties(Key2SpecialChars.VALUES, Alignment.BottomCenter, onIdSelected = { onIntent(KeyboardIntent.WriteSpecificChar(it)) }),
-                            onKeyClick = { onIntent(KeyboardIntent.T9KeyPressed(it.last())) },
-                            onManualKeyClick = { codes, id -> onIntent(KeyboardIntent.ManualKeyPressed(codes, id)) })
+                            keyPopupProperties = KeyPopupProperties(Key2SpecialChars.VALUES, Alignment.BottomCenter, onIdSelected = { onAction(KeyboardAction.WriteSpecificChar(it)) }),
+                            onKeyClick = { onAction(KeyboardAction.T9KeyPressed(it.last())) },
+                            onManualKeyClick = { codes, id -> onAction(KeyboardAction.ManualKeyPressed(codes, id)) })
                         KeyboardTextKey(id = KEY3_ID, modifier = Modifier.weight(1f), text = key3text, capsStatus = caps, isManual = isManual, numberASCIIcode = ASCII_CODE_3, keyboardHeight = keyboardSize,
-                            keyPopupProperties = KeyPopupProperties(Key3SpecialChars.VALUES, Alignment.BottomStart, onIdSelected = { onIntent(KeyboardIntent.WriteSpecificChar(it)) }),
-                            onKeyClick = { onIntent(KeyboardIntent.T9KeyPressed(it.last())) },
-                            onManualKeyClick = { codes, id -> onIntent(KeyboardIntent.ManualKeyPressed(codes, id)) })
+                            keyPopupProperties = KeyPopupProperties(Key3SpecialChars.VALUES, Alignment.BottomStart, onIdSelected = { onAction(KeyboardAction.WriteSpecificChar(it)) }),
+                            onKeyClick = { onAction(KeyboardAction.T9KeyPressed(it.last())) },
+                            onManualKeyClick = { codes, id -> onAction(KeyboardAction.ManualKeyPressed(codes, id)) })
                     }
 
                     Row(modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         KeyboardTextKey(id = KEY4_ID, modifier = Modifier.weight(1f), text = key4text, capsStatus = caps, isManual = isManual, numberASCIIcode = ASCII_CODE_4, keyboardHeight = keyboardSize,
-                            keyPopupProperties = KeyPopupProperties(Key4SpecialChars.VALUES, Alignment.CenterEnd, onIdSelected = { onIntent(KeyboardIntent.WriteSpecificChar(it)) }),
-                            onKeyClick = { onIntent(KeyboardIntent.T9KeyPressed(it.last())) },
-                            onManualKeyClick = { codes, id -> onIntent(KeyboardIntent.ManualKeyPressed(codes, id)) })
+                            keyPopupProperties = KeyPopupProperties(Key4SpecialChars.VALUES, Alignment.CenterEnd, onIdSelected = { onAction(KeyboardAction.WriteSpecificChar(it)) }),
+                            onKeyClick = { onAction(KeyboardAction.T9KeyPressed(it.last())) },
+                            onManualKeyClick = { codes, id -> onAction(KeyboardAction.ManualKeyPressed(codes, id)) })
                         KeyboardTextKey(id = KEY5_ID, modifier = Modifier.weight(1f), text = key5text, capsStatus = caps, isManual = isManual, numberASCIIcode = ASCII_CODE_5, keyboardHeight = keyboardSize,
-                            keyPopupProperties = KeyPopupProperties(Key5SpecialChars.VALUES, Alignment.Center, onIdSelected = { onIntent(KeyboardIntent.WriteSpecificChar(it)) }),
-                            onKeyClick = { onIntent(KeyboardIntent.T9KeyPressed(it.last())) },
-                            onManualKeyClick = { codes, id -> onIntent(KeyboardIntent.ManualKeyPressed(codes, id)) })
+                            keyPopupProperties = KeyPopupProperties(Key5SpecialChars.VALUES, Alignment.Center, onIdSelected = { onAction(KeyboardAction.WriteSpecificChar(it)) }),
+                            onKeyClick = { onAction(KeyboardAction.T9KeyPressed(it.last())) },
+                            onManualKeyClick = { codes, id -> onAction(KeyboardAction.ManualKeyPressed(codes, id)) })
                         KeyboardTextKey(id = KEY6_ID, modifier = Modifier.weight(1f), text = key6text, capsStatus = caps, isManual = isManual, numberASCIIcode = ASCII_CODE_6, keyboardHeight = keyboardSize,
-                            keyPopupProperties = KeyPopupProperties(Key6SpecialChars.VALUES, Alignment.CenterStart, onIdSelected = { onIntent(KeyboardIntent.WriteSpecificChar(it)) }),
-                            onKeyClick = { onIntent(KeyboardIntent.T9KeyPressed(it.last())) },
-                            onManualKeyClick = { codes, id -> onIntent(KeyboardIntent.ManualKeyPressed(codes, id)) })
+                            keyPopupProperties = KeyPopupProperties(Key6SpecialChars.VALUES, Alignment.CenterStart, onIdSelected = { onAction(KeyboardAction.WriteSpecificChar(it)) }),
+                            onKeyClick = { onAction(KeyboardAction.T9KeyPressed(it.last())) },
+                            onManualKeyClick = { codes, id -> onAction(KeyboardAction.ManualKeyPressed(codes, id)) })
                     }
 
                     Row(modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         KeyboardTextKey(id = KEY7_ID, modifier = Modifier.weight(1f), text = key7text, capsStatus = caps, isManual = isManual, numberASCIIcode = ASCII_CODE_7, keyboardHeight = keyboardSize,
-                            keyPopupProperties = KeyPopupProperties(Key7SpecialChars.VALUES, Alignment.TopEnd, onIdSelected = { onIntent(KeyboardIntent.WriteSpecificChar(it)) }),
-                            onKeyClick = { onIntent(KeyboardIntent.T9KeyPressed(it.last())) },
-                            onManualKeyClick = { codes, id -> onIntent(KeyboardIntent.ManualKeyPressed(codes, id)) })
+                            keyPopupProperties = KeyPopupProperties(Key7SpecialChars.VALUES, Alignment.TopEnd, onIdSelected = { onAction(KeyboardAction.WriteSpecificChar(it)) }),
+                            onKeyClick = { onAction(KeyboardAction.T9KeyPressed(it.last())) },
+                            onManualKeyClick = { codes, id -> onAction(KeyboardAction.ManualKeyPressed(codes, id)) })
                         KeyboardTextKey(id = KEY8_ID, modifier = Modifier.weight(1f), text = key8text, capsStatus = caps, isManual = isManual, numberASCIIcode = ASCII_CODE_8, keyboardHeight = keyboardSize,
-                            keyPopupProperties = KeyPopupProperties(Key8SpecialChars.VALUES, Alignment.TopCenter, onIdSelected = { onIntent(KeyboardIntent.WriteSpecificChar(it)) }),
-                            onKeyClick = { onIntent(KeyboardIntent.T9KeyPressed(it.last())) },
-                            onManualKeyClick = { codes, id -> onIntent(KeyboardIntent.ManualKeyPressed(codes, id)) })
+                            keyPopupProperties = KeyPopupProperties(Key8SpecialChars.VALUES, Alignment.TopCenter, onIdSelected = { onAction(KeyboardAction.WriteSpecificChar(it)) }),
+                            onKeyClick = { onAction(KeyboardAction.T9KeyPressed(it.last())) },
+                            onManualKeyClick = { codes, id -> onAction(KeyboardAction.ManualKeyPressed(codes, id)) })
                         KeyboardTextKey(id = KEY9_ID, modifier = Modifier.weight(1f), text = key9text, capsStatus = caps, isManual = isManual, numberASCIIcode = ASCII_CODE_9, keyboardHeight = keyboardSize,
-                            keyPopupProperties = KeyPopupProperties(Key9SpecialChars.VALUES, Alignment.TopStart, onIdSelected = { onIntent(KeyboardIntent.WriteSpecificChar(it)) }),
-                            onKeyClick = { onIntent(KeyboardIntent.T9KeyPressed(it.last())) },
-                            onManualKeyClick = { codes, id -> onIntent(KeyboardIntent.ManualKeyPressed(codes, id)) })
+                            keyPopupProperties = KeyPopupProperties(Key9SpecialChars.VALUES, Alignment.TopStart, onIdSelected = { onAction(KeyboardAction.WriteSpecificChar(it)) }),
+                            onKeyClick = { onAction(KeyboardAction.T9KeyPressed(it.last())) },
+                            onManualKeyClick = { codes, id -> onAction(KeyboardAction.ManualKeyPressed(codes, id)) })
                     }
 
                     Row(modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         KeyboardKey(
                             modifier = Modifier.weight(1f).combinedClickable(
                                 onClick = {
-                                    if (isManual) onIntent(KeyboardIntent.ExitManualMode)
-                                    else onIntent(KeyboardIntent.SwapWord)
+                                    if (isManual) onAction(KeyboardAction.ExitManualMode)
+                                    else onAction(KeyboardAction.SwapWord)
                                 },
-                                onLongClick = { onIntent(KeyboardIntent.EnterManualMode) }
+                                onLongClick = { onAction(KeyboardAction.EnterManualMode) }
                             ),
                             text = "sync",
                             iconID = if (isManual) R.drawable.ic_baseline_edit_note_24 else R.drawable.ic_sync_white_12dp,
@@ -167,8 +167,8 @@ fun CustomKeyboard(
                         )
                         KeyboardKey(
                             modifier = Modifier.weight(1f).combinedClickable(
-                                onClick = { onIntent(KeyboardIntent.SpacePressed) },
-                                onDoubleClick = { onIntent(KeyboardIntent.DoubleSpacePressed) }
+                                onClick = { onAction(KeyboardAction.SpacePressed) },
+                                onDoubleClick = { onAction(KeyboardAction.DoubleSpacePressed) }
                             ),
                             text = "⎵",
                         )
@@ -176,7 +176,7 @@ fun CustomKeyboard(
                             modifier = Modifier.weight(1f).clickable {
                                 val nowMs = System.currentTimeMillis()
                                 if (caps == KeyboardCapsStatus.LOWER_CASE) shiftKeyTimer = nowMs
-                                onIntent(KeyboardIntent.ShiftToggled(shiftKeyTimer, nowMs))
+                                onAction(KeyboardAction.ShiftToggled(shiftKeyTimer, nowMs))
                             },
                             text = "shift",
                             iconID = when (caps) {
@@ -190,13 +190,13 @@ fun CustomKeyboard(
                 } else if (keyboardView.value == KeyboardCurrentView.EMOJI_VIEW) {
                     Row(modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(4f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth().fillMaxHeight().then(modifier)) {
-                            EmojiPicker(onIntent)
+                            EmojiPicker(onAction)
                         }
                     }
                 } else if (keyboardView.value == KeyboardCurrentView.NUMPAD_VIEW) {
-                    Numpad(this, keyboardSize = keyboardSize, onIntent = onIntent)
+                    Numpad(this, keyboardSize = keyboardSize, onAction = onAction)
                 } else if (keyboardView.value == KeyboardCurrentView.SYMBOLS_VIEW) {
-                    Symbolspad(this, keyboardSize = keyboardSize, keyboardCurrentView = keyboardView, onIntent = onIntent)
+                    Symbolspad(this, keyboardSize = keyboardSize, keyboardCurrentView = keyboardView, onAction = onAction)
                 }
             }
 
@@ -217,7 +217,7 @@ fun CustomKeyboard(
                         text = "canc",
                         iconID = R.drawable.ic_backspace_white_18dp,
                         color = MaterialTheme.colorScheme.secondaryContainer,
-                        isRepeatableAction = { onIntent(KeyboardIntent.DeletePressed) }
+                        isRepeatableAction = { onAction(KeyboardAction.DeletePressed) }
                     )
                 }
                 Row(modifier = Modifier.padding(start = 2.dp, end = 2.dp).weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -226,11 +226,11 @@ fun CustomKeyboard(
                         color = MaterialTheme.colorScheme.secondaryContainer,
                         modifier = Modifier.weight(1f).clickable {
                             if (keyboardView.value == KeyboardCurrentView.NUMPAD_VIEW) {
-                                onIntent(KeyboardIntent.ExitManualMode)
+                                onAction(KeyboardAction.ExitManualMode)
                                 keyboardView.value = KeyboardCurrentView.TEXT_VIEW
                             } else {
                                 keyboardView.value = KeyboardCurrentView.NUMPAD_VIEW
-                                onIntent(KeyboardIntent.EnterManualMode)
+                                onAction(KeyboardAction.EnterManualMode)
                             }
                         }
                     )

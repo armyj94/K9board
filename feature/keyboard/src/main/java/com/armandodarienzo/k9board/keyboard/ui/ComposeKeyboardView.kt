@@ -22,7 +22,7 @@ class ComposeKeyboardView(
         T9KeyboardTheme(themePreference = state.themeSet) {
             keyboardFactory.createKeyboard(
                 state = state,
-                onIntent = viewModel::processIntent,
+                onAction = viewModel::processAction,
             )
         }
     }

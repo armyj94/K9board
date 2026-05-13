@@ -28,8 +28,8 @@ import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.armandodarienzo.k9board.keyboard.KeyboardAction
 import com.armandodarienzo.k9board.keyboard.KeyboardEffect
-import com.armandodarienzo.k9board.keyboard.KeyboardIntent
 import com.armandodarienzo.k9board.keyboard.KeyboardFactory
 import com.armandodarienzo.k9board.keyboard.KeyboardViewModel
 import com.armandodarienzo.k9board.keyboard.ui.ComposeKeyboardView
@@ -67,7 +67,7 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         savedStateRegistryController.performRestore(null)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
         lifecycleScope.launch {
-            keyboardViewModel.effects.collect { executeEffect(it) }
+            keyboardViewModel.effect.collect { executeEffect(it) }
         }
     }
 
@@ -109,8 +109,8 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         val textAfter = (currentInputConnection?.getTextAfterCursor(5000, 0) ?: "").toString()
         val selectedText = (currentInputConnection?.getSelectedText(0) ?: "").toString()
 
-        keyboardViewModel.processIntent(
-            KeyboardIntent.InputStarted(
+        keyboardViewModel.processAction(
+            KeyboardAction.InputStarted(
                 textBefore = textBefore,
                 textAfter = textAfter,
                 selectedText = selectedText,
@@ -128,7 +128,7 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         val textBefore = (currentInputConnection?.getTextBeforeCursor(5000, 0) ?: "").toString()
         val textAfter = (currentInputConnection?.getTextAfterCursor(5000, 0) ?: "").toString()
         val selectedText = (currentInputConnection?.getSelectedText(0) ?: "").toString()
-        keyboardViewModel.processIntent(KeyboardIntent.InputFinished(textBefore, textAfter, selectedText))
+        keyboardViewModel.processAction(KeyboardAction.InputFinished(textBefore, textAfter, selectedText))
     }
 
     override fun onWindowShown() {
@@ -150,8 +150,8 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
             val textBefore = (currentInputConnection?.getTextBeforeCursor(5000, 0) ?: "").toString()
             val textAfter = (currentInputConnection?.getTextAfterCursor(5000, 0) ?: "").toString()
             val selectedText = (currentInputConnection?.getSelectedText(0) ?: "").toString()
-            keyboardViewModel.processIntent(
-                KeyboardIntent.SelectionUpdated(
+            keyboardViewModel.processAction(
+                KeyboardAction.SelectionUpdated(
                     textBefore = textBefore,
                     textAfter = textAfter,
                     selectedText = selectedText,
@@ -220,8 +220,8 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
             maxOf(KEYBOARD_MIN_SIZE, (screenHeightDp * keyboardSizeFactor).toInt())
         }
 
-        keyboardViewModel.processIntent(
-            KeyboardIntent.PreferencesLoaded(
+        keyboardViewModel.processAction(
+            KeyboardAction.PreferencesLoaded(
                 languageSet = languageSet,
                 themeSet = themeSet,
                 keyboardSize = keyboardSize,
@@ -252,6 +252,10 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
             }
             is KeyboardEffect.PerformEditorAction ->
                 currentInputConnection?.performEditorAction(effect.actionId)
+            is KeyboardEffect.FinishComposingAndStart -> {
+                currentInputConnection?.finishComposingText()
+                currentInputConnection?.setComposingText(effect.text, 1)
+            }
         }
     }
 }

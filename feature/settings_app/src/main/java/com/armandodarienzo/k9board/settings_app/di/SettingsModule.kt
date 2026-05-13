@@ -4,7 +4,7 @@ import com.armandodarienzo.k9board.repository.UserPreferencesRepository
 import com.armandodarienzo.k9board.settings_app.ui.screens.home.HomeScreenReducer
 import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionReducer
 import com.armandodarienzo.k9board.settings_app.ui.screens.preferences.PreferencesReducer
-import com.armandodarienzo.k9board.settings_app.ui.base.StandardEffectDelegate
+import com.armandodarienzo.k9board.shared.ui.base.StandardEffectDelegate
 import com.armandodarienzo.k9board.usecase.settings.GetDoubleSpaceCharUseCase
 import com.armandodarienzo.k9board.usecase.settings.GetKeyboardSizeUseCase
 import com.armandodarienzo.k9board.usecase.settings.GetLanguageUseCase

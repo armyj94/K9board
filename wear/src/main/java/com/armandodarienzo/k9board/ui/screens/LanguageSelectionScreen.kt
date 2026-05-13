@@ -46,7 +46,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.armandodarienzo.k9board.model.SupportedLanguageTag
 import com.armandodarienzo.k9board.shared.model.DatabaseStatus
-import com.armandodarienzo.k9board.settings_app.ui.base.rememberFlowWithLifecycle
+import com.armandodarienzo.k9board.shared.ui.base.rememberFlowWithLifecycle
 import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionReducer
 import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionReducer.LanguageSelectionState
 import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionViewModel

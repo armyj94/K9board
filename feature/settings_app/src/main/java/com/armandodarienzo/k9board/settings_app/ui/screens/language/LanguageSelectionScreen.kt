@@ -44,7 +44,7 @@ import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.model.DatabaseStatus
 import com.armandodarienzo.k9board.shared.ui.elements.AppBarIcon
 import com.armandodarienzo.k9board.shared.ui.elements.K9BoardTopAppBar
-import com.armandodarienzo.k9board.settings_app.ui.base.rememberFlowWithLifecycle
+import com.armandodarienzo.k9board.shared.ui.base.rememberFlowWithLifecycle
 import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionReducer.LanguageSelectionState
 import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionViewModel.Action
 import java.util.Locale

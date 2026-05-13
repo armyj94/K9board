@@ -37,7 +37,7 @@ import android.content.Context
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
-import com.armandodarienzo.k9board.settings_app.ui.base.rememberFlowWithLifecycle
+import com.armandodarienzo.k9board.shared.ui.base.rememberFlowWithLifecycle
 import com.armandodarienzo.k9board.settings_app.ui.screens.home.HomeScreenReducer
 import com.armandodarienzo.k9board.settings_app.ui.screens.home.HomeScreenViewModel
 import com.armandodarienzo.k9board.settings_app.ui.screens.home.HomeScreenViewModel.Action

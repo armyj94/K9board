@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.armandodarienzo.k9board.model.DoubleSpaceCharacter
 import com.armandodarienzo.k9board.model.KeyboardSize
-import com.armandodarienzo.k9board.settings_app.ui.base.MviProcessor
-import com.armandodarienzo.k9board.settings_app.ui.base.MviStoreDelegate
-import com.armandodarienzo.k9board.settings_app.ui.base.StandardEffectDelegate
+import com.armandodarienzo.k9board.shared.ui.base.MviProcessor
+import com.armandodarienzo.k9board.shared.ui.base.MviStoreDelegate
+import com.armandodarienzo.k9board.shared.ui.base.StandardEffectDelegate
 import com.armandodarienzo.k9board.usecase.base.UseCaseResult
 import com.armandodarienzo.k9board.usecase.settings.GetDoubleSpaceCharUseCase
 import com.armandodarienzo.k9board.usecase.settings.GetKeyboardSizeUseCase
@@ -33,7 +33,7 @@ class PreferencesViewModel @Inject constructor(
     private val effectDelegate: StandardEffectDelegate<PreferencesReducer.Effect>
 ) : ViewModel(),
     MviProcessor<PreferencesReducer.PreferencesState, PreferencesViewModel.Action, PreferencesReducer.Effect>,
-    com.armandodarienzo.k9board.settings_app.ui.base.EffectDelegate<PreferencesReducer.Effect> by effectDelegate {
+    com.armandodarienzo.k9board.shared.ui.base.EffectDelegate<PreferencesReducer.Effect> by effectDelegate {
 
     private val store = MviStoreDelegate(
         initialState = PreferencesReducer.PreferencesState.initial(),

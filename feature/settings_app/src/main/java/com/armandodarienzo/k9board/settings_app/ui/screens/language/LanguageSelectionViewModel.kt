@@ -8,10 +8,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.armandodarienzo.k9board.model.SupportedLanguageTag
-import com.armandodarienzo.k9board.settings_app.ui.base.EffectDelegate
-import com.armandodarienzo.k9board.settings_app.ui.base.MviProcessor
-import com.armandodarienzo.k9board.settings_app.ui.base.MviStoreDelegate
-import com.armandodarienzo.k9board.settings_app.ui.base.StandardEffectDelegate
+import com.armandodarienzo.k9board.shared.ui.base.EffectDelegate
+import com.armandodarienzo.k9board.shared.ui.base.MviProcessor
+import com.armandodarienzo.k9board.shared.ui.base.MviStoreDelegate
+import com.armandodarienzo.k9board.shared.ui.base.StandardEffectDelegate
 import com.armandodarienzo.k9board.settings_app.usecase.CancelDownloadUseCase
 import com.armandodarienzo.k9board.settings_app.usecase.DownloadLanguagePackUseCase
 import com.armandodarienzo.k9board.shared.getDatabaseName

@@ -8,12 +8,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.emoji2.emojipicker.EmojiPickerView
-import com.armandodarienzo.k9board.keyboard.KeyboardIntent
+import com.armandodarienzo.k9board.keyboard.KeyboardAction
 import com.armandodarienzo.k9board.shared.R
 
 
 @Composable
-fun EmojiPicker(onIntent: (KeyboardIntent) -> Unit) {
+fun EmojiPicker(onAction: (KeyboardAction) -> Unit) {
     AndroidView(
         modifier = Modifier.fillMaxSize(),
         factory = { context ->
@@ -27,7 +27,7 @@ fun EmojiPicker(onIntent: (KeyboardIntent) -> Unit) {
                 emojiGridRows = 4.3f
             }
             emojiPickerView.setOnEmojiPickedListener { emojiViewItem ->
-                onIntent(KeyboardIntent.EmojiSelected(emojiViewItem.emoji))
+                onAction(KeyboardAction.EmojiSelected(emojiViewItem.emoji))
             }
             view
         },

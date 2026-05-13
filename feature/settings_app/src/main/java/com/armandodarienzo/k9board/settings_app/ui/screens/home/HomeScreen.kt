@@ -29,7 +29,7 @@ import com.armandodarienzo.k9board.model.MainMenuItem
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
 import com.armandodarienzo.k9board.shared.ui.elements.K9BoardTopAppBar
-import com.armandodarienzo.k9board.settings_app.ui.base.rememberFlowWithLifecycle
+import com.armandodarienzo.k9board.shared.ui.base.rememberFlowWithLifecycle
 import com.armandodarienzo.k9board.settings_app.ui.screens.home.HomeScreenReducer.Effect
 import com.armandodarienzo.k9board.settings_app.ui.screens.home.HomeScreenViewModel.Action
 

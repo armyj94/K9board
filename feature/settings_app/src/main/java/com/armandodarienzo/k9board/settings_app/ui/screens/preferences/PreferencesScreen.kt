@@ -40,7 +40,7 @@ import com.armandodarienzo.k9board.shared.model.getLabelId
 import com.armandodarienzo.k9board.shared.ui.elements.AppBarIcon
 import com.armandodarienzo.k9board.shared.ui.elements.K9BoardTopAppBar
 import com.armandodarienzo.k9board.shared.ui.elements.RadioDialog
-import com.armandodarienzo.k9board.settings_app.ui.base.rememberFlowWithLifecycle
+import com.armandodarienzo.k9board.shared.ui.base.rememberFlowWithLifecycle
 import com.armandodarienzo.k9board.settings_app.ui.screens.preferences.PreferencesReducer.PreferencesState
 import com.armandodarienzo.k9board.settings_app.ui.screens.preferences.PreferencesViewModel.Action
 

@@ -1,4 +1,4 @@
-package com.armandodarienzo.k9board.settings_app.ui.base
+package com.armandodarienzo.k9board.shared.ui.base
 
 fun interface Reducer<State : Reducer.ViewState, Event : Reducer.ViewEvent, Effect : Reducer.SideEffect> {
 
