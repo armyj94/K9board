@@ -16,6 +16,7 @@ class HomeScreenReducer :
     sealed class Effect : Reducer.SideEffect {
         data class LaunchActivity(val intent: Intent) : Effect()
         data object ShowImePicker : Effect()
+        data class NavigateTo(val route: String) : Effect()
     }
 
     override fun reduce(

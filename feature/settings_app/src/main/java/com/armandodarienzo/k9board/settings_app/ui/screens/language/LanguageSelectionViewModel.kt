@@ -57,6 +57,7 @@ class LanguageSelectionViewModel @Inject constructor(
         data class Download(val tag: String) : Action()
         data class CancelDownload(val tag: String) : Action()
         data class RemoveLanguagePack(val tag: String) : Action()
+        data object NavigateBack : Action()
     }
 
     override fun processAction(action: Action) {
@@ -65,6 +66,7 @@ class LanguageSelectionViewModel @Inject constructor(
             is Action.Download -> onDownload(action.tag)
             is Action.CancelDownload -> onCancelDownload(action.tag)
             is Action.RemoveLanguagePack -> onCancelDownload(action.tag)
+            Action.NavigateBack -> effectDelegate.sendEffect(LanguageSelectionReducer.Effect.NavigateBack)
         }
     }
 

@@ -29,6 +29,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,6 +44,8 @@ import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.model.DatabaseStatus
 import com.armandodarienzo.k9board.shared.ui.elements.AppBarIcon
 import com.armandodarienzo.k9board.shared.ui.elements.K9BoardTopAppBar
+import com.armandodarienzo.k9board.settings_app.ui.base.rememberFlowWithLifecycle
+import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionReducer.LanguageSelectionState
 import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionViewModel.Action
 import java.util.Locale
 import com.armandodarienzo.k9board.shared.R.drawable as K9BOARD_DRAWABLES
@@ -53,28 +56,24 @@ fun LanguageSelectionScreen(
     viewModel: LanguageSelectionViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val effectFlow = rememberFlowWithLifecycle(viewModel.effect)
 
-    LanguageSelectionContent(
-        selectedLanguage = state.selectedLanguage,
-        downloadStatus = state.downloadStatus,
-        onBackClicked = { navController.popBackStack() },
-        onSelected = { viewModel.processAction(Action.SelectLanguage(it)) },
-        onDownload = { viewModel.processAction(Action.Download(it)) },
-        onCancel = { viewModel.processAction(Action.CancelDownload(it)) },
-        onRemove = { viewModel.processAction(Action.RemoveLanguagePack(it)) },
-    )
+    LaunchedEffect(effectFlow) {
+        effectFlow.collect { effect ->
+            when (effect) {
+                LanguageSelectionReducer.Effect.NavigateBack -> navController.popBackStack()
+            }
+        }
+    }
+
+    LanguageSelectionContent(state = state, sendAction = viewModel::processAction)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanguageSelectionContent(
-    selectedLanguage: String,
-    downloadStatus: Map<String, DatabaseStatus> = emptyMap(),
-    onBackClicked: () -> Unit = {},
-    onSelected: (String) -> Unit,
-    onDownload: (String) -> Unit,
-    onCancel: (String) -> Unit,
-    onRemove: (String) -> Unit,
+    state: LanguageSelectionState,
+    sendAction: (Action) -> Unit,
 ) {
     val languageTags = SupportedLanguageTag.entries.map { it.value }
 
@@ -82,32 +81,29 @@ fun LanguageSelectionContent(
         topBar = {
             K9BoardTopAppBar(
                 title = stringResource(id = R.string.main_activity_languages),
-                icon = AppBarIcon(Icons.Default.ArrowBack) { onBackClicked() }
+                icon = AppBarIcon(Icons.Default.ArrowBack) { sendAction(Action.NavigateBack) }
             )
         }
     ) { paddingValues ->
         LazyColumn(Modifier.padding(paddingValues)) {
             items(languageTags) { tag ->
-                val status = downloadStatus[tag]
+                val status = state.downloadStatus[tag]
                 Row(
                     Modifier
                         .height(100.dp)
                         .fillMaxWidth()
                         .selectable(
-                            selected = (tag == selectedLanguage),
+                            selected = (tag == state.selectedLanguage),
                             onClick = {}
                         )
                         .padding(horizontal = 16.dp)
                 ) {
                     LanguageRow(
                         tag = tag,
-                        selectedOption = selectedLanguage,
+                        selectedOption = state.selectedLanguage,
                         databaseStatus = status?.state ?: DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
                         downloadProgress = status?.progress ?: 0F,
-                        onDownload = onDownload,
-                        onSelected = onSelected,
-                        onCancel = onCancel,
-                        onRemove = onRemove
+                        sendAction = sendAction,
                     )
                 }
             }
@@ -121,10 +117,7 @@ fun LanguageRow(
     selectedOption: String,
     databaseStatus: DatabaseStatus.Companion.Statuses = DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
     downloadProgress: Float = 0F,
-    onSelected: (String) -> Unit,
-    onDownload: (String) -> Unit,
-    onCancel: (String) -> Unit,
-    onRemove: (String) -> Unit,
+    sendAction: (Action) -> Unit,
 ) {
     val locale = Locale.forLanguageTag(tag)
 
@@ -149,7 +142,7 @@ fun LanguageRow(
                         modifier = Modifier.fillMaxSize(),
                         enabled = (databaseStatus == DatabaseStatus.Companion.Statuses.DOWNLOADED),
                         selected = (tag == selectedOption),
-                        onClick = { onSelected(tag) }
+                        onClick = { sendAction(Action.SelectLanguage(tag)) }
                     )
                 }
                 Column(
@@ -184,7 +177,7 @@ fun LanguageRow(
                                         strokeWidth = 4.dp,
                                         progress = downloadProgress
                                     )
-                                    IconButton(onClick = { onCancel(tag) }) {
+                                    IconButton(onClick = { sendAction(Action.CancelDownload(tag)) }) {
                                         Icon(
                                             modifier = Modifier
                                                 .fillMaxSize()
@@ -197,7 +190,7 @@ fun LanguageRow(
                                 }
                             }
                             DatabaseStatus.Companion.Statuses.DOWNLOADED -> {
-                                IconButton(onClick = { onRemove(tag) }) {
+                                IconButton(onClick = { sendAction(Action.RemoveLanguagePack(tag)) }) {
                                     Icon(
                                         modifier = Modifier.size(40.dp),
                                         painter = painterResource(K9BOARD_DRAWABLES.rounded_delete_forever_24),
@@ -209,7 +202,7 @@ fun LanguageRow(
                             else -> {
                                 IconButton(
                                     modifier = Modifier.weight(1f),
-                                    onClick = { onDownload(tag) }
+                                    onClick = { sendAction(Action.Download(tag)) }
                                 ) {
                                     Icon(
                                         modifier = Modifier.size(40.dp),

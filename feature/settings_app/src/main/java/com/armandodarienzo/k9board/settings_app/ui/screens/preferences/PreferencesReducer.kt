@@ -40,7 +40,9 @@ class PreferencesReducer :
         data class AutoCapsUpdated(val enabled: Boolean) : Event()
     }
 
-    sealed class Effect : Reducer.SideEffect
+    sealed class Effect : Reducer.SideEffect {
+        data object NavigateBack : Effect()
+    }
 
     override fun reduce(
         previousState: PreferencesState,

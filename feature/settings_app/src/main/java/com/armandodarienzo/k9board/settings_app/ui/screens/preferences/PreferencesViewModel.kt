@@ -50,6 +50,7 @@ class PreferencesViewModel @Inject constructor(
         data class SetDoubleSpaceChar(val char: DoubleSpaceCharacter) : Action()
         data class SetStartWithManual(val enabled: Boolean) : Action()
         data class SetAutoCaps(val enabled: Boolean) : Action()
+        data object NavigateBack : Action()
     }
 
     override fun processAction(action: Action) {
@@ -58,6 +59,7 @@ class PreferencesViewModel @Inject constructor(
             is Action.SetDoubleSpaceChar -> onSetDoubleSpaceChar(action.char)
             is Action.SetStartWithManual -> onSetStartWithManual(action.enabled)
             is Action.SetAutoCaps -> onSetAutoCaps(action.enabled)
+            Action.NavigateBack -> effectDelegate.sendEffect(PreferencesReducer.Effect.NavigateBack)
         }
     }
 

@@ -29,7 +29,6 @@ import com.armandodarienzo.k9board.model.MainMenuItem
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
 import com.armandodarienzo.k9board.shared.ui.elements.K9BoardTopAppBar
-import com.armandodarienzo.k9board.shared.ui.navigation.Screens
 import com.armandodarienzo.k9board.settings_app.ui.base.rememberFlowWithLifecycle
 import com.armandodarienzo.k9board.settings_app.ui.screens.home.HomeScreenReducer.Effect
 import com.armandodarienzo.k9board.settings_app.ui.screens.home.HomeScreenViewModel.Action
@@ -50,58 +49,49 @@ fun HomeScreen(
                     val imeManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                     imeManager.showInputMethodPicker()
                 }
+                is Effect.NavigateTo -> navController.navigate(effect.route)
             }
         }
     }
 
-    HomeScreenContent(
-        onLanguageClicked = { navController.navigate(Screens.LanguageSelectionScreen.name) },
-        onEnableKeyboardClicked = { viewModel.processAction(Action.EnableKeyboard) },
-        onChangeKeyboardClicked = { viewModel.processAction(Action.ChangeKeyboard) },
-        onSettingsClicked = { navController.navigate(Screens.PreferencesScreen.name) },
-        onTestKeyboardClicked = { navController.navigate(Screens.KeyboardTestScreen.name) },
-    )
+    HomeScreenContent(sendAction = viewModel::processAction)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreenContent(
-    onLanguageClicked: () -> Unit,
-    onEnableKeyboardClicked: () -> Unit,
-    onChangeKeyboardClicked: () -> Unit,
-    onSettingsClicked: () -> Unit,
-    onTestKeyboardClicked: () -> Unit,
+    sendAction: (Action) -> Unit,
 ) {
     val menuItems = listOf(
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_languages),
             optionKeyString = SHARED_PREFS_SET_LANGUAGE,
             iconID = R.drawable.ic_language_white_18dp,
-            onClick = onLanguageClicked
+            onClick = { sendAction(Action.NavigateToLanguage) }
         ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_enable_keyboard),
             optionKeyString = null,
             iconID = R.drawable.ic_keyboard_white_24dp,
-            onClick = onEnableKeyboardClicked
+            onClick = { sendAction(Action.EnableKeyboard) }
         ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_change_keyboard),
             optionKeyString = null,
             iconID = R.drawable.ic_baseline_compare_arrows_18,
-            onClick = onChangeKeyboardClicked
+            onClick = { sendAction(Action.ChangeKeyboard) }
         ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_settings),
             optionKeyString = null,
             iconID = R.drawable.ic_baseline_settings_18,
-            onClick = onSettingsClicked
+            onClick = { sendAction(Action.NavigateToPreferences) }
         ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_test_keyboard),
             optionKeyString = null,
             iconID = R.drawable.ic_baseline_edit_note_24,
-            onClick = onTestKeyboardClicked
+            onClick = { sendAction(Action.NavigateToTestKeyboard) }
         ),
     )
 

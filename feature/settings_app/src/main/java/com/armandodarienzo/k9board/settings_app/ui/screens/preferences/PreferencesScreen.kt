@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +40,7 @@ import com.armandodarienzo.k9board.shared.model.getLabelId
 import com.armandodarienzo.k9board.shared.ui.elements.AppBarIcon
 import com.armandodarienzo.k9board.shared.ui.elements.K9BoardTopAppBar
 import com.armandodarienzo.k9board.shared.ui.elements.RadioDialog
+import com.armandodarienzo.k9board.settings_app.ui.base.rememberFlowWithLifecycle
 import com.armandodarienzo.k9board.settings_app.ui.screens.preferences.PreferencesReducer.PreferencesState
 import com.armandodarienzo.k9board.settings_app.ui.screens.preferences.PreferencesViewModel.Action
 
@@ -48,19 +50,24 @@ fun PreferencesScreen(
     viewModel: PreferencesViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    PreferencesContent(
-        state = state,
-        onBackClicked = { navController.popBackStack() },
-        sendAction = viewModel::processAction
-    )
+    val effectFlow = rememberFlowWithLifecycle(viewModel.effect)
+
+    LaunchedEffect(effectFlow) {
+        effectFlow.collect { effect ->
+            when (effect) {
+                PreferencesReducer.Effect.NavigateBack -> navController.popBackStack()
+            }
+        }
+    }
+
+    PreferencesContent(state = state, sendAction = viewModel::processAction)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PreferencesContent(
     state: PreferencesState,
-    onBackClicked: () -> Unit,
-    sendAction: (Action) -> Unit
+    sendAction: (Action) -> Unit,
 ) {
     val openKeyboardSizeDialog = remember { mutableStateOf(false) }
     val keyboardSizeOptions = KeyboardSize.values().map {
@@ -98,7 +105,7 @@ fun PreferencesContent(
         topBar = {
             K9BoardTopAppBar(
                 title = stringResource(id = R.string.main_activity_settings),
-                icon = AppBarIcon(Icons.Default.ArrowBack) { onBackClicked() }
+                icon = AppBarIcon(Icons.Default.ArrowBack) { sendAction(Action.NavigateBack) }
             )
         }
     ) { paddingValues ->

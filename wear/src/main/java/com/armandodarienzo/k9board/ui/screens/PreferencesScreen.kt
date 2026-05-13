@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +39,9 @@ import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.model.PreferencesMenuItem
 import com.armandodarienzo.k9board.shared.model.RadioOption
 import com.armandodarienzo.k9board.shared.model.getLabelId
+import com.armandodarienzo.k9board.settings_app.ui.base.rememberFlowWithLifecycle
+import com.armandodarienzo.k9board.settings_app.ui.screens.preferences.PreferencesReducer
+import com.armandodarienzo.k9board.settings_app.ui.screens.preferences.PreferencesReducer.PreferencesState
 import com.armandodarienzo.k9board.settings_app.ui.screens.preferences.PreferencesViewModel
 import com.armandodarienzo.k9board.settings_app.ui.screens.preferences.PreferencesViewModel.Action
 import com.armandodarienzo.k9board.ui.RadioDialog
@@ -45,31 +49,10 @@ import com.armandodarienzo.k9board.ui.RadioDialog
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
 fun PreferencesContentPreview() {
-    val preferencesItems = mutableListOf<PreferencesMenuItem<Any>>()
-
-    preferencesItems.add(
-        PreferencesMenuItem(
-            name = stringResource(id = R.string.double_space_character),
-            value = stringResource(id = R.string.double_space_dot),
-            onClick = { }
-        )
+    PreferenceScreenContentWear(
+        state = PreferencesState.initial(),
+        sendAction = {}
     )
-    preferencesItems.add(
-        PreferencesMenuItem(
-            name = stringResource(id = R.string.auto_caps),
-            value = false,
-            onClick = { }
-        )
-    )
-    preferencesItems.add(
-        PreferencesMenuItem(
-            name = stringResource(id = R.string.start_with_manual),
-            value = true,
-            onClick = { }
-        )
-    )
-
-    PreferenceScreenContentWear(preferencesItems)
 }
 
 @Composable
@@ -78,7 +61,26 @@ fun PreferencesScreen(
     viewModel: PreferencesViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val preferencesItems = mutableListOf<PreferencesMenuItem<Any>>()
+    val effectFlow = rememberFlowWithLifecycle(viewModel.effect)
+
+    LaunchedEffect(effectFlow) {
+        effectFlow.collect { effect ->
+            when (effect) {
+                PreferencesReducer.Effect.NavigateBack -> navController.popBackStack()
+            }
+        }
+    }
+
+    PreferenceScreenContentWear(state = state, sendAction = viewModel::processAction)
+}
+
+@Composable
+fun PreferenceScreenContentWear(
+    state: PreferencesState,
+    sendAction: (Action) -> Unit,
+) {
+    val screenHeight = LocalConfiguration.current.screenHeightDp
+    val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
 
     val openDoubleSpaceDialog = remember { mutableStateOf(false) }
 
@@ -89,43 +91,27 @@ fun PreferencesScreen(
             }.toTypedArray(),
             onDismissRequest = { openDoubleSpaceDialog.value = false }
         ) { selectedOption ->
-            viewModel.processAction(Action.SetDoubleSpaceChar(selectedOption.value))
+            sendAction(Action.SetDoubleSpaceChar(selectedOption.value))
         }
     }
 
-    preferencesItems.add(
+    val preferencesItems = listOf<PreferencesMenuItem<Any>>(
         PreferencesMenuItem(
             name = stringResource(id = R.string.double_space_character),
             value = stringResource(state.doubleSpaceChar.getLabelId()),
             onClick = { openDoubleSpaceDialog.value = true }
-        )
-    )
-
-    preferencesItems.add(
+        ),
         PreferencesMenuItem(
             name = stringResource(id = R.string.auto_caps),
             value = state.autoCaps,
-            onClick = { viewModel.processAction(Action.SetAutoCaps(!state.autoCaps)) }
-        )
-    )
-
-    preferencesItems.add(
+            onClick = { sendAction(Action.SetAutoCaps(!state.autoCaps)) }
+        ),
         PreferencesMenuItem(
             name = stringResource(id = R.string.start_with_manual),
             value = state.startWithManual,
-            onClick = { viewModel.processAction(Action.SetStartWithManual(!state.startWithManual)) }
-        )
+            onClick = { sendAction(Action.SetStartWithManual(!state.startWithManual)) }
+        ),
     )
-
-    PreferenceScreenContentWear(preferencesItems)
-}
-
-@Composable
-fun PreferenceScreenContentWear(
-    preferencesItems: List<PreferencesMenuItem<Any>>
-) {
-    val screenHeight = LocalConfiguration.current.screenHeightDp
-    val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
 
     Scaffold(
         modifier = Modifier.background(Color.Black),

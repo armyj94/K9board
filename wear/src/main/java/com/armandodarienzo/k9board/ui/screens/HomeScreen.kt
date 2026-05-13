@@ -1,11 +1,9 @@
 package com.armandodarienzo.k9board.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,9 +19,7 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipColors
 import androidx.wear.compose.material.ChipDefaults
-import androidx.wear.compose.material.ExperimentalWearMaterialApi
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
@@ -33,12 +29,10 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
-import androidx.wear.compose.material.items
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.armandodarienzo.k9board.model.MainMenuItem
 import com.armandodarienzo.k9board.shared.R
 import com.armandodarienzo.k9board.shared.SHARED_PREFS_SET_LANGUAGE
-import com.armandodarienzo.k9board.shared.ui.navigation.Screens
 import android.content.Context
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.runtime.LaunchedEffect
@@ -51,48 +45,7 @@ import com.armandodarienzo.k9board.settings_app.ui.screens.home.HomeScreenViewMo
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
 fun ContentPreview() {
-    val menuItems = listOf(
-        MainMenuItem(
-            name = stringResource(id = R.string.main_activity_languages),
-            optionKeyString = SHARED_PREFS_SET_LANGUAGE,
-            iconID = R.drawable.ic_language_white_18dp,
-        ),
-        MainMenuItem(
-            name = stringResource(id = R.string.main_activity_enable_keyboard),
-            optionKeyString = null,
-            iconID = R.drawable.ic_keyboard_white_24dp,
-        ),
-        MainMenuItem(
-            name = stringResource(id = R.string.main_activity_change_keyboard),
-            optionKeyString = null,
-            iconID = R.drawable.ic_baseline_compare_arrows_18,
-        ),
-//        MainMenuItem(
-//            name = stringResource(id = R.string.main_activity_privacy_policy),
-//            optionKeyString = null,
-//            iconID = R.drawable.ic_security_white_18dp,
-//        ),
-//        MainMenuItem(
-//            name = stringResource(id = R.string.main_activity_tutorial),
-//            optionKeyString = null,
-//            iconID = R.drawable.ic_help_outline_white_18dp,
-//        ),
-        MainMenuItem(
-            name = stringResource(id = R.string.main_activity_settings),
-            optionKeyString = null,
-            iconID = R.drawable.ic_baseline_settings_18,
-//            navigationRoute = Screens.PreferencesScreen.name
-        )
-        //@TODO: enable this again after wearOS change
-//        MainMenuItem(
-//            name = stringResource(id = R.string.main_activity_sync),
-//            optionKeyString = null,
-//            iconID = R.drawable.ic_sync_white_12dp
-//        )
-//    menuItems.add(MainMenuAdapter.MenuItem(R.drawable.ic_edit_white_18dp, this.getString(R.string.main_activity_test)))
-    )
-
-    HomeScreenContentWear(menuItems = menuItems)
+    HomeScreenContentWear(sendAction = {})
 }
 
 @Composable
@@ -111,82 +64,64 @@ fun HomeScreen(
                     val imeManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                     imeManager.showInputMethodPicker()
                 }
+                is HomeScreenReducer.Effect.NavigateTo -> navController.navigate(effect.route)
             }
         }
     }
+
+    HomeScreenContentWear(sendAction = viewModel::processAction)
+}
+
+@Composable
+fun HomeScreenContentWear(
+    sendAction: (Action) -> Unit,
+) {
+    val screenHeight = LocalConfiguration.current.screenHeightDp
+    val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
 
     val menuItems = listOf(
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_languages),
             optionKeyString = SHARED_PREFS_SET_LANGUAGE,
             iconID = R.drawable.ic_language_white_18dp,
-            onClick = {
-                navController.navigate(route = Screens.LanguageSelectionScreen.name)
-            }
+            onClick = { sendAction(Action.NavigateToLanguage) }
         ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_enable_keyboard),
             optionKeyString = null,
             iconID = R.drawable.ic_keyboard_white_24dp,
-            onClick = { viewModel.processAction(Action.EnableKeyboard) }
+            onClick = { sendAction(Action.EnableKeyboard) }
         ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_change_keyboard),
             optionKeyString = null,
             iconID = R.drawable.ic_baseline_compare_arrows_18,
-            onClick = { viewModel.processAction(Action.ChangeKeyboard) }
+            onClick = { sendAction(Action.ChangeKeyboard) }
         ),
-//        MainMenuItem(
-//            name = stringResource(id = R.string.main_activity_privacy_policy),
-//            optionKeyString = null,
-//            iconID = R.drawable.ic_security_white_18dp,
-//        ),
-//        MainMenuItem(
-//            name = stringResource(id = R.string.main_activity_tutorial),
-//            optionKeyString = null,
-//            iconID = R.drawable.ic_help_outline_white_18dp,
-//        ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_settings),
             optionKeyString = null,
             iconID = R.drawable.ic_baseline_settings_18,
-            onClick = {
-                navController.navigate(route = Screens.PreferencesScreen.name)
-            }
+            onClick = { sendAction(Action.NavigateToPreferences) }
         ),
         MainMenuItem(
             name = stringResource(id = R.string.main_activity_test_keyboard),
             optionKeyString = null,
             iconID = R.drawable.ic_baseline_edit_note_24,
-            onClick = {
-                navController.navigate(route = Screens.KeyboardTestScreen.name)
-            }
+            onClick = { sendAction(Action.NavigateToTestKeyboard) }
         ),
     )
-
-    HomeScreenContentWear(menuItems = menuItems)
-}
-
-@Composable
-fun HomeScreenContentWear(
-    menuItems: List<MainMenuItem>
-) {
-    val screenHeight = LocalConfiguration.current.screenHeightDp
-
-    val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
 
     Scaffold(
         modifier = Modifier
             .background(Color.Black),
         timeText = { TimeText() },
-        vignette = { Vignette(vignettePosition = VignettePosition.TopAndBottom) }, // Add vignette effect
+        vignette = { Vignette(vignettePosition = VignettePosition.TopAndBottom) },
         positionIndicator = {
-            PositionIndicator(
-                scalingLazyListState = listState)
+            PositionIndicator(scalingLazyListState = listState)
         }
     ) {
         ScalingLazyColumn(
-            //https://developer.android.com/design/ui/wear/guides/components/lists?hl=it
             contentPadding = PaddingValues(
                 top = (screenHeight * 0.21).dp,
                 bottom = (screenHeight * 0.36).dp,
