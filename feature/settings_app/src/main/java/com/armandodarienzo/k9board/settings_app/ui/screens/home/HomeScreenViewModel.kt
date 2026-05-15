@@ -17,7 +17,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val effectDelegate: StandardEffectDelegate<HomeScreenReducer.Effect>
 ) : ViewModel(),
     MviProcessor<HomeScreenReducer.HomeScreenState, HomeScreenViewModel.Action, HomeScreenReducer.Effect>,

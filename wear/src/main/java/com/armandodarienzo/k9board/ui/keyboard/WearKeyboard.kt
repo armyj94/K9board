@@ -90,7 +90,7 @@ fun CustomKeyboard(
     val keyboardSize = state.keyboardSize
 
     var shiftKeyTimer by remember { mutableLongStateOf(0L) }
-    var keyboardView = remember { mutableStateOf(KeyboardCurrentView.TEXT_VIEW) }
+    val keyboardView = remember { mutableStateOf(KeyboardCurrentView.TEXT_VIEW) }
 
     val actionIconId = when (imeActionId) {
         EditorInfo.IME_ACTION_SEND -> R.drawable.ic_baseline_send_18

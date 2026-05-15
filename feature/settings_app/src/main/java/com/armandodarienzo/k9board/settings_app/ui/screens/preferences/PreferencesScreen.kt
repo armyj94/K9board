@@ -70,7 +70,7 @@ fun PreferencesContent(
     sendAction: (Action) -> Unit,
 ) {
     val openKeyboardSizeDialog = remember { mutableStateOf(false) }
-    val keyboardSizeOptions = KeyboardSize.values().map {
+    val keyboardSizeOptions = KeyboardSize.entries.map {
         RadioOption(it, state.keyboardSize == it, it.getLabelId())
     }.toTypedArray()
 
@@ -86,7 +86,7 @@ fun PreferencesContent(
     }
 
     val openDoubleSpaceDialog = remember { mutableStateOf(false) }
-    val doubleSpaceOptions = DoubleSpaceCharacter.values().map {
+    val doubleSpaceOptions = DoubleSpaceCharacter.entries.map {
         RadioOption(it, state.doubleSpaceChar == it, it.getLabelId())
     }.toTypedArray()
 

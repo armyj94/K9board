@@ -161,7 +161,6 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreateExtractTextView(): View {
         val inflater = super.onCreateExtractTextView()
         val res = Resources.getSystem()

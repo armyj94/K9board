@@ -45,8 +45,8 @@ fun CustomKeyboard(
     onAction: (KeyboardAction) -> Unit,
 ) {
     val backgroundColor: Color = colorResource(state.backgroundColorId.takeIf { it != 0 } ?: android.R.color.system_neutral2_50)
-    var reverseLayout by remember { mutableStateOf(false) }
-    var keyboardView = remember { mutableStateOf(KeyboardCurrentView.TEXT_VIEW) }
+    val reverseLayout by remember { mutableStateOf(false) }
+    val keyboardView = remember { mutableStateOf(KeyboardCurrentView.TEXT_VIEW) }
 
     val imeActionId = state.imeActionId
     val actionIconId = when (imeActionId) {
