@@ -88,7 +88,7 @@ fun CustomKeyboard(
         color = backgroundColor
     ) {
         Row(
-            Modifier.padding(top = 4.dp, bottom = 4.dp).fillMaxHeight(),
+            Modifier.padding(top = 4.dp, bottom = 48.dp).fillMaxHeight(),
             horizontalArrangement = if (reverseLayout) ReverseArrangement else Arrangement.Start
         ) {
             Column(
