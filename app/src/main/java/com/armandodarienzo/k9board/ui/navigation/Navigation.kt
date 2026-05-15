@@ -4,17 +4,16 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.armandodarienzo.k9board.settings_app.ui.screens.home.HomeScreen
+import com.armandodarienzo.k9board.settings_app.ui.screens.keyboard_test.KeyboardTestScreen
+import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionScreen
+import com.armandodarienzo.k9board.settings_app.ui.screens.preferences.PreferencesScreen
 import com.armandodarienzo.k9board.shared.ui.navigation.Screens
-import com.armandodarienzo.k9board.ui.screens.HomeScreen
-import com.armandodarienzo.k9board.ui.screens.KeyboardTestScreen
-import com.armandodarienzo.k9board.ui.screens.LanguageSelectionScreen
-import com.armandodarienzo.k9board.ui.screens.PreferencesScreen
-
 
 @Composable
 fun Navigation() {
     val navController = rememberNavController()
-    
+
     NavHost(
         navController = navController,
         startDestination = Screens.HomeScreen.name
@@ -26,7 +25,7 @@ fun Navigation() {
         composable(Screens.LanguageSelectionScreen.name) {
             LanguageSelectionScreen(navController = navController)
         }
-        
+
         composable(Screens.PreferencesScreen.name) {
             PreferencesScreen(navController = navController)
         }

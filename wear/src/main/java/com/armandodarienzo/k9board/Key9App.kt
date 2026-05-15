@@ -3,9 +3,9 @@ package com.armandodarienzo.k9board
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import com.armandodarienzo.k9board.shared.DATABASE_ASSETS_PATH
 import com.armandodarienzo.k9board.shared.getDatabaseName
-import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
-import com.armandodarienzo.k9board.viewmodel.DictionaryDataHelper.Companion.ASSETS_PATH
+import com.armandodarienzo.k9board.model.SupportedLanguageTag
 import dagger.hilt.android.HiltAndroidApp
 import java.io.File
 import java.io.FileOutputStream
@@ -23,7 +23,7 @@ class Key9App: Application() {
         )
 
         val defaultDBName = getDatabaseName(SupportedLanguageTag.AMERICAN.value)
-        val languageRelativePath = "$ASSETS_PATH/$defaultDBName"
+        val languageRelativePath = "$DATABASE_ASSETS_PATH/$defaultDBName"
         val inputStream = this.assets.open(languageRelativePath)
 
         try {

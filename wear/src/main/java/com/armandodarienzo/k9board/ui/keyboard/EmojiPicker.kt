@@ -8,34 +8,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.emoji2.emojipicker.EmojiPickerView
-import com.armandodarienzo.k9board.shared.service.Key9Service
+import com.armandodarienzo.k9board.keyboard.KeyboardAction
 import com.armandodarienzo.k9board.shared.R
 
-
-
 @Composable
-fun EmojiPicker(service: Key9Service?) {
+fun EmojiPicker(onAction: (KeyboardAction) -> Unit) {
     AndroidView(
         modifier = Modifier.fillMaxSize(),
         factory = { context ->
             val view = LayoutInflater.from(context).inflate(
-                R.layout.emoji_picker_container, /* root = */ null, /* attachToRoot = */ false)
+                R.layout.emoji_picker_container, null, false)
             val emojiPickerView = view.findViewById<EmojiPickerView>(R.id.emoji_picker).apply {
                 layoutParams = ConstraintLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT,
                 )
                 emojiGridColumns = 5
-                //emojiGridRows = 4.3f
-
             }
-
-            emojiPickerView.setOnEmojiPickedListener{ emojiViewItem ->
-                service?.emojiClick(emojiViewItem)
+            emojiPickerView.setOnEmojiPickedListener { emojiViewItem ->
+                onAction(KeyboardAction.EmojiSelected(emojiViewItem.emoji))
             }
-
             view
         },
-
     )
 }

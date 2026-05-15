@@ -15,12 +15,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,30 +41,35 @@ import androidx.wear.compose.material.RadioButton
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.armandodarienzo.k9board.model.SupportedLanguageTag
 import com.armandodarienzo.k9board.shared.model.DatabaseStatus
-import com.armandodarienzo.k9board.shared.model.SupportedLanguageTag
-import com.armandodarienzo.k9board.shared.packName
-import com.armandodarienzo.k9board.shared.viewmodel.LanguageViewModel
-import kotlinx.coroutines.flow.StateFlow
+import com.armandodarienzo.k9board.shared.ui.base.rememberFlowWithLifecycle
+import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionReducer
+import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionReducer.LanguageSelectionState
+import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionViewModel
+import com.armandodarienzo.k9board.settings_app.ui.screens.language.LanguageSelectionViewModel.Action
 import com.armandodarienzo.k9board.shared.R.drawable as K9BOARD_DRAWABLES
 import java.util.Locale
 
 @Composable
 fun LanguageSelectionScreen(
     navController: NavController,
-    viewModel: LanguageViewModel = hiltViewModel()
+    viewModel: LanguageSelectionViewModel = hiltViewModel()
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val effectFlow = rememberFlowWithLifecycle(viewModel.effect)
 
-    val selectedOption by viewModel.languageState
+    LaunchedEffect(effectFlow) {
+        effectFlow.collect { effect ->
+            when (effect) {
+                LanguageSelectionReducer.Effect.NavigateBack -> navController.popBackStack()
+            }
+        }
+    }
 
-    LanguagesScreenContent(
-        selectedOption = selectedOption,
-        databaseStatuses = viewModel.databaseStatus,
-        onSelected = { viewModel.setLanguage(it) },
-        onDownload = { viewModel.downloadLanguagePack(it) },
-        onCancel = { viewModel.cancelDownload(it) },
-        onRemove = { viewModel.cancelDownload(it) },
-    )
+    LanguagesScreenContent(state = state, sendAction = viewModel::processAction)
 }
 
 @Composable
@@ -74,28 +80,18 @@ fun LanguageListPreview() {
             .background(Color.Black),
     ) {
         LanguagesScreenContent(
-            selectedOption = "us-US",
-            onSelected = {},
-            onDownload = {},
-            onCancel = {},
-            onRemove = {},
+            state = LanguageSelectionState.initial(),
+            sendAction = {},
         )
     }
-
 }
 
 
 @Composable
 fun LanguagesScreenContent(
-    selectedOption: String,
-    databaseStatuses: Map<String, StateFlow<DatabaseStatus?>> = emptyMap(),
-    onSelected: (String) -> Unit,
-    onDownload: (String) -> Unit,
-    onCancel: (String) -> Unit,
-    onRemove: (String) -> Unit
+    state: LanguageSelectionState,
+    sendAction: (Action) -> Unit,
 ){
-    val TAG = object {}::class.java.enclosingMethod?.name
-
     val languageTags = remember{ SupportedLanguageTag.entries.map{ it.value } }
     val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
     val screenHeight = LocalConfiguration.current.screenHeightDp
@@ -103,7 +99,6 @@ fun LanguagesScreenContent(
     Scaffold(
     ) {
         ScalingLazyColumn(
-            //https://developer.android.com/design/ui/wear/guides/components/lists?hl=it
             contentPadding = PaddingValues(
                 top = (screenHeight * 0.21).dp,
                 bottom = (screenHeight * 0.36).dp,
@@ -111,16 +106,9 @@ fun LanguagesScreenContent(
                 end = (screenHeight * 0.05).dp),
         ) {
             items(languageTags) { tag ->
-                val packName = packName(tag)
-
-                val databaseStatusStateFlow = databaseStatuses[tag]
-                val databaseStatusState by databaseStatusStateFlow?.collectAsState() ?: remember { mutableStateOf(null) }
-                val downloadState by remember(databaseStatusState) {
-                    derivedStateOf { databaseStatusState?.state }
-                }
-                val progress by remember(databaseStatusState) {
-                    derivedStateOf { databaseStatusState?.progress}
-                }
+                val status = state.downloadStatus[tag]
+                val downloadState = status?.state ?: DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED
+                val progress = status?.progress ?: 0F
 
                 Log.d("LanguageSelectionScreen", "progress is $progress")
 
@@ -129,22 +117,17 @@ fun LanguagesScreenContent(
                         .height(60.dp)
                         .fillMaxWidth()
                         .selectable(
-                            selected = (tag == selectedOption),
-                            onClick = {
-                                //onOptionSelected(tag)
-                            }
+                            selected = (tag == state.selectedLanguage),
+                            onClick = {}
                         )
                         .padding(horizontal = 16.dp)
                 ) {
                     LanguageRow(
                         tag = tag,
-                        selectedOption = selectedOption,
-                        databaseStatus = downloadState ?: DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
-                        downloadProgress = progress ?: 0F,
-                        onDownload = onDownload,
-                        onSelected = onSelected,
-                        onCancel = onCancel,
-                        onRemove = onRemove
+                        selectedOption = state.selectedLanguage,
+                        databaseStatus = downloadState,
+                        downloadProgress = progress,
+                        sendAction = sendAction,
                     )
                 }
             }
@@ -163,10 +146,7 @@ fun LanguageRowPreview() {
             tag = SupportedLanguageTag.ITALIAN.value,
             selectedOption = SupportedLanguageTag.ITALIAN.value,
             downloadProgress = 60F,
-            onSelected = {},
-            onDownload = {},
-            onCancel = {},
-            onRemove = {}
+            sendAction = {},
         )
     }
 }
@@ -177,10 +157,7 @@ fun LanguageRow(
     selectedOption: String,
     databaseStatus: DatabaseStatus.Companion.Statuses = DatabaseStatus.Companion.Statuses.NOT_DOWNLOADED,
     downloadProgress: Float = 0F,
-    onSelected: (String) -> Unit?,
-    onDownload: (String) -> Unit,
-    onCancel: (String) -> Unit,
-    onRemove: (String) -> Unit
+    sendAction: (Action) -> Unit,
 ){
     val locale = Locale.forLanguageTag(tag)
 
@@ -209,9 +186,7 @@ fun LanguageRow(
                         modifier = Modifier.fillMaxSize(),
                         enabled = (databaseStatus == DatabaseStatus.Companion.Statuses.DOWNLOADED),
                         selected = (tag == selectedOption),
-                        onClick = {
-                            onSelected(tag)
-                        }
+                        onClick = { sendAction(Action.SelectLanguage(tag)) }
                     )
                 }
                 Column(
@@ -253,9 +228,9 @@ fun LanguageRow(
                                         modifier = Modifier
                                             .fillMaxWidth(0.7f)
                                             .aspectRatio(1f),
-                                        onClick = { onCancel(tag) },
+                                        onClick = { sendAction(Action.CancelDownload(tag)) },
                                         colors = ButtonDefaults.secondaryButtonColors(
-                                            backgroundColor = Color.Transparent, // Transparent background
+                                            backgroundColor = Color.Transparent,
                                             contentColor = MaterialTheme.colors.onSurface
                                         )
                                     ) {
@@ -269,9 +244,8 @@ fun LanguageRow(
                             DatabaseStatus.Companion.Statuses.DOWNLOADED -> {
                                 Button(
                                     modifier = Modifier.fillMaxSize(),
-                                    onClick = { onRemove(tag) },
+                                    onClick = { sendAction(Action.RemoveLanguagePack(tag)) },
                                     colors = ButtonDefaults.secondaryButtonColors()
-
                                 ) {
                                     Icon(
                                         painter = painterResource(K9BOARD_DRAWABLES.rounded_delete_forever_24),
@@ -282,7 +256,7 @@ fun LanguageRow(
                             else -> {
                                 Button(
                                     modifier = Modifier.weight(1f),
-                                    onClick = { onDownload(tag) },
+                                    onClick = { sendAction(Action.Download(tag)) },
                                     colors = ButtonDefaults.secondaryButtonColors()
                                 ) {
                                     Icon(
@@ -293,12 +267,9 @@ fun LanguageRow(
                             }
                         }
                     }
-
                 }
             }
         }
     }
-
-
 }
 

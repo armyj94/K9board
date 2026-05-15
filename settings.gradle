@@ -16,3 +16,8 @@ rootProject.name = "K9board"
 include ':app'
 include ':shared'
 include ':wear'
+include ':data'
+include ':k9board'
+include ':domain'
+include ':feature:keyboard'
+include ':feature:settings_app'
