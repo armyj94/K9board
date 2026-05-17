@@ -11,4 +11,6 @@ sealed class KeyboardEffect : Reducer.SideEffect {
     data class PerformEditorAction(val actionId: Int) : KeyboardEffect()
     // Finish previous composing span then start a new one — used in manual mode when switching keys
     data class FinishComposingAndStart(val text: String) : KeyboardEffect()
+    data class FinishComposingAndDelete(val charsBefore: Int) : KeyboardEffect()
+    data object DeleteSelection : KeyboardEffect()
 }
