@@ -255,6 +255,14 @@ open class Key9Service : InputMethodService(), LifecycleOwner, ViewModelStoreOwn
                 currentInputConnection?.finishComposingText()
                 currentInputConnection?.setComposingText(effect.text, 1)
             }
+            is KeyboardEffect.FinishComposingAndDelete -> {
+                currentInputConnection?.finishComposingText()
+                if (effect.charsBefore > 0)
+                    currentInputConnection?.deleteSurroundingText(effect.charsBefore, 0)
+            }
+            KeyboardEffect.DeleteSelection -> {
+                currentInputConnection?.commitText("", 1)
+            }
         }
     }
 }

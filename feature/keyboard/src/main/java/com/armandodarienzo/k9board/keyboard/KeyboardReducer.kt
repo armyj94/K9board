@@ -1,6 +1,5 @@
 package com.armandodarienzo.k9board.keyboard
 
-import android.view.KeyEvent
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.shared.ui.base.Reducer
 
@@ -111,8 +110,32 @@ class KeyboardReducer : Reducer<KeyboardState, KeyboardEvent, KeyboardEffect> {
                     }
                 else -> previousState.capsIndexes
             }
-            previousState.copy(capsIndexes = newCapsIndexes) to
-                KeyboardEffect.SendKeyEvent(KeyEvent.KEYCODE_DEL)
+
+            // Measure the full grapheme cluster so combined emoji (skin-tone, ZWJ, VS16…)
+            // are deleted whole rather than one code-point at a time.
+            val clusterLen = if (previousState.textSelectionText.isEmpty())
+                previousState.textBeforeCursor.lastGraphemeClusterLength()
+            else 0
+
+            val effect = if (previousState.textSelectionText.isNotEmpty())
+                KeyboardEffect.DeleteSelection
+            else
+                KeyboardEffect.FinishComposingAndDelete(clusterLen)
+
+            val newTextBefore = if (clusterLen > 0)
+                previousState.textBeforeCursor.dropLast(clusterLen)
+            else
+                previousState.textBeforeCursor
+
+            previousState.copy(
+                capsIndexes = newCapsIndexes,
+                textBeforeCursor = newTextBefore,
+                textSelectionStart = newTextBefore.length,
+                textSelectionEnd = newTextBefore.length,
+                textCompositionText = "",
+                textCompositionStart = newTextBefore.length,
+                textCompositionEnd = newTextBefore.length,
+            ) to effect
         }
 
         is KeyboardEvent.ComposingRegionReady -> {
@@ -209,4 +232,16 @@ class KeyboardReducer : Reducer<KeyboardState, KeyboardEvent, KeyboardEffect> {
             wordsMaxLength = event.wordsMaxLength,
         ) to null
     }
+}
+
+// Returns the UTF-16 length of the last Unicode grapheme cluster in the string.
+// Using BreakIterator ensures combined emoji (skin-tone modifiers, ZWJ sequences,
+// variation selectors, flag pairs) are treated as a single unit.
+private fun String.lastGraphemeClusterLength(): Int {
+    if (isEmpty()) return 0
+    val bi = java.text.BreakIterator.getCharacterInstance()
+    bi.setText(this)
+    val end = bi.last()
+    val start = bi.previous()
+    return if (start == java.text.BreakIterator.DONE) end else end - start
 }
