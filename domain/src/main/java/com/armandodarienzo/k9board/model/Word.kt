@@ -4,28 +4,30 @@ import com.google.gson.annotations.SerializedName
 
 var meanWordsFrequency = 50
 
-class Word(@SerializedName("text") val text: String, @SerializedName("frequency") var frequency: Int?, @SerializedName("flags") var flags: String?,
-           @SerializedName("originalFrequency") var originalFrequency: Int?, @SerializedName("possiblyOffensive") var possiblyOffensive: String, @SerializedName("t9Code") var t9Code: String?) {
+data class Word(
+    @SerializedName("text") val text: String,
+    @SerializedName("frequency") val frequency: Int?,
+    @SerializedName("flags") val flags: String?,
+    @SerializedName("originalFrequency") val originalFrequency: Int?,
+    @SerializedName("possiblyOffensive") val possiblyOffensive: String,
+    @SerializedName("t9Code") val t9Code: String?,
+) {
 
-    constructor(text: String): this(text,
+    constructor(text: String) : this(
+        text,
         meanWordsFrequency, null,
         meanWordsFrequency, "false",
         getNumberDigitsCode(text)
     )
 
-    constructor(text: String, flags: String): this(text,
+    constructor(text: String, flags: String) : this(
+        text,
         meanWordsFrequency, flags,
         meanWordsFrequency, "false",
         getNumberDigitsCode(text)
     )
 
-    fun getNumberDigitsCode(): String {
-        return this.t9Code ?: getNumberDigitsCode(this.text)
-    }
-
-    fun setT9Code() {
-        this.t9Code = getNumberDigitsCode(this.text)
-    }
+    fun getNumberDigitsCode(): String = t9Code ?: getNumberDigitsCode(text)
 
     companion object {
 
