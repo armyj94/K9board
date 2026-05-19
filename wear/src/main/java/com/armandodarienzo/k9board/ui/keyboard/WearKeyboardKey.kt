@@ -3,9 +3,8 @@ package com.armandodarienzo.k9board.ui.keyboard
 import android.os.Build
 import android.view.MotionEvent
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -26,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
@@ -91,7 +91,6 @@ fun KeyboardKey(
 }
 
 @RequiresApi(Build.VERSION_CODES.S)
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun KeyboardTextKey(
     modifier: Modifier = Modifier,
@@ -108,32 +107,33 @@ fun KeyboardTextKey(
     onKeyClick: (IntArray) -> Unit = {},
     onManualKeyClick: (IntArray, Int) -> Unit = { _, _ -> },
 ) {
-    val charList = remember { mutableStateOf(mutableListOf<String>()) }
-    var startId = 0
+    val charList = remember(text, capsStatus, keyPopupProperties) {
+        keyPopupProperties ?: return@remember emptyList<String>().toMutableStateList()
+        text.replace(" ", "")
+            .toCharArray()
+            .map { char -> char.toString() }
+            .toMutableList()
+            .also { list -> list.addAll(keyPopupProperties.chars) }
+            .map { char ->
+                if (capsStatus != KeyboardCapsStatus.LOWER_CASE) char.uppercase(Locale.ROOT)
+                else char
+            }
+            .toMutableStateList()
+    }
 
-    keyPopupProperties?.let {
-        charList.value =
-            text.replace(" ", "")
-                .toCharArray()
-                .map { char -> char.toString() }.toMutableList()
-                .also { list -> list.addAll(it.chars) }
-                .map { char ->
-                    if (capsStatus != KeyboardCapsStatus.LOWER_CASE) char.uppercase(Locale.ROOT)
-                    else char
-                }.toMutableStateList()
-
-        val columns = min(charList.value.size, KEYBOARD_POPUP_MAX_COLUMNS)
-        val rows = ceil((charList.value.size.toFloat() / columns)).toInt()
-
-        startId = when (keyPopupProperties.alignment) {
+    val startId = remember(charList, keyPopupProperties) {
+        if (keyPopupProperties == null) return@remember 0
+        val columns = min(charList.size, KEYBOARD_POPUP_MAX_COLUMNS)
+        val rows = ceil((charList.size.toFloat() / columns)).toInt()
+        when (keyPopupProperties.alignment) {
             Alignment.BottomStart -> columns - 1
             Alignment.BottomCenter -> ceil(columns / 2f).toInt() - 1
             Alignment.BottomEnd -> 0
             Alignment.CenterStart -> columns * (ceil(rows / 2f).toInt() - 1) + columns - 1
             Alignment.Center -> columns * (ceil(rows / 2f).toInt() - 1) + ceil(columns / 2f).toInt() - 1
             Alignment.CenterEnd -> columns * (ceil(rows / 2f).toInt() - 1)
-            Alignment.TopStart -> charList.value.size - 1
-            Alignment.TopCenter -> min(columns * (rows - 1) + ceil(columns / 2f).toInt() - 1, charList.value.size - 1)
+            Alignment.TopStart -> charList.size - 1
+            Alignment.TopCenter -> min(columns * (rows - 1) + ceil(columns / 2f).toInt() - 1, charList.size - 1)
             Alignment.TopEnd -> columns * (rows - 1)
             else -> 0
         }
@@ -175,24 +175,26 @@ fun KeyboardTextKey(
     ) {
         KeyboardKey(
             modifier = Modifier
-                .combinedClickable(
-                    onClick = {
-                        val codes = codifyChars(
-                            if (capsStatus == KeyboardCapsStatus.LOWER_CASE) text
-                            else text.uppercase(Locale.ROOT)
-                        ).also { list -> numberASCIIcode?.let { list.add(it) } }.toIntArray()
-                        if (isManual) onManualKeyClick(codes, id)
-                        else onKeyClick(codes)
-                    },
-                    onLongClick = { visibleBox.value = true }
-                )
+                .pointerInput(isManual, id, capsStatus, text, numberASCIIcode) {
+                    detectTapGestures(
+                        onTap = {
+                            val codes = codifyChars(
+                                if (capsStatus == KeyboardCapsStatus.LOWER_CASE) text
+                                else text.uppercase(Locale.ROOT)
+                            ).also { list -> numberASCIIcode?.let { list.add(it) } }.toIntArray()
+                            if (isManual) onManualKeyClick(codes, id)
+                            else onKeyClick(codes)
+                        },
+                        onLongPress = { visibleBox.value = true }
+                    )
+                }
                 .applyIf(
                     keyPopupProperties != null, {
                         popupDragHandler(
                             lazyGridState = gridState,
                             boxOffset = boxOffset,
                             startId = startId,
-                            selectId = { keyPopupProperties!!.onIdSelected(charList.value[selectedId]) },
+                            selectId = { keyPopupProperties!!.onIdSelected(charList[selectedId]) },
                             setSelectedId = { selectedId = it },
                             closePopup = { visibleBox.value = false }
                         )
@@ -207,7 +209,7 @@ fun KeyboardTextKey(
 
         keyPopupProperties?.let {
             PopupBox(
-                characters = charList.value,
+                characters = charList,
                 popupWidth = popupWidth,
                 popupHeight = popupHeight,
                 showPopup = visibleBox.value,

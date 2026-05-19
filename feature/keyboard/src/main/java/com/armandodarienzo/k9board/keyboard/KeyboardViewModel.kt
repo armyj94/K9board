@@ -29,7 +29,7 @@ class KeyboardViewModel @Inject constructor(
     private val wordRepositoryProvider: WordRepositoryProvider,
 ) : MviProcessor<KeyboardState, KeyboardAction, KeyboardEffect> {
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val effectDelegate = ChannelEffectDelegate<KeyboardEffect>()
     private val mviStore = MviStoreDelegate(
         initialState = KeyboardState(),
