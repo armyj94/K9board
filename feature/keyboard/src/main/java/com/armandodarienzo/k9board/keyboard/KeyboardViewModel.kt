@@ -114,7 +114,8 @@ class KeyboardViewModel @Inject constructor(
 
     private fun handleSwapWord() {
         val state = mviStore.state.value
-        val idx = state.words.indexOf(state.currentWord)
+        val currentText = state.currentWord?.text ?: return
+        val idx = state.words.indexOfFirst { it.text == currentText }
         if (idx >= 0 && idx + 1 < state.words.size) {
             mviStore.sendEvent(KeyboardEvent.WordSwapped(state.words[idx + 1]))
         } else {
