@@ -1,6 +1,7 @@
 package com.armandodarienzo.k9board.keyboard
 
 import android.text.InputType
+import androidx.compose.runtime.Immutable
 import com.armandodarienzo.k9board.model.DoubleSpaceCharacter
 import com.armandodarienzo.k9board.model.KeyboardCapsStatus
 import com.armandodarienzo.k9board.model.Word
@@ -9,6 +10,9 @@ import com.armandodarienzo.k9board.shared.substringAfterLastNotMatching
 import com.armandodarienzo.k9board.shared.substringBeforeFirstNotMatching
 import com.armandodarienzo.k9board.shared.ui.base.Reducer
 
+private val wordsRegex = WORDS_REGEX_STRING.toRegex()
+
+@Immutable
 data class KeyboardState(
     // UI-visible state
     val capsStatus: KeyboardCapsStatus = KeyboardCapsStatus.UPPER_CASE,
@@ -45,8 +49,6 @@ data class KeyboardState(
     val keyCodesIndex: Int = 0,
     val keyTimer: Long = 0L,
 ) : Reducer.ViewState {
-
-    private val wordsRegex: Regex get() = WORDS_REGEX_STRING.toRegex()
 
     fun getWordTextBeforeCursor(): String = textBeforeCursor.substringAfterLastNotMatching(wordsRegex)
 
